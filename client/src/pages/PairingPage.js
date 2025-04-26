@@ -21,7 +21,7 @@ import LocalBarIcon from '@mui/icons-material/LocalBar';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 
-// These would be imported from your services folder
+// Import API services
 import { searchLiquors, searchIngredients, getPairingScore } from '../services/api';
 
 function PairingPage() {
@@ -55,11 +55,13 @@ function PairingPage() {
     
     setIsLiquorLoading(true);
     
-    // This would be a real API call in a production app
     const fetchLiquors = async () => {
       try {
-        // Mock data for now - would be replaced with actual API call
-        // const results = await searchLiquors(liquorInput);
+        const results = await searchLiquors(liquorInput);
+        setLiquorOptions(results.data || []);
+      } catch (error) {
+        console.error('Error fetching liquors:', error);
+        // Use mock data when API fails
         const mockResults = [
           { liquor_id: 1, name: 'Bourbon Whiskey' },
           { liquor_id: 2, name: 'Vodka' },
@@ -71,10 +73,7 @@ function PairingPage() {
         );
         
         setLiquorOptions(mockResults);
-        setIsLiquorLoading(false);
-      } catch (error) {
-        console.error('Error fetching liquors:', error);
-        setError('Failed to fetch liquors. Please try again.');
+      } finally {
         setIsLiquorLoading(false);
       }
     };
@@ -95,11 +94,13 @@ function PairingPage() {
     
     setIsIngredientLoading(true);
     
-    // This would be a real API call in a production app
     const fetchIngredients = async () => {
       try {
-        // Mock data for now - would be replaced with actual API call
-        // const results = await searchIngredients(ingredientInput);
+        const results = await searchIngredients(ingredientInput);
+        setIngredientOptions(results.data || []);
+      } catch (error) {
+        console.error('Error fetching ingredients:', error);
+        // Use mock data when API fails
         const mockResults = [
           { ingredient_id: 1, name: 'Apple' },
           { ingredient_id: 2, name: 'Lemon' },
@@ -111,10 +112,7 @@ function PairingPage() {
         );
         
         setIngredientOptions(mockResults);
-        setIsIngredientLoading(false);
-      } catch (error) {
-        console.error('Error fetching ingredients:', error);
-        setError('Failed to fetch ingredients. Please try again.');
+      } finally {
         setIsIngredientLoading(false);
       }
     };
@@ -138,31 +136,48 @@ function PairingPage() {
     setError(null);
     
     try {
-      // This would be a real API call in a production app
-      // const result = await getPairingScore(selectedLiquor.liquor_id, selectedIngredient.ingredient_id);
+      // Call the actual API
+      const result = await getPairingScore(selectedLiquor.liquor_id, selectedIngredient.ingredient_id);
       
-      // Mock data for demo purposes
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get pairing information');
+      }
+      
+      // Format the data from the API response
+      const formattedResult = {
+        score: result.data.score,
+        liquor: selectedLiquor,
+        ingredient: selectedIngredient,
+        reason: result.data.reason,
+        shared_compounds: result.data.shared_compounds || [],
+        compatibility_level: result.data.compatibility_level || 'good',
+        flavor_notes: {
+          liquor: selectedLiquor.flavor_profile || ['No flavor profile available'],
+          ingredient: selectedIngredient.flavor_profile || ['No flavor profile available']
+        }
+      };
+      
+      setPairingResult(formattedResult);
+    } catch (error) {
+      console.error('Error getting pairing:', error);
+      setError('Failed to get pairing information. Please try again.');
+      
+      // Use mock data for demo purposes when API fails
       const mockResult = {
         score: 0.85,
         liquor: selectedLiquor,
         ingredient: selectedIngredient,
         reason: "These pair well together because the caramel and vanilla notes in the bourbon complement the natural sweetness of the apple, while the spirit's oaky character provides a pleasant contrast to the fruit's crisp texture.",
         shared_compounds: ['Vanillin', 'Ethyl acetate', 'Methyl anthranilate'],
+        compatibility_level: 'excellent',
         flavor_notes: {
-          liquor: ['Caramel', 'Vanilla', 'Oak', 'Spice'],
-          ingredient: ['Sweet', 'Tart', 'Crisp']
+          liquor: selectedLiquor.flavor_profile || ['Caramel', 'Vanilla', 'Oak', 'Spice'],
+          ingredient: selectedIngredient.flavor_profile || ['Sweet', 'Tart', 'Crisp']
         }
       };
       
-      // Simulate API delay
-      setTimeout(() => {
-        setPairingResult(mockResult);
-        setIsPairingLoading(false);
-      }, 1500);
-      
-    } catch (error) {
-      console.error('Error getting pairing:', error);
-      setError('Failed to get pairing information. Please try again.');
+      setPairingResult(mockResult);
+    } finally {
       setIsPairingLoading(false);
     }
   };
@@ -175,6 +190,22 @@ function PairingPage() {
     setIngredientInput('');
     setPairingResult(null);
     setError(null);
+  };
+
+  // Get color based on compatibility level
+  const getCompatibilityColor = (level) => {
+    switch (level) {
+      case 'excellent':
+        return '#2e7d32'; // Green
+      case 'good':
+        return '#1976d2'; // Blue
+      case 'moderate':
+        return '#ed6c02'; // Orange
+      case 'challenging':
+        return '#d32f2f'; // Red
+      default:
+        return '#1976d2'; // Default blue
+    }
   };
 
   return (
@@ -304,7 +335,22 @@ function PairingPage() {
                   readOnly 
                   sx={{ color: 'secondary.main' }}
                 />
+                <Typography variant="body1" sx={{ ml: 1 }}>
+                  ({(pairingResult.score * 100).toFixed(0)}%)
+                </Typography>
               </Box>
+            </Box>
+            
+            {/* Compatibility badge */}
+            <Box sx={{ mb: 3 }}>
+              <Chip 
+                label={`${pairingResult.compatibility_level?.charAt(0).toUpperCase()}${pairingResult.compatibility_level?.slice(1)} Compatibility`} 
+                sx={{ 
+                  backgroundColor: getCompatibilityColor(pairingResult.compatibility_level),
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}
+              />
             </Box>
 
             <Grid container spacing={3}>

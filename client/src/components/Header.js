@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -8,13 +8,16 @@ import {
   Typography,
   Menu,
   Container,
+  Avatar,
   Button,
+  Tooltip,
   MenuItem,
   useMediaQuery,
   useTheme
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import LocalBarIcon from '@mui/icons-material/LocalBar';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const pages = [
   { name: 'Home', path: '/' },
@@ -24,17 +27,33 @@ const pages = [
   { name: 'About', path: '/about' }
 ];
 
-function Header() {
+function Header({ isAuthenticated, user, onLogout }) {
   const [anchorElNav, setAnchorElNav] = useState(null);
+  const [anchorElUser, setAnchorElUser] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
 
+  const handleOpenUserMenu = (event) => {
+    setAnchorElUser(event.currentTarget);
+  };
+
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
+  };
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
+  
+  const handleLogout = () => {
+    handleCloseUserMenu();
+    onLogout();
+    navigate('/');
   };
 
   return (
@@ -139,25 +158,63 @@ function Header() {
             ))}
           </Box>
 
-          {/* Login/Profile Button - would be conditional based on auth state */}
+          {/* Auth/Profile Menu */}
           <Box sx={{ flexGrow: 0 }}>
-            <Button
-              component={RouterLink}
-              to="/login"
-              color="inherit"
-              variant="outlined"
-              sx={{ 
-                ml: 2, 
-                display: isMobile ? 'none' : 'block',
-                border: '1px solid white',
-                '&:hover': {
+            {isAuthenticated ? (
+              <>
+                <Tooltip title="Open profile menu">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <Avatar alt={user?.username || 'User'} sx={{ bgcolor: 'secondary.main' }}>
+                      {user?.username ? user.username.charAt(0).toUpperCase() : <AccountCircleIcon />}
+                    </Avatar>
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                >
+                  <MenuItem component={RouterLink} to="/profile" onClick={handleCloseUserMenu}>
+                    <Typography textAlign="center">Profile</Typography>
+                  </MenuItem>
+                  <MenuItem component={RouterLink} to="/favorites" onClick={handleCloseUserMenu}>
+                    <Typography textAlign="center">My Favorites</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout}>
+                    <Typography textAlign="center">Logout</Typography>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <Button
+                component={RouterLink}
+                to="/login"
+                color="inherit"
+                variant="outlined"
+                sx={{ 
+                  ml: 2, 
+                  display: isMobile ? 'none' : 'block',
                   border: '1px solid white',
-                  backgroundColor: 'rgba(255,255,255,0.1)'
-                }
-              }}
-            >
-              Login
-            </Button>
+                  '&:hover': {
+                    border: '1px solid white',
+                    backgroundColor: 'rgba(255,255,255,0.1)'
+                  }
+                }}
+              >
+                Login
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </Container>
