@@ -1,0 +1,39 @@
+{
+  "name": "ai-pairing-system",
+  "version": "1.0.0",
+  "description": "AI-based explainable food and drink pairing system",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm start",
+    "client": "cd client && npm start",
+    "install-all": "npm install && npm run install-server && npm run install-client",
+    "install-server": "cd server && npm install",
+    "install-client": "cd client && npm install",
+    "build": "npm run build-client",
+    "build-client": "cd client && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gumwoo/ai-pairingsystem.git"
+  },
+  "keywords": [
+    "ai",
+    "food-pairing",
+    "recommendation-system",
+    "explainable-ai",
+    "mongodb",
+    "express",
+    "react",
+    "node"
+  ],
+  "author": "gumwoo <rkdrjsdn1000@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gumwoo/ai-pairingsystem/issues"
+  },
+  "homepage": "https://github.com/gumwoo/ai-pairingsystem#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
