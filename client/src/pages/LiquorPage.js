@@ -191,10 +191,10 @@ function LiquorPage() {
   return (
     <Container maxWidth="lg">
       <Typography variant="h3" align="center" gutterBottom sx={{ mt: 4 }}>
-        Explore Liquors
+        주류 탐색
       </Typography>
       <Typography variant="subtitle1" align="center" paragraph sx={{ mb: 4 }}>
-        Discover various spirits and learn about their flavor profiles
+        다양한 주류를 발견하고 그들의 플레이버 프로파일에 대해 알아보세요
       </Typography>
 
       {/* Search and Filter Bar */}
@@ -210,7 +210,7 @@ function LiquorPage() {
         }}
       >
         <TextField
-          label="Search Liquors"
+          label="주류 검색"
           variant="outlined"
           fullWidth
           value={searchQuery}
@@ -241,13 +241,13 @@ function LiquorPage() {
         <FormControl sx={{ minWidth: 150 }}>
           <InputLabel id="filter-type-label">
             <FilterListIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Filter By Type
+            유형별 필터링
           </InputLabel>
           <Select
             labelId="filter-type-label"
             id="filter-type"
             value={filterType}
-            label="Filter By Type"
+            label="유형별 필터링"
             onChange={handleFilterChange}
           >
             <MenuItem value="">All Types</MenuItem>
@@ -260,20 +260,20 @@ function LiquorPage() {
         <FormControl sx={{ minWidth: 150 }}>
           <InputLabel id="sort-by-label">
             <SortIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Sort By
+            정렬 기준
           </InputLabel>
           <Select
             labelId="sort-by-label"
             id="sort-by"
             value={sortBy}
-            label="Sort By"
+            label="정렬 기준"
             onChange={handleSortChange}
           >
-            <MenuItem value="name">Name (A-Z)</MenuItem>
-            <MenuItem value="name_desc">Name (Z-A)</MenuItem>
-            <MenuItem value="type">Type</MenuItem>
-            <MenuItem value="origin">Origin</MenuItem>
-            <MenuItem value="alcohol_content">Alcohol Content</MenuItem>
+            <MenuItem value="name">이름 (A-Z)</MenuItem>
+            <MenuItem value="name_desc">이름 (Z-A)</MenuItem>
+            <MenuItem value="type">유형</MenuItem>
+            <MenuItem value="origin">원산지</MenuItem>
+            <MenuItem value="alcohol_content">알코올 함량</MenuItem>
           </Select>
         </FormControl>
         
@@ -282,7 +282,7 @@ function LiquorPage() {
           type="submit"
           sx={{ height: 56 }}
         >
-          Search
+          검색
         </Button>
         
         {(searchQuery || filterType || sortBy !== 'name') && (
@@ -291,7 +291,7 @@ function LiquorPage() {
             onClick={handleClearFilters}
             sx={{ height: 56 }}
           >
-            Clear Filters
+            필터 초기화
           </Button>
         )}
       </Box>
@@ -301,7 +301,7 @@ function LiquorPage() {
         <Box sx={{ mb: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           {searchQuery && (
             <Chip 
-              label={`Search: ${searchQuery}`} 
+              label={`검색: ${searchQuery}`} 
               onDelete={() => {
                 setSearchQuery('');
                 fetchLiquors();
@@ -310,7 +310,7 @@ function LiquorPage() {
           )}
           {filterType && (
             <Chip 
-              label={`Type: ${filterType}`} 
+              label={`유형: ${filterType}`} 
               onDelete={() => {
                 setFilterType('');
               }}
@@ -367,24 +367,24 @@ function LiquorPage() {
                           {liquor.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" gutterBottom>
-                          Type: {liquor.type || 'Unknown'}
+                          유형: {liquor.type || '알 수 없음'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" gutterBottom>
-                          Origin: {liquor.origin || 'Unknown'}
+                          원산지: {liquor.origin || '알 수 없음'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {liquor.description ? 
                             (liquor.description.length > 100 
                               ? `${liquor.description.substring(0, 100)}...` 
                               : liquor.description) 
-                            : 'No description available.'
+                            : '설명이 없습니다.'
                           }
                         </Typography>
                         
                         {liquor.flavor_profile && liquor.flavor_profile.length > 0 && (
                           <Box sx={{ mt: 2 }}>
                             <Typography variant="body2" sx={{ mb: 1 }}>
-                              Flavor Profile:
+                              플레이버 프로파일:
                             </Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                               {liquor.flavor_profile.map((flavor, index) => (
@@ -439,13 +439,13 @@ function LiquorPage() {
             >
               <LocalBarIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
               <Typography variant="h5" color="text.secondary" gutterBottom>
-                No liquors found
+                주류를 찾을 수 없습니다
               </Typography>
               <Typography variant="body1" color="text.secondary" paragraph>
-                Try adjusting your search criteria or explore different categories.
+                검색 기준을 조정하거나 다른 카테고리를 탐색해보세요.
               </Typography>
               <Button variant="contained" onClick={handleClearFilters}>
-                View All Liquors
+                모든 주류 보기
               </Button>
             </Box>
           )}

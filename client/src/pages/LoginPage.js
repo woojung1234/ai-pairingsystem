@@ -74,10 +74,10 @@ function LoginPage() {
       <Box sx={{ mt: 8, mb: 8 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h4" align="center" gutterBottom>
-            Log in to AI Pairing
+            AI 페어링 로그인
           </Typography>
           <Typography variant="body1" align="center" color="textSecondary" paragraph>
-            Enter your credentials to access your account
+            계정에 액세스하려면 로그인 정보를 입력하세요
           </Typography>
           
           {error && (
@@ -92,7 +92,7 @@ function LoginPage() {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="이메일 주소"
               name="email"
               autoComplete="email"
               autoFocus
@@ -111,7 +111,7 @@ function LoginPage() {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="비밀번호"
               type={showPassword ? 'text' : 'password'}
               id="password"
               autoComplete="current-password"
@@ -145,25 +145,25 @@ function LoginPage() {
               sx={{ mt: 3, mb: 2 }}
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Log In'}
+              {isLoading ? '로그인 중...' : '로그인'}
             </Button>
             
             <Grid container justifyContent="space-between">
               <Grid item>
                 <Link href="#" variant="body2">
-                  Forgot password?
+                  비밀번호를 잊으셨나요?
                 </Link>
               </Grid>
               <Grid item>
                 <Link component={RouterLink} to="/register" variant="body2">
-                  {"Don't have an account? Sign Up"}
+                  {"계정이 없으신가요? 회원가입"}
                 </Link>
               </Grid>
             </Grid>
             
             <Divider sx={{ mt: 4, mb: 4 }}>
               <Typography variant="body2" color="textSecondary">
-                OR
+                또는
               </Typography>
             </Divider>
             
@@ -173,7 +173,7 @@ function LoginPage() {
               color="primary"
               sx={{ mb: 2 }}
             >
-              Continue as Guest
+              게스트로 계속하기
             </Button>
           </Box>
         </Paper>

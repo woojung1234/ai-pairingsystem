@@ -204,16 +204,16 @@ function IngredientPage() {
   return (
     <Container maxWidth="lg">
       <Typography variant="h3" align="center" gutterBottom sx={{ mt: 4 }}>
-        Explore Ingredients
+        재료 탐색
       </Typography>
       <Typography variant="subtitle1" align="center" paragraph sx={{ mb: 4 }}>
-        Discover foods and ingredients to pair with your favorite spirits
+        좋아하는 주류와 페어링할 음식과 재료를 발견해보세요
       </Typography>
 
       {/* Search Bar */}
       <Box component="form" onSubmit={handleSearch} sx={{ mb: 4 }}>
         <TextField
-          label="Search Ingredients"
+          label="재료 검색"
           variant="outlined"
           fullWidth
           value={searchQuery}
@@ -249,7 +249,7 @@ function IngredientPage() {
             <Tab 
               key={category} 
               value={category} 
-              label={category === 'all' ? 'All Categories' : category} 
+              label={category === 'all' ? '모든 카테고리' : category} 
               sx={{ textTransform: 'capitalize' }}
             />
           ))}
@@ -260,7 +260,7 @@ function IngredientPage() {
       {searchQuery && (
         <Box sx={{ mb: 2 }}>
           <Chip 
-            label={`Search: ${searchQuery}`} 
+            label={`검색: ${searchQuery}`} 
             onDelete={clearSearch}
             color="primary"
             variant="outlined"
@@ -318,7 +318,7 @@ function IngredientPage() {
                         
                         {ingredient.category && (
                           <Typography variant="body2" color="text.secondary" gutterBottom>
-                            Category: {ingredient.category}
+                            카테고리: {ingredient.category}
                           </Typography>
                         )}
                         
@@ -327,14 +327,14 @@ function IngredientPage() {
                             (ingredient.description.length > 100 
                               ? `${ingredient.description.substring(0, 100)}...` 
                               : ingredient.description) 
-                            : 'No description available.'
+                            : '설명이 없습니다.'
                           }
                         </Typography>
                         
                         {ingredient.flavor_profile && ingredient.flavor_profile.length > 0 && (
                           <Box sx={{ mt: 2 }}>
                             <Typography variant="body2" sx={{ mb: 1 }}>
-                              Flavor Profile:
+                              플레이버 프로파일:
                             </Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                               {ingredient.flavor_profile.map((flavor, index) => (
@@ -389,10 +389,10 @@ function IngredientPage() {
             >
               <RestaurantIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
               <Typography variant="h5" color="text.secondary" gutterBottom>
-                No ingredients found
+                재료를 찾을 수 없습니다
               </Typography>
               <Typography variant="body1" color="text.secondary" paragraph>
-                Try adjusting your search criteria or explore different categories.
+                검색 기준을 조정하거나 다른 카테고리를 탐색해보세요.
               </Typography>
               <Button 
                 variant="contained" 
@@ -403,7 +403,7 @@ function IngredientPage() {
                   fetchIngredients();
                 }}
               >
-                View All Ingredients
+                모든 재료 보기
               </Button>
             </Box>
           )}

@@ -37,11 +37,11 @@ function NotFoundPage() {
           </Typography>
           
           <Typography variant="h4" gutterBottom>
-            Page Not Found
+            페이지를 찾을 수 없습니다
           </Typography>
           
           <Typography variant="body1" paragraph sx={{ mb: 4 }}>
-            The page you're looking for doesn't exist or has been moved.
+            찾으시는 페이지가 존재하지 않거나 이동되었습니다.
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 2 }}>
@@ -52,7 +52,7 @@ function NotFoundPage() {
               to="/"
               size="large"
             >
-              Go to Home
+              홈으로 이동
             </Button>
             
             <Button 
@@ -62,7 +62,7 @@ function NotFoundPage() {
               to="/pairing"
               size="large"
             >
-              Try Pairing Tool
+              페어링 도구 사용하기
             </Button>
           </Box>
         </Paper>

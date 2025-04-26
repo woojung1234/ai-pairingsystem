@@ -211,10 +211,10 @@ function PairingPage() {
   return (
     <Container maxWidth="lg">
       <Typography variant="h3" align="center" gutterBottom sx={{ mt: 4 }}>
-        Find Perfect Pairings
+        완벽한 페어링 찾기
       </Typography>
       <Typography variant="subtitle1" align="center" paragraph sx={{ mb: 4 }}>
-        Discover the best food and drink combinations with our AI-powered recommendation system.
+        AI 기반 추천 시스템으로 최고의 음식과 음료 조합을 발견해보세요.
       </Typography>
 
       {/* Search Form */}
@@ -236,7 +236,7 @@ function PairingPage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Select a Liquor"
+                  label="주류 선택"
                   fullWidth
                   InputProps={{
                     ...params.InputProps,
@@ -274,7 +274,7 @@ function PairingPage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Select an Ingredient"
+                  label="재료 선택"
                   fullWidth
                   InputProps={{
                     ...params.InputProps,
@@ -305,7 +305,7 @@ function PairingPage() {
               disabled={!selectedLiquor || !selectedIngredient || isPairingLoading}
               sx={{ height: '56px' }}
             >
-              {isPairingLoading ? <CircularProgress size={24} color="inherit" /> : 'Find Pairing'}
+              {isPairingLoading ? <CircularProgress size={24} color="inherit" /> : '페어링 찾기'}
             </Button>
           </Grid>
         </Grid>
@@ -323,11 +323,11 @@ function PairingPage() {
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Typography variant="h4" component="div">
-                Pairing Result
+                페어링 결과
               </Typography>
               <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
                 <Typography variant="h5" component="span" sx={{ mr: 1 }}>
-                  Score:
+                  점수:
                 </Typography>
                 <Rating 
                   value={pairingResult.score * 5} 
@@ -344,7 +344,7 @@ function PairingPage() {
             {/* Compatibility badge */}
             <Box sx={{ mb: 3 }}>
               <Chip 
-                label={`${pairingResult.compatibility_level?.charAt(0).toUpperCase()}${pairingResult.compatibility_level?.slice(1)} Compatibility`} 
+                label={`${pairingResult.compatibility_level?.charAt(0).toUpperCase()}${pairingResult.compatibility_level?.slice(1)} 호환성`} 
                 sx={{ 
                   backgroundColor: getCompatibilityColor(pairingResult.compatibility_level),
                   color: 'white',
@@ -364,7 +364,7 @@ function PairingPage() {
                       </Typography>
                     </Box>
                     <Typography variant="body2" color="text.secondary" paragraph>
-                      Flavor Profile:
+                      플레이버 프로파일:
                     </Typography>
                     <Box sx={{ mb: 2 }}>
                       {pairingResult.flavor_notes.liquor.map((note, index) => (
@@ -390,7 +390,7 @@ function PairingPage() {
                       </Typography>
                     </Box>
                     <Typography variant="body2" color="text.secondary" paragraph>
-                      Flavor Profile:
+                      플레이버 프로파일:
                     </Typography>
                     <Box sx={{ mb: 2 }}>
                       {pairingResult.flavor_notes.ingredient.map((note, index) => (
@@ -410,7 +410,7 @@ function PairingPage() {
             <Box sx={{ mt: 3 }}>
               <Typography variant="h5" gutterBottom>
                 <TipsAndUpdatesIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Why this pairing works:
+                이 페어링이 잘 어울리는 이유:
               </Typography>
               <Typography paragraph>
                 {pairingResult.reason}
@@ -420,7 +420,7 @@ function PairingPage() {
             {pairingResult.shared_compounds && pairingResult.shared_compounds.length > 0 && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="h6" gutterBottom>
-                  Shared Flavor Compounds:
+                  공통 플레이버 화합물:
                 </Typography>
                 <Box>
                   {pairingResult.shared_compounds.map((compound, index) => (
@@ -439,7 +439,7 @@ function PairingPage() {
 
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
               <Button variant="outlined" onClick={handleReset}>
-                Try Another Pairing
+                다른 페어링 시도하기
               </Button>
             </Box>
           </CardContent>
@@ -448,7 +448,7 @@ function PairingPage() {
 
       {/* How It Works Section */}
       <Typography variant="h4" align="center" gutterBottom sx={{ mt: 6, mb: 3 }}>
-        How It Works
+        작동 방법
       </Typography>
       
       <Grid container spacing={3} sx={{ mb: 6 }}>
@@ -456,10 +456,10 @@ function PairingPage() {
           <Paper elevation={2} sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
               <Box component="span" sx={{ mr: 1, fontWeight: 'bold', color: 'primary.main' }}>1.</Box>
-              Select Your Items
+              항목 선택
             </Typography>
             <Typography>
-              Choose a liquor and an ingredient from our comprehensive database. You can search by name to quickly find what you're looking for.
+              종합적인 데이터베이스에서 주류와 재료를 선택하세요. 이름으로 검색하여 원하는 항목을 빠르게 찾을 수 있습니다.
             </Typography>
           </Paper>
         </Grid>
@@ -468,10 +468,10 @@ function PairingPage() {
           <Paper elevation={2} sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
               <Box component="span" sx={{ mr: 1, fontWeight: 'bold', color: 'primary.main' }}>2.</Box>
-              AI Analysis
+              AI 분석
             </Typography>
             <Typography>
-              Our AI model analyzes the chemical compounds, flavor profiles, and traditional pairings to determine compatibility and generate a score.
+              우리의 AI 모델은 화학 화합물, 플레이버 프로파일, 그리고 전통적인 페어링을 분석하여 호환성을 결정하고 점수를 생성합니다.
             </Typography>
           </Paper>
         </Grid>
@@ -480,10 +480,10 @@ function PairingPage() {
           <Paper elevation={2} sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
               <Box component="span" sx={{ mr: 1, fontWeight: 'bold', color: 'primary.main' }}>3.</Box>
-              Explained Results
+              설명된 결과
             </Typography>
             <Typography>
-              View the pairing score and read a detailed explanation of why the combination works well, including shared flavor compounds and complementary notes.
+              페어링 점수를 확인하고 공통 플레이버 화합물과 상호 보완적인 노트를 포함하여 왜 이 조합이 잘 작동하는지에 대한 상세한 설명을 읽어보세요.
             </Typography>
           </Paper>
         </Grid>

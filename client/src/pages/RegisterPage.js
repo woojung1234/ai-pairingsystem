@@ -79,41 +79,41 @@ function RegisterPage() {
     
     // Username validation
     if (!formData.username.trim()) {
-      errors.username = 'Username is required';
+      errors.username = '사용자 이름이 필요합니다';
       isValid = false;
     } else if (formData.username.length < 3) {
-      errors.username = 'Username must be at least 3 characters';
+      errors.username = '사용자 이름은 최소 3자 이상이어야 합니다';
       isValid = false;
     }
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
-      errors.email = 'Email is required';
+      errors.email = '이메일이 필요합니다';
       isValid = false;
     } else if (!emailRegex.test(formData.email)) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = '유효한 이메일 주소를 입력해주세요';
       isValid = false;
     }
     
     // Password validation
     if (!formData.password) {
-      errors.password = 'Password is required';
+      errors.password = '비밀번호가 필요합니다';
       isValid = false;
     } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+      errors.password = '비밀번호는 최소 6자 이상이어야 합니다';
       isValid = false;
     }
     
     // Confirm password validation
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = '비밀번호가 일치하지 않습니다';
       isValid = false;
     }
     
     // Terms agreement validation
     if (!formData.agreeTerms) {
-      errors.agreeTerms = 'You must agree to the terms and conditions';
+      errors.agreeTerms = '이용약관에 동의해야 합니다';
       isValid = false;
     }
     
@@ -148,7 +148,7 @@ function RegisterPage() {
       const response = await registerUser(registerData);
       console.log('Registration successful:', response);
       
-      setSuccessMessage('Registration successful! You can now log in.');
+      setSuccessMessage('회원가입이 성공했습니다! 이제 로그인할 수 있습니다.');
       
       // Redirect to login page after 2 seconds
       setTimeout(() => {
@@ -156,7 +156,7 @@ function RegisterPage() {
       }, 2000);
     } catch (error) {
       console.error('Registration error:', error);
-      setError(error.response?.data?.error || 'Registration failed. Please try again.');
+      setError(error.response?.data?.error || '회원가입에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -167,10 +167,10 @@ function RegisterPage() {
       <Box sx={{ mt: 8, mb: 8 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h4" align="center" gutterBottom>
-            Create an Account
+            계정 만들기
           </Typography>
           <Typography variant="body1" align="center" color="textSecondary" paragraph>
-            Join AI Pairing to save your favorite pairings and get personalized recommendations
+            AI 페어링에 가입하여 즐겨찾기한 페어링을 저장하고 개인화된 추천을 받아보세요
           </Typography>
           
           {error && (
@@ -191,7 +191,7 @@ function RegisterPage() {
               required
               fullWidth
               id="username"
-              label="Username"
+              label="사용자 이름"
               name="username"
               autoComplete="username"
               autoFocus
@@ -213,7 +213,7 @@ function RegisterPage() {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="이메일 주소"
               name="email"
               autoComplete="email"
               value={formData.email}
@@ -234,7 +234,7 @@ function RegisterPage() {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="비밀번호"
               type={showPassword ? 'text' : 'password'}
               id="password"
               autoComplete="new-password"
@@ -267,7 +267,7 @@ function RegisterPage() {
               required
               fullWidth
               name="confirmPassword"
-              label="Confirm Password"
+              label="비밀번호 확인"
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
               autoComplete="new-password"
@@ -304,7 +304,7 @@ function RegisterPage() {
                   color="primary" 
                 />
               }
-              label="I agree to the terms and conditions"
+              label="이용약관에 동의합니다"
               sx={{ mt: 2 }}
             />
             {formErrors.agreeTerms && (
@@ -321,20 +321,20 @@ function RegisterPage() {
               sx={{ mt: 3, mb: 2 }}
               disabled={isLoading}
             >
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
+              {isLoading ? '계정 생성 중...' : '회원가입'}
             </Button>
             
             <Grid container justifyContent="flex-end">
               <Grid item>
                 <Link component={RouterLink} to="/login" variant="body2">
-                  Already have an account? Sign in
+                  이미 계정이 있으신가요? 로그인하기
                 </Link>
               </Grid>
             </Grid>
             
             <Divider sx={{ mt: 4, mb: 4 }}>
               <Typography variant="body2" color="textSecondary">
-                OR
+                또는
               </Typography>
             </Divider>
             
@@ -346,7 +346,7 @@ function RegisterPage() {
               component={RouterLink}
               to="/"
             >
-              Continue as Guest
+              게스트로 계속하기
             </Button>
           </Box>
         </Paper>

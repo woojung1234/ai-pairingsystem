@@ -77,11 +77,10 @@ function AboutPage() {
       {/* How it Works Section */}
       <Paper elevation={2} sx={{ p: { xs: 3, md: 5 }, mb: 8, borderRadius: 2 }}>
         <Typography variant="h4" align="center" gutterBottom>
-          How Our Technology Works
+          우리의 기술이 작동하는 방법
         </Typography>
         <Typography align="center" paragraph sx={{ mb: 4 }}>
-          AI Pairing is powered by our proprietary FlavorDiffusion model, combining graph neural networks
-          with culinary expertise to create a robust recommendation system.
+          AI 페어링은 당사의 독점 FlavorDiffusion 모델을 통해 구동되며, 그래프 신경망과 요리 전문 지식을 결합하여 강력한 추천 시스템을 만듭니다.
         </Typography>
 
         <Grid container spacing={4}>
@@ -92,11 +91,10 @@ function AboutPage() {
               </Box>
               <CardContent>
                 <Typography variant="h6" align="center" gutterBottom>
-                  Chemical Analysis
+                  화학적 분석
                 </Typography>
                 <Typography align="center">
-                  Our system analyzes thousands of chemical compounds found in foods and beverages,
-                  identifying shared elements that create harmony in flavor profiles.
+                  우리 시스템은 음식과 음료에서 발견되는 수천 가지의 화학 화합물을 분석하여 플레이버 프로파일의 조화를 이루는 공통 요소를 찾아냅니다.
                 </Typography>
               </CardContent>
             </Card>
@@ -109,11 +107,10 @@ function AboutPage() {
               </Box>
               <CardContent>
                 <Typography variant="h6" align="center" gutterBottom>
-                  Machine Learning
+                  머신러닝
                 </Typography>
                 <Typography align="center">
-                  Our AI model learns from traditional pairings, expert recommendations, and user
-                  feedback to continuously improve its recommendations and explanations.
+                  우리의 AI 모델은 전통적인 페어링, 전문가 추천, 그리고 사용자 피드백을 통해 학습하여 추천과 설명을 지속적으로 개선합니다.
                 </Typography>
               </CardContent>
             </Card>
@@ -126,11 +123,10 @@ function AboutPage() {
               </Box>
               <CardContent>
                 <Typography variant="h6" align="center" gutterBottom>
-                  Explainable AI
+                  설명 가능한 AI
                 </Typography>
                 <Typography align="center">
-                  Unlike black-box systems, our technology provides clear explanations for
-                  why certain pairings work, helping users learn and discover new combinations.
+                  블랙박스 시스템과 달리, 우리의 기술은 특정 페어링이 왜 잘 작동하는지에 대한 명확한 설명을 제공하여 사용자가 이해하고 새로운 조합을 발견할 수 있도록 도와드립니다.
                 </Typography>
               </CardContent>
             </Card>
@@ -141,10 +137,10 @@ function AboutPage() {
       {/* Our Data Section */}
       <Box sx={{ mb: 8 }}>
         <Typography variant="h4" gutterBottom>
-          Our Data
+          우리의 데이터
         </Typography>
         <Typography paragraph>
-          The AI Pairing system is built on a comprehensive dataset including:
+          AI 페어링 시스템은 다음과 같은 포괄적인 데이터셋을 기반으로 구축되었습니다:
         </Typography>
 
         <List>
@@ -153,8 +149,8 @@ function AboutPage() {
               <DataObjectIcon color="primary" />
             </ListItemIcon>
             <ListItemText 
-              primary="Chemical Compound Database" 
-              secondary="Over 1,000 volatile compounds present in foods and beverages that contribute to aroma and flavor"
+              primary="화학 화합물 데이터베이스" 
+              secondary="향과 맛에 기여하는 음식과 음료에 포함된 1,000개 이상의 휘발성 화합물"
             />
           </ListItem>
           <ListItem>
@@ -162,8 +158,8 @@ function AboutPage() {
               <LocalBarIcon color="primary" />
             </ListItemIcon>
             <ListItemText 
-              primary="Extensive Spirits Catalog" 
-              secondary="Detailed profiles of hundreds of liquors across all major categories, including regional variations"
+              primary="광범위한 주류 카탈로그" 
+              secondary="지역적 변형을 포함한 모든 주요 카테고리의 수백 가지 주류에 대한 상세한 프로파일"
             />
           </ListItem>
           <ListItem>
@@ -171,8 +167,8 @@ function AboutPage() {
               <SchoolIcon color="primary" />
             </ListItemIcon>
             <ListItemText 
-              primary="Culinary Knowledge Base" 
-              secondary="Traditional pairings from diverse culinary traditions around the world"
+              primary="요리 지식 베이스" 
+              secondary="전 세계 다양한 요리 전통에서 기인한 전통적인 페어링"
             />
           </ListItem>
           <ListItem>
@@ -180,26 +176,24 @@ function AboutPage() {
               <GroupsIcon color="primary" />
             </ListItemIcon>
             <ListItemText 
-              primary="User Preference Data" 
-              secondary="Anonymized feedback and ratings that help our system learn from collective wisdom"
+              primary="사용자 선호 데이터" 
+              secondary="우리 시스템이 집단 지혜를 통해 학습하도록 도와주는 익명화된 피드백과 평가"
             />
           </ListItem>
         </List>
 
         <Typography paragraph sx={{ mt: 2 }}>
-          All data is ethically sourced and curated by our team of food scientists, mixologists, and 
-          AI researchers to ensure the highest quality recommendations.
+          모든 데이터는 최고 품질의 추천을 보장하기 위해 음식 과학자, 믹솔로지스트, AI 연구원으로 구성된 우리 팀에 의해 윤리적으로 수집되고 정리됩니다.
         </Typography>
       </Box>
 
       {/* Team Section */}
       <Box sx={{ mb: 8 }}>
         <Typography variant="h4" gutterBottom>
-          Our Team
+          우리 팀
         </Typography>
         <Typography paragraph sx={{ mb: 4 }}>
-          AI Pairing is developed by a passionate team of researchers, engineers, and culinary experts
-          committed to revolutionizing the world of flavor pairings.
+          AI 페어링은 플레이버 페어링 영역을 혁신하는데 진정성을 가진 연구원, 엔지니어, 요리 전문가로 구성된 팀에 의해 개발되었습니다.
         </Typography>
 
         <Grid container spacing={4}>
@@ -306,10 +300,10 @@ function AboutPage() {
         }}
       >
         <Typography variant="h4" gutterBottom>
-          Ready to discover amazing pairings?
+          놀라운 페어링을 발견할 준비가 되셨나요?
         </Typography>
         <Typography variant="body1" paragraph sx={{ mb: 3 }}>
-          Start exploring our database of liquors and ingredients to find your perfect match.
+          주류와 재료 데이터베이스를 탐색하여 완벽한 조합을 찾아보세요.
         </Typography>
         <Button 
           variant="contained" 
@@ -318,53 +312,49 @@ function AboutPage() {
           component={RouterLink}
           to="/pairing"
         >
-          Try the Pairing Tool
+          페어링 도구 사용하기
         </Button>
       </Paper>
 
       {/* FAQ Section */}
       <Box sx={{ mb: 8 }}>
         <Typography variant="h4" gutterBottom>
-          Frequently Asked Questions
+          자주 묻는 질문
         </Typography>
         
         <Box sx={{ mt: 3 }}>
           <Typography variant="h6" gutterBottom>
-            How accurate are the recommendations?
+            추천의 정확도는 어떠한가요?
           </Typography>
           <Typography paragraph>
-            Our system achieves over 85% agreement with expert sommelier and mixologist recommendations in
-            blind tests. The model is continuously improved based on user feedback and new research.
+            우리 시스템은 가리운 테스트에서 전문 솔멤리에와 믹솔로지스트 추천과 85% 이상 일치하는 결과를 보여줍니다. 모델은 사용자 피드백과 새로운 연구를 기반으로 지속적으로 개선됩니다.
           </Typography>
           
           <Divider sx={{ my: 3 }} />
           
           <Typography variant="h6" gutterBottom>
-            Can I use this for professional purposes?
+            전문적인 목적으로 사용할 수 있나요?
           </Typography>
           <Typography paragraph>
-            Absolutely! Many bartenders, chefs, and food industry professionals use our system to
-            discover new combinations and expand their repertoire.
+            어뗄걸요! 많은 바텐더, 요리사, 음식 산업 전문가들이 새로운 조합을 발견하고 레퍼토리를 확장하기 위해 우리 시스템을 사용합니다.
           </Typography>
           
           <Divider sx={{ my: 3 }} />
           
           <Typography variant="h6" gutterBottom>
-            How does the AI explain its recommendations?
+            AI가 어떻게 추천을 설명하나요?
           </Typography>
           <Typography paragraph>
-            Our AI analyzes shared flavor compounds, flavor intensity, cultural traditions, and user
-            preferences to generate explanations that are both scientifically accurate and easy to understand.
+            우리 AI는 공통 플레이버 화합물, 플레이버 강도, 문화적 전통, 사용자 취향을 분석하여 과학적으로 정확하면서도 이해하기 쉽게 설명을 생성합니다.
           </Typography>
           
           <Divider sx={{ my: 3 }} />
           
           <Typography variant="h6" gutterBottom>
-            Do I need to create an account?
+            계정을 만들어야 하나요?
           </Typography>
           <Typography paragraph>
-            You can use basic features without an account, but creating a free account allows you to save
-            favorite pairings, get personalized recommendations, and contribute feedback.
+            기본 기능은 계정 없이 사용할 수 있지만, 무료 계정을 만들면 즐겨찾기한 페어링 저장, 개인화된 추천 제공, 피드백 기여와 같은 기능을 사용할 수 있습니다.
           </Typography>
         </Box>
       </Box>
@@ -372,16 +362,16 @@ function AboutPage() {
       {/* Contact Section */}
       <Box sx={{ mb: 8 }}>
         <Typography variant="h4" gutterBottom>
-          Contact Us
+          문의하기
         </Typography>
         <Typography paragraph>
-          Have questions, suggestions, or feedback? We'd love to hear from you.
+          질문, 제안 또는 피드백이 있으시나요? 연락해주세요.
         </Typography>
         <Typography paragraph>
-          Email: contact@aipairing.com
+          이메일: contact@aipairing.com
         </Typography>
         <Typography paragraph>
-          Follow us on social media: @AIPairing
+          소셜 미디어에서 팔로우하세요: @AIPairing
         </Typography>
       </Box>
     </Container>

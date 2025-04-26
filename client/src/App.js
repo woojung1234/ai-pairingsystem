@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -83,26 +83,24 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <div className="App">
-          <Header isAuthenticated={isAuthenticated} user={user} onLogout={handleLogout} />
-          <main style={{ minHeight: 'calc(100vh - 160px)', padding: '20px' }}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/pairing" element={<PairingPage />} />
-              <Route path="/liquors" element={<LiquorPage />} />
-              <Route path="/liquors/:id" element={<LiquorDetailPage />} />
-              <Route path="/ingredients" element={<IngredientPage />} />
-              <Route path="/ingredients/:id" element={<IngredientDetailPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
+      <div className="App">
+        <Header isAuthenticated={isAuthenticated} user={user} onLogout={handleLogout} />
+        <main style={{ minHeight: 'calc(100vh - 160px)', padding: '20px' }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/pairing" element={<PairingPage />} />
+            <Route path="/liquors" element={<LiquorPage />} />
+            <Route path="/liquors/:id" element={<LiquorDetailPage />} />
+            <Route path="/ingredients" element={<IngredientPage />} />
+            <Route path="/ingredients/:id" element={<IngredientDetailPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </ThemeProvider>
   );
 }

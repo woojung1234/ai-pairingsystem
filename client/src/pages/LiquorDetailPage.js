@@ -171,7 +171,7 @@ function LiquorDetailPage() {
           to="/liquors"
           sx={{ mt: 2 }}
         >
-          Back to Liquors
+          주류 목록으로 돌아가기
         </Button>
       </Container>
     );
@@ -186,7 +186,7 @@ function LiquorDetailPage() {
         to="/liquors"
         sx={{ mt: 3, mb: 1 }}
       >
-        Back to Liquors
+        주류 목록으로 돌아가기
       </Button>
       
       {/* Main content */}
@@ -233,7 +233,7 @@ function LiquorDetailPage() {
                 }}
               >
                 <LocalBarIcon fontSize="small" />
-                {liquor.type || 'Unknown type'}
+                {liquor.type || '알 수 없는 유형'}
               </Typography>
               {liquor.origin && (
                 <Typography 
@@ -271,7 +271,7 @@ function LiquorDetailPage() {
           {/* Flavor profile section */}
           <Paper elevation={2} sx={{ mt: 3, p: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Flavor Profile
+              플레이버 프로파일
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {liquor.flavor_profile && liquor.flavor_profile.length > 0 ? (
@@ -285,7 +285,7 @@ function LiquorDetailPage() {
                 ))
               ) : (
                 <Typography color="text.secondary">
-                  No flavor profile available
+                  플레이버 프로파일이 없습니다
                 </Typography>
               )}
             </Box>
@@ -297,8 +297,8 @@ function LiquorDetailPage() {
           <Paper elevation={2} sx={{ p: 3 }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
               <Tabs value={tabValue} onChange={handleTabChange} aria-label="liquor details tabs">
-                <Tab label="Description" id="tab-0" />
-                <Tab label="Recommended Pairings" id="tab-1" />
+                <Tab label="설명" id="tab-0" />
+                <Tab label="추천 페어링" id="tab-1" />
               </Tabs>
             </Box>
             
@@ -307,7 +307,7 @@ function LiquorDetailPage() {
               {tabValue === 0 && (
                 <>
                   <Typography variant="h6" gutterBottom>
-                    About {liquor.name}
+                    {liquor.name} 소개
                   </Typography>
                   {liquor.description ? (
                     <Typography paragraph>
@@ -315,28 +315,28 @@ function LiquorDetailPage() {
                     </Typography>
                   ) : (
                     <Typography color="text.secondary">
-                      No description available for this liquor.
+                      이 주류에 대한 설명이 없습니다.
                     </Typography>
                   )}
                   
                   {/* Production process section - would be added with more detailed data */}
                   <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                    Production Process
+                    제조 과정
                   </Typography>
                   <Typography paragraph>
                     {liquor.type === 'Whiskey' ? 
-                      'Whiskey production begins with mashing grains, followed by fermentation, distillation, and aging in wooden barrels. The specific process varies by region and style, with bourbon requiring at least 51% corn mash and aging in new charred oak barrels.' 
-                      : 'The production process information is not available for this liquor.'}
+                      '위스키 제조는 곱을 마싱하는 과정으로 시작해서 발효, 증류, 그리고 나무 통에서의 숙성 과정을 거칩니다. 구체적인 과정은 지역과 스타일에 따라 다르며, 버번은 최소 51%의 옥수수 마시와 새로 탄화된 오크통에서의 숙성이 필요합니다.' 
+                      : '이 주류에 대한 제조 과정 정보가 없습니다.'}
                   </Typography>
                   
                   {/* Serving suggestions */}
                   <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                    Serving Suggestions
+                    서빙 제안
                   </Typography>
                   <Typography paragraph>
                     {liquor.type === 'Whiskey' ? 
-                      'This whiskey can be enjoyed neat, on the rocks, or in classic cocktails like an Old Fashioned or Manhattan. For the best tasting experience, serve in a Glencairn glass or a lowball tumbler at room temperature or with a single large ice cube.'
-                      : 'Serving suggestions are not available for this liquor.'}
+                      '이 위스키는 순음으로, 온 더 락(ice)(얼음과 함께), 또는 올드 패션드나 맨하탄과 같은 클래식 칵테일에 사용하여 즐길 수 있습니다. 최고의 시음을 위해서는 글렌케언 글래스나 로우볼 텀블러에 실온이나 하나의 큰 얼음 조각과 함께 제공하세요.'
+                      : '이 주류에 대한 서빙 제안이 없습니다.'}
                   </Typography>
                 </>
               )}
@@ -347,7 +347,7 @@ function LiquorDetailPage() {
               {tabValue === 1 && (
                 <>
                   <Typography variant="h6" gutterBottom>
-                    Best Food Pairings
+                    최고의 음식 페어링
                   </Typography>
                   
                   {recommendations && recommendations.length > 0 ? (
@@ -381,7 +381,7 @@ function LiquorDetailPage() {
                                 </Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, mb: 1 }}>
                                   <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                                    Pairing Score:
+                                    페어링 점수:
                                   </Typography>
                                   <Rating 
                                     value={rec.score * 5} 
@@ -396,7 +396,7 @@ function LiquorDetailPage() {
                                 {rec.ingredient.flavor_profile && rec.ingredient.flavor_profile.length > 0 && (
                                   <Box sx={{ mt: 1 }}>
                                     <Typography variant="body2" sx={{ mb: 0.5 }}>
-                                      Flavor Profile:
+                                      플레이버 프로파일:
                                     </Typography>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                       {rec.ingredient.flavor_profile.map((flavor, idx) => (
@@ -419,7 +419,7 @@ function LiquorDetailPage() {
                     </Grid>
                   ) : (
                     <Typography color="text.secondary">
-                      No pairing recommendations available for this liquor.
+                      이 주류에 대한 페어링 추천이 없습니다.
                     </Typography>
                   )}
                   
@@ -430,7 +430,7 @@ function LiquorDetailPage() {
                       component={RouterLink}
                       to="/pairing"
                     >
-                      Try Custom Pairings
+                      커스텀 페어링 시도하기
                     </Button>
                   </Box>
                 </>
@@ -441,7 +441,7 @@ function LiquorDetailPage() {
           {/* Related liquors section - would be populated with real data in production */}
           <Paper elevation={2} sx={{ p: 3, mt: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Similar Liquors
+              유사한 주류
             </Typography>
             <Grid container spacing={2}>
               {['Rye Whiskey', 'Scotch Whisky', 'Irish Whiskey'].map((name, index) => (
@@ -479,10 +479,10 @@ function LiquorDetailPage() {
       >
         <Box>
           <Typography variant="h6">
-            Want to explore more perfect pairings?
+            더 많은 완벽한 페어링을 탐색하고 싶으세요?
           </Typography>
           <Typography variant="body1">
-            Our AI can help you find the ideal combinations for any occasion.
+            우리의 AI가 어떤 상황에도 이상적인 조합을 찾는 데 도움을 드립니다.
           </Typography>
         </Box>
         <Button 
@@ -492,7 +492,7 @@ function LiquorDetailPage() {
           to="/pairing"
           sx={{ minWidth: 200 }}
         >
-          Try Our Pairing Tool
+          페어링 도구 사용해보기
         </Button>
       </Paper>
     </Container>

@@ -146,7 +146,7 @@ function IngredientDetailPage() {
           to="/ingredients"
           sx={{ mt: 2 }}
         >
-          Back to Ingredients
+          재료 목록으로 돌아가기
         </Button>
       </Container>
     );
@@ -161,7 +161,7 @@ function IngredientDetailPage() {
         to="/ingredients"
         sx={{ mt: 3, mb: 1 }}
       >
-        Back to Ingredients
+        재료 목록으로 돌아가기
       </Button>
       
       {/* Main content */}
@@ -218,7 +218,7 @@ function IngredientDetailPage() {
           {/* Flavor profile section */}
           <Paper elevation={2} sx={{ mt: 3, p: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Flavor Profile
+              플레이버 프로파일
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {ingredient.flavor_profile && ingredient.flavor_profile.length > 0 ? (
@@ -232,7 +232,7 @@ function IngredientDetailPage() {
                 ))
               ) : (
                 <Typography color="text.secondary">
-                  No flavor profile available
+                  플레이버 프로파일이 없습니다
                 </Typography>
               )}
             </Box>
@@ -241,7 +241,7 @@ function IngredientDetailPage() {
           {/* Nutrition info - would be populated with real data in production */}
           <Paper elevation={2} sx={{ mt: 3, p: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Nutrition Information
+              영양 정보
             </Typography>
             {ingredient.category === 'Fruits' ? (
               <List dense>
@@ -260,7 +260,7 @@ function IngredientDetailPage() {
               </List>
             ) : (
               <Typography color="text.secondary">
-                Nutrition information not available for this ingredient.
+                이 재료에 대한 영양 정보를 이용할 수 없습니다.
               </Typography>
             )}
           </Paper>
@@ -270,7 +270,7 @@ function IngredientDetailPage() {
         <Grid item xs={12} md={8}>
           <Paper elevation={2} sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              About {ingredient.name}
+              {ingredient.name} 소개
             </Typography>
             {ingredient.description ? (
               <Typography paragraph>
@@ -278,30 +278,30 @@ function IngredientDetailPage() {
               </Typography>
             ) : (
               <Typography color="text.secondary">
-                No description available for this ingredient.
+                이 재료에 대한 설명이 없습니다.
               </Typography>
             )}
             
             {/* Culinary uses section - would be populated with real data in production */}
             <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-              Culinary Uses
+              요리 용도
             </Typography>
             <Typography paragraph>
               {ingredient.category === 'Fruits' ? 
-                'This fruit can be enjoyed fresh, added to salads, used in baking, or incorporated into sauces and preserves. It pairs well with cinnamon, caramel, and vanilla in desserts, and can also add a sweet-tart element to savory dishes.' 
-                : 'Culinary use information is not available for this ingredient.'}
+                '이 과일은 생과일로 즉기거나, 샐러드에 추가하거나, 베이킹에 사용하거나, 소스와 보존식품에 포함할 수 있습니다. 디저트에서는 계피, 카라멜, 바닐라와 잘 어울리며, 쌍쌍한 음식에도 달콤한 맛을 더해줄 수 있습니다.' 
+                : '이 재료에 대한 요리 용도 정보가 없습니다.'}
             </Typography>
             
             {/* Seasonality section - would be populated with real data in production */}
             {ingredient.category === 'Fruits' || ingredient.category === 'Vegetables' ? (
               <>
                 <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                  Seasonality
+                  계절성
                 </Typography>
                 <Typography paragraph>
                   {ingredient.category === 'Fruits' ? 
-                    'This fruit is typically harvested in late summer through fall, with peak season from September to November in the Northern Hemisphere. For the best flavor and texture, look for firm fruits with bright, consistent coloring.' 
-                    : 'Seasonality information is not available for this ingredient.'}
+                    '이 과일은 일반적으로 늘여름부터 가을까지 수확되며, 북반구에서는 9월부터 11월까지가 제철입니다. 최고의 맛과 조직을 위해서는 단단하고 선명한 일정한 색상의 과일을 찾으세요.' 
+                    : '이 재료에 대한 계절성 정보가 없습니다.'}
                 </Typography>
               </>
             ) : null}
@@ -310,7 +310,7 @@ function IngredientDetailPage() {
           {/* Best pairings section */}
           <Paper elevation={2} sx={{ p: 3, mt: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Best Liquor Pairings
+              최고의 주류 페어링
             </Typography>
             
             {pairings && pairings.length > 0 ? (
@@ -371,7 +371,7 @@ function IngredientDetailPage() {
                           </Box>
                           
                           <Typography variant="body2" paragraph>
-                            <strong>Why it works: </strong>
+                            <strong>왜 잘 맞나요: </strong>
                             {pairing.explanation}
                           </Typography>
                         </CardContent>
@@ -382,7 +382,7 @@ function IngredientDetailPage() {
               </Grid>
             ) : (
               <Typography color="text.secondary">
-                No pairing recommendations available for this ingredient.
+                이 재료에 대한 페어링 추천이 없습니다.
               </Typography>
             )}
             
@@ -393,7 +393,7 @@ function IngredientDetailPage() {
                 component={RouterLink}
                 to="/pairing"
               >
-                Try Custom Pairings
+                커스텀 페어링 시도하기
               </Button>
             </Box>
           </Paper>
@@ -401,7 +401,7 @@ function IngredientDetailPage() {
           {/* Related ingredients section - would be populated with real data in production */}
           <Paper elevation={2} sx={{ p: 3, mt: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Similar Ingredients
+              유사한 재료
             </Typography>
             <Grid container spacing={2}>
               {['Pear', 'Quince', 'Peach'].map((name, index) => (
@@ -439,10 +439,10 @@ function IngredientDetailPage() {
       >
         <Box>
           <Typography variant="h6">
-            Want to discover more perfect combinations?
+            더 많은 완벽한 조합을 발견하고 싶으세요?
           </Typography>
           <Typography variant="body1">
-            Find the ideal liquor to pair with any food or ingredient.
+            어떤 음식이나 재료와도 잘 어운리는 이상적인 주류를 찾아보세요.
           </Typography>
         </Box>
         <Button 
@@ -452,7 +452,7 @@ function IngredientDetailPage() {
           to="/pairing"
           sx={{ minWidth: 200 }}
         >
-          Try Our Pairing Tool
+          페어링 도구 사용해보기
         </Button>
       </Paper>
     </Container>

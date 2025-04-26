@@ -20,11 +20,11 @@ import LocalBarIcon from '@mui/icons-material/LocalBar';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const pages = [
-  { name: 'Home', path: '/' },
-  { name: 'Pairing', path: '/pairing' },
-  { name: 'Liquors', path: '/liquors' },
-  { name: 'Ingredients', path: '/ingredients' },
-  { name: 'About', path: '/about' }
+  { name: '홈', path: '/' },
+  { name: '페어링', path: '/pairing' },
+  { name: '주류', path: '/liquors' },
+  { name: '재료', path: '/ingredients' },
+  { name: '소개', path: '/about' }
 ];
 
 function Header({ isAuthenticated, user, onLogout }) {
@@ -186,13 +186,13 @@ function Header({ isAuthenticated, user, onLogout }) {
                   onClose={handleCloseUserMenu}
                 >
                   <MenuItem component={RouterLink} to="/profile" onClick={handleCloseUserMenu}>
-                    <Typography textAlign="center">Profile</Typography>
+                    <Typography textAlign="center">프로필</Typography>
                   </MenuItem>
                   <MenuItem component={RouterLink} to="/favorites" onClick={handleCloseUserMenu}>
-                    <Typography textAlign="center">My Favorites</Typography>
+                    <Typography textAlign="center">내 즐겨찾기</Typography>
                   </MenuItem>
                   <MenuItem onClick={handleLogout}>
-                    <Typography textAlign="center">Logout</Typography>
+                    <Typography textAlign="center">로그아웃</Typography>
                   </MenuItem>
                 </Menu>
               </>
@@ -212,7 +212,7 @@ function Header({ isAuthenticated, user, onLogout }) {
                   }
                 }}
               >
-                Login
+                로그인
               </Button>
             )}
           </Box>
