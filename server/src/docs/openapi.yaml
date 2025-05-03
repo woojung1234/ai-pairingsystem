@@ -1,0 +1,236 @@
+openapi: 3.0.0
+info:
+  title: AI Pairing API
+  description: API for recommending optimal liquor and food pairings
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:5004
+    description: Development server
+  - url: https://api.ai-pairing.com
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: auth
+    description: Authentication endpoints
+  - name: liquors
+    description: Liquor management operations
+  - name: ingredients
+    description: Ingredient management operations
+  - name: compounds
+    description: Compound management operations
+  - name: edges
+    description: Node relationship management
+  - name: pairings
+    description: Pairing score prediction and management
+  - name: preferences
+    description: User preference management
+  - name: recommendations
+    description: Recommendation endpoints
+  - name: admin
+    description: Admin-only operations
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        isAdmin:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    
+    Liquor:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        ABV:
+          type: number
+          format: float
+        flavor_profile:
+          type: object
+        aroma_profile:
+          type: object
+        isFavorite:
+          type: boolean
+      
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        flavor_profile:
+          type: object
+        aroma_profile:
+          type: object
+        isDisliked:
+          type: boolean
+    
+    Compound:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+    
+    Edge:
+      type: object
+      properties:
+        id:
+          type: integer
+        source_node_id:
+          type: integer
+        target_node_id:
+          type: integer
+        relationship_type:
+          type: string
+        weight:
+          type: number
+          format: float
+    
+    Pairing:
+      type: object
+      properties:
+        id:
+          type: integer
+        liquor_id:
+          type: integer
+        ingredient_id:
+          type: integer
+        predicted_score:
+          type: number
+          format: float
+        explanation:
+          type: string
+        user_rating:
+          type: number
+          format: float
+        liquor_name:
+          type: string
+        ingredient_name:
+          type: string
+    
+    PredictPairingRequest:
+      type: object
+      required:
+        - liquorId
+        - ingredientId
+      properties:
+        liquorId:
+          type: integer
+        ingredientId:
+          type: integer
+        
+    Preference:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        preference_type:
+          type: string
+          enum: [favorite_liquor, favorite_ingredient, disliked_ingredient]
+        item_id:
+          type: integer
+    
+    PersonalRecommendation:
+      type: object
+      properties:
+        liquor:
+          $ref: '#/components/schemas/Liquor'
+        ingredient:
+          $ref: '#/components/schemas/Ingredient'
+        score:
+          type: number
+          format: float
+        explanation:
+          type: string
+    
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+paths:
+  # Authentication endpoints
+  /api/users/register:
+    post:
+      tags:
+        - auth
+      summary: Register a new user
+      description: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                name:
+                  type: string
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

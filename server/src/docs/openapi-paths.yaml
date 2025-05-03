@@ -1,0 +1,1788 @@
+paths:
+  # Authentication endpoints
+  /api/users/register:
+    post:
+      tags:
+        - auth
+      summary: Register a new user
+      description: Create a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                name:
+                  type: string
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/login:
+    post:
+      tags:
+        - auth
+      summary: Login user
+      description: Authenticate user and get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/logout:
+    post:
+      tags:
+        - auth
+      summary: Logout user
+      description: Logout current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                
+  /api/users/me:
+    get:
+      tags:
+        - auth
+      summary: Get current user
+      description: Get current authenticated user information
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/liquors:
+    get:
+      tags:
+        - liquors
+      summary: Get all liquors
+      description: Retrieve a list of all liquors
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+          description: Filter by category
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page
+      responses:
+        '200':
+          description: List of liquors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Liquor'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - liquors
+      summary: Create new liquor
+      description: Add a new liquor to the database
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - category
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                ABV:
+                  type: number
+                  format: float
+                flavor_profile:
+                  type: object
+                aroma_profile:
+                  type: object
+      responses:
+        '201':
+          description: Liquor created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Liquor'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/liquors/{id}:
+    get:
+      tags:
+        - liquors
+      summary: Get a specific liquor
+      description: Retrieve details of a specific liquor by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Liquor ID
+      responses:
+        '200':
+          description: Liquor details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Liquor'
+        '404':
+          description: Liquor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - liquors
+      summary: Update a liquor
+      description: Update details of a specific liquor
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Liquor ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                ABV:
+                  type: number
+                  format: float
+                flavor_profile:
+                  type: object
+                aroma_profile:
+                  type: object
+      responses:
+        '200':
+          description: Liquor updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Liquor'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Liquor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - liquors
+      summary: Delete a liquor
+      description: Delete a specific liquor
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Liquor ID
+      responses:
+        '200':
+          description: Liquor deleted successfully
+        '404':
+          description: Liquor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/liquors/search:
+    get:
+      tags:
+        - liquors
+      summary: Search liquors
+      description: Search liquors by name or description
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Liquor'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Ingredients endpoints
+  /api/ingredients:
+    get:
+      tags:
+        - ingredients
+      summary: Get all ingredients
+      description: Retrieve a list of all ingredients
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+          description: Filter by category
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page
+      responses:
+        '200':
+          description: List of ingredients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ingredient'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - ingredients
+      summary: Create new ingredient
+      description: Add a new ingredient to the database
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - category
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                flavor_profile:
+                  type: object
+                aroma_profile:
+                  type: object
+      responses:
+        '201':
+          description: Ingredient created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ingredients/{id}:
+    get:
+      tags:
+        - ingredients
+      summary: Get a specific ingredient
+      description: Retrieve details of a specific ingredient by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Ingredient ID
+      responses:
+        '200':
+          description: Ingredient details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '404':
+          description: Ingredient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - ingredients
+      summary: Update an ingredient
+      description: Update details of a specific ingredient
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Ingredient ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                flavor_profile:
+                  type: object
+                aroma_profile:
+                  type: object
+      responses:
+        '200':
+          description: Ingredient updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Ingredient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - ingredients
+      summary: Delete an ingredient
+      description: Delete a specific ingredient
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Ingredient ID
+      responses:
+        '200':
+          description: Ingredient deleted successfully
+        '404':
+          description: Ingredient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ingredients/search:
+    get:
+      tags:
+        - ingredients
+      summary: Search ingredients
+      description: Search ingredients by name or description
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ingredient'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/compounds:
+    get:
+      tags:
+        - compounds
+      summary: Get all compounds
+      description: Retrieve a list of all compounds
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page
+      responses:
+        '200':
+          description: List of compounds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Compound'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - compounds
+      summary: Create new compound
+      description: Add a new compound to the database
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Compound created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compound'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/compounds/{id}:
+    get:
+      tags:
+        - compounds
+      summary: Get a specific compound
+      description: Retrieve details of a specific compound by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Compound ID
+      responses:
+        '200':
+          description: Compound details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compound'
+        '404':
+          description: Compound not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - compounds
+      summary: Update a compound
+      description: Update details of a specific compound
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Compound ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Compound updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compound'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Compound not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - compounds
+      summary: Delete a compound
+      description: Delete a specific compound
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Compound ID
+      responses:
+        '200':
+          description: Compound deleted successfully
+        '404':
+          description: Compound not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Edges endpoints
+  /api/edges:
+    get:
+      tags:
+        - edges
+      summary: Get relationship edges
+      description: Retrieve relationship edges between nodes
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: sourceNodeId
+          schema:
+            type: integer
+          description: Filter by source node ID
+        - in: query
+          name: targetNodeId
+          schema:
+            type: integer
+          description: Filter by target node ID
+        - in: query
+          name: relationshipType
+          schema:
+            type: string
+          description: Filter by relationship type
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page
+      responses:
+        '200':
+          description: List of edges
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Edge'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - edges
+      summary: Create new edge
+      description: Create a new relationship edge between nodes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - source_node_id
+                - target_node_id
+                - relationship_type
+              properties:
+                source_node_id:
+                  type: integer
+                target_node_id:
+                  type: integer
+                relationship_type:
+                  type: string
+                weight:
+                  type: number
+                  format: float
+      responses:
+        '201':
+          description: Edge created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edge'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/edges/{id}:
+    get:
+      tags:
+        - edges
+      summary: Get a specific edge
+      description: Retrieve details of a specific edge by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Edge ID
+      responses:
+        '200':
+          description: Edge details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edge'
+        '404':
+          description: Edge not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - edges
+      summary: Update an edge
+      description: Update details of a specific edge
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Edge ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source_node_id:
+                  type: integer
+                target_node_id:
+                  type: integer
+                relationship_type:
+                  type: string
+                weight:
+                  type: number
+                  format: float
+      responses:
+        '200':
+          description: Edge updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Edge'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Edge not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - edges
+      summary: Delete an edge
+      description: Delete a specific edge
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Edge ID
+      responses:
+        '200':
+          description: Edge deleted successfully
+        '404':
+          description: Edge not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Pairings endpoints
+  /api/pairing/predict:
+    post:
+      tags:
+        - pairings
+      summary: Predict pairing score
+      description: Predict pairing score between a liquor and an ingredient
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictPairingRequest'
+      responses:
+        '200':
+          description: Pairing prediction successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  score:
+                    type: number
+                    format: float
+                  explanation:
+                    type: string
+                  liquorName:
+                    type: string
+                  ingredientName:
+                    type: string
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Liquor or ingredient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/pairings/{liquorId}/{ingredientId}:
+    get:
+      tags:
+        - pairings
+      summary: Get specific pairing
+      description: Get detailed information about a specific pairing
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: liquorId
+          required: true
+          schema:
+            type: integer
+          description: Liquor ID
+        - in: path
+          name: ingredientId
+          required: true
+          schema:
+            type: integer
+          description: Ingredient ID
+      responses:
+        '200':
+          description: Pairing details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pairing'
+        '404':
+          description: Pairing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/pairings/{id}/rate:
+    post:
+      tags:
+        - pairings
+      summary: Rate a pairing
+      description: Submit user rating for a specific pairing
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Pairing ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+              properties:
+                rating:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 5
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Rating submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pairing'
+        '400':
+          description: Invalid rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Pairing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Preferences endpoints
+  /api/preferences:
+    get:
+      tags:
+        - preferences
+      summary: Get user preferences
+      description: Get current user's preferences
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: preferenceType
+          schema:
+            type: string
+            enum: [favorite_liquor, favorite_ingredient, disliked_ingredient]
+          description: Filter by preference type
+      responses:
+        '200':
+          description: User preferences
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Preference'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - preferences
+      summary: Add preference
+      description: Add a new preference for the current user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - preferenceType
+                - itemId
+              properties:
+                preferenceType:
+                  type: string
+                  enum: [favorite_liquor, favorite_ingredient, disliked_ingredient]
+                itemId:
+                  type: integer
+      responses:
+        '201':
+          description: Preference added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preference'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/preferences/{id}:
+    delete:
+      tags:
+        - preferences
+      summary: Remove preference
+      description: Remove a preference by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Preference ID
+      responses:
+        '200':
+          description: Preference removed successfully
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Preference not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Recommendations endpoints
+  /api/recommendations/liquors/{liquorId}:
+    get:
+      tags:
+        - recommendations
+      summary: Get ingredient recommendations for liquor
+      description: Get recommended ingredients for a specific liquor
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: liquorId
+          required: true
+          schema:
+            type: integer
+          description: Liquor ID
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 5
+          description: Number of recommendations
+      responses:
+        '200':
+          description: Ingredient recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ingredient:
+                      $ref: '#/components/schemas/Ingredient'
+                    score:
+                      type: number
+                      format: float
+                    explanation:
+                      type: string
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Liquor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/recommendations/ingredients/{ingredientId}:
+    get:
+      tags:
+        - recommendations
+      summary: Get liquor recommendations for ingredient
+      description: Get recommended liquors for a specific ingredient
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: ingredientId
+          required: true
+          schema:
+            type: integer
+          description: Ingredient ID
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 5
+          description: Number of recommendations
+      responses:
+        '200':
+          description: Liquor recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    liquor:
+                      $ref: '#/components/schemas/Liquor'
+                    score:
+                      type: number
+                      format: float
+                    explanation:
+                      type: string
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Ingredient not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/recommendations/personal:
+    get:
+      tags:
+        - recommendations
+      summary: Get personalized recommendations
+      description: Get personalized recommendations based on user preferences
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of recommendations
+      responses:
+        '200':
+          description: Personalized recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalRecommendation'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/recommendations/popular:
+    get:
+      tags:
+        - recommendations
+      summary: Get popular pairings
+      description: Get most popular pairings based on user ratings
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page
+      responses:
+        '200':
+          description: Popular pairings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pairing'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Admin endpoints
+  /api/admin/import/nodes:
+    post:
+      tags:
+        - admin
+      summary: Import node data
+      description: Import Hub_Nodes.csv data into the database
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Nodes imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported:
+                    type: integer
+                  skipped:
+                    type: integer
+                  updated:
+                    type: integer
+        '400':
+          description: Invalid file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/import/edges:
+    post:
+      tags:
+        - admin
+      summary: Import edge data
+      description: Import Hub_Edges.csv data into the database
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Edges imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported:
+                    type: integer
+                  skipped:
+                    type: integer
+                  updated:
+                    type: integer
+        '400':
+          description: Invalid file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/recalculate:
+    post:
+      tags:
+        - admin
+      summary: Recalculate pairing scores
+      description: Trigger recalculation of all pairing scores
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Recalculation started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  tasksCreated:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/stats:
+    get:
+      tags:
+        - admin
+      summary: Get system statistics
+      description: Get system statistics and usage metrics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: System statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalUsers:
+                    type: integer
+                  totalLiquors:
+                    type: integer
+                  totalIngredients:
+                    type: integer
+                  totalCompounds:
+                    type: integer
+                  totalPairings:
+                    type: integer
+                  averageRating:
+                    type: number
+                    format: float
+                  totalRatings:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/logs:
+    get:
+      tags:
+        - admin
+      summary: Get system logs
+      description: Retrieve system logs with filtering options
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: level
+          schema:
+            type: string
+            enum: [error, warn, info, debug]
+          description: Filter by log level
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+          description: Start date for log range
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+          description: End date for log range
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+          description: Items per page
+      responses:
+        '200':
+          description: System logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: string
+                          format: date-time
+                        level:
+                          type: string
+                        message:
+                          type: string
+                        service:
+                          type: string
+                        meta:
+                          type: object
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
