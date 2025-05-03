@@ -66,7 +66,7 @@ def edges_index(edge_type_map):
     return edge_index, edge_weights, edges_type
 
 class InteractionDataset(Dataset):
-    def __init__(self, positive_pairs, hard_negatives, num_users, num_items, negative_ratio=1.0):
+    def __init__(self, positive_pairs, hard_negatives, num_users, num_items, negative_ratio=5.0):
         self.samples = []
         self.num_users = num_users
         self.num_items = num_items
@@ -143,190 +143,47 @@ def preprocess():
     print(f"ingr_ingr edges :\t{ingr_ingr}")
     
     edges_df.to_csv("./dataset/edges_191120_updated.csv", index=False)
-            
-def liquors_embbed() -> dict[int, list[float]]:
-    # 파일 불러오기
-    nodes_df = pd.read_csv("./dataset/nodes_191120_updated.csv")
-    edges_df = pd.read_csv("./dataset/edges_191120_updated.csv")
-
-    # 노드 타입 매핑
-    node_type_map = dict(zip(nodes_df['node_id'], nodes_df['node_type']))
-
-    # 술 ID별 연결된 compound 리스트 초기화
-    liquor_to_compounds = defaultdict(list)
     
-    for _, row in nodes_df.iterrows():
-        if row['node_type'] == 'liquor':
-            liquor_to_compounds[row['node_id']] = []
-
-    # 조건: edge_type == 'ingr-fcomp', 한 쪽이 liquor, 한 쪽이 compound인 경우
-    for _, row in edges_df.iterrows():
-        src, tgt = row['id_1'], row['id_2']
-        etype = row['edge_type']
-
-        if etype == 'ingr-fcomp':
-            src_type = node_type_map.get(src)
-            tgt_type = node_type_map.get(tgt)
-
-            # src가 술이고 tgt가 compound인 경우
-            if src_type == 'liquor' and tgt_type == 'compound':
-                liquor_to_compounds[src].append(tgt)
-
-            # tgt가 술이고 src가 compound인 경우
-            elif tgt_type == 'liquor' and src_type == 'compound':
-                liquor_to_compounds[tgt].append(src)
-                
-        if etype == 'ingr-dcomp':
-            src_type = node_type_map.get(src)
-            tgt_type = node_type_map.get(tgt)
-
-            # src가 술이고 tgt가 compound인 경우
-            if src_type == 'liquor' and tgt_type == 'compound':
-                liquor_to_compounds[src].append(tgt)
-
-            # tgt가 술이고 src가 compound인 경우
-            elif tgt_type == 'liquor' and src_type == 'compound':
-                liquor_to_compounds[tgt].append(src)
-
-    # 결과 예시 출력
-    """for liquor_id, compound_ids in list(liquor_to_compounds.items())[:5]:
-        liquor_name = nodes_df[nodes_df['node_id'] == liquor_id]['name'].values[0]
-        print(f"{liquor_name} ({liquor_id}): {compound_ids[:5]} ... 총 {len(compound_ids)}개")"""
-
-    with open("./dataset/compound_embeddings_filtered.pkl", "rb") as f:
-        embbed_dict = pickle.load(f)
-
-    liquor_avg_embeddings = {}
-
-    for liquor_id, compound_ids in list(liquor_to_compounds.items()):
-        if liquor_to_compounds[liquor_id] != []: 
-            valid_vectors = [embbed_dict[cid] for cid in compound_ids if cid in embbed_dict]
-
-            if valid_vectors:  # 유효한 벡터가 하나라도 있을 경우 평균 계산
-                avg_vector = np.mean(valid_vectors, axis=0)
-                liquor_avg_embeddings[liquor_id] = avg_vector
-        else:
-            # liquor_id에 해당하는 compound_ids가 없을 경우, 랜덤 벡터 생성
-            valid_vectors = [random.random() for _ in range(128)]
-            liquor_avg_embeddings[liquor_id] = valid_vectors
-            #print("Error occurred for liquor_id:", liquor_id)
-                
-    return liquor_avg_embeddings
-    # 확인용 예시 출력
-    """for liquor_id, vec in list(liquor_avg_embeddings.items())[:5]:
-        print(f"liquor_id {liquor_id}: {vec[:5]} ... (총 길이 {len(vec)})")"""
-
-def ingrs_embedd() -> dict[int, list[float]]: 
-    # 파일 불러오기
-    nodes_df = pd.read_csv("./dataset/nodes_191120_updated.csv")
-    edges_df = pd.read_csv("./dataset/edges_191120_updated.csv")
-
-    # 노드 타입 매핑
-    node_type_map = dict(zip(nodes_df['node_id'], nodes_df['node_type']))
-
-    # 음식 ID별 연결된 compound 리스트 초기화
-    ingr_to_compounds = defaultdict(list)
-    
-    for _, row in nodes_df.iterrows():
-        if row['node_type'] == 'ingredient':
-            ingr_to_compounds[row['node_id']] = []
-
-    # 조건: edge_type == 'ingr-fcomp', 한 쪽이 ingredient, 한 쪽이 compound인 경우
-    for _, row in edges_df.iterrows():
-        src, tgt = row['id_1'], row['id_2']
-        etype = row['edge_type']
-
-        if etype == 'ingr-fcomp' or etype == 'ingr-dcomp':
-            src_type = node_type_map.get(src)
-            tgt_type = node_type_map.get(tgt)
-
-            # src가 음식이고 tgt가 compound인 경우
-            if src_type == 'ingredient' and tgt_type == 'compound':
-                ingr_to_compounds[src].append(tgt)
-
-            # tgt가 음식이고 src가 compound인 경우
-            elif tgt_type == 'ingredient' and src_type == 'compound':
-                ingr_to_compounds[tgt].append(src)
-    
-    with open("./dataset/compound_embeddings_filtered.pkl", "rb") as f:
-        embbed_dict = pickle.load(f)
-
-    ingredient_avg_embeddings = {}
-
-    for ingredient_id, compound_ids in list(ingr_to_compounds.items()):
-        if ingr_to_compounds[ingredient_id] != []:
-            valid_vectors = [embbed_dict[cid] for cid in compound_ids if cid in embbed_dict]
-
-            if valid_vectors:  # 유효한 벡터가 하나라도 있을 경우 평균 계산
-                avg_vector = np.mean(valid_vectors, axis=0)
-                ingredient_avg_embeddings[ingredient_id] = avg_vector
-        else:
-            # ingredient_id에 해당하는 compound_ids가 없을 경우, 랜덤 벡터 생성
-            valid_vectors = [random.random() for _ in range(128)]
-            ingredient_avg_embeddings[ingredient_id] = valid_vectors
-            
-    return ingredient_avg_embeddings
-
-def make_emb():
-    liquor_avg_embeddings = dict(sorted(liquors_embbed().items()))
-    ingredient_avg_embeddings = dict(sorted(ingrs_embedd().items()))
-
-    liquor_key = list(liquor_avg_embeddings.keys())
-    print(liquor_key)
-    print(f"liquor num\t: {len(liquor_key)}")
-    ingredient_key = list(ingredient_avg_embeddings.keys())
-    #print(ingredient_key)
-    print(f"ingredient num\t: {len(ingredient_key)}")
-
-    with open("./model/data/liquor_key.pkl", "wb") as f:
-        pickle.dump(liquor_key, f)
-
-    with open("./model/data/ingredient_key.pkl", "wb") as f:
-        pickle.dump(ingredient_key, f)
-
-    liquor_embedding_tensor = torch.tensor(np.stack(list(liquor_avg_embeddings.values())), dtype=torch.float32)
-    ingredient_embedding_tensor = torch.tensor(np.stack(list(ingredient_avg_embeddings.values())), dtype=torch.float32)
-
-    print("Liquor Embedding Tensor")
-    print("  - Shape:", liquor_embedding_tensor.shape)
-    print("  - Dtype:", liquor_embedding_tensor.dtype) 
-
-    print("\nIngredient Embedding Tensor")
-    print("  - Shape:", ingredient_embedding_tensor.shape)
-    print("  - Dtype:", ingredient_embedding_tensor.dtype)
-
-    torch.save(liquor_embedding_tensor, "./model/data/liquor_init_embedding.pt")
-    torch.save(ingredient_embedding_tensor, "./model/data/ingredient_init_embedding.pt")
-    
-class TripletInteractionDataset(Dataset):
+class BPRDataset(Dataset):
     def __init__(self, positive_pairs, hard_negatives=None, num_users=None, num_items=None, negative_ratio=5.0):
-        self.triplets = []
-        self.positive_pairs = list(positive_pairs)
-        self.positive_set = set(positive_pairs)
+        self.BPR_samples = []
+        self.positive_pairs = []
+        self.negative_pairs = []
+        self.positive_set = set()
+        self.num_users = num_users
+        self.num_items = num_items
+        
+        # Positive samples
+        for _, row in positive_pairs.iterrows():
+            self.positive_pairs.append((row['liquor_id'], row['ingredient_id']))
+            self.positive_set.add((row['liquor_id'], row['ingredient_id']))
 
-        # Positive samples + Negative samples(random)
-        for u, i in self.positive_pairs:
+        # Hard negatives
+        for _, row in hard_negatives.iterrows():
+            self.negative_pairs.append((row['liquor_id'], row['ingredient_id']))  
+        
+        for pair in self.positive_pairs:
+            u = pair[0]
+            i = pair[1]
             for _ in range(int(negative_ratio)):
                 while True:
                     j = random.randint(0, num_items - 1)
                     if (u, j) not in self.positive_set:
-                        self.triplets.append((u, i, j))
+                        self.BPR_samples.append((u, i, j))
                         break
-
-        # Hard negatives
+        
         if hard_negatives is not None:
-            for u, j in hard_negatives:
+            for pair in self.negative_pairs:
+                u = pair[0]
+                j = pair[1]
                 positives_for_u = [i for x, i in self.positive_pairs if x == u]
                 if positives_for_u:
                     i = random.choice(positives_for_u)
-                    self.triplets.append((u, i, j))  # (anchor, positive, hard negative)
-
+                    self.BPR_samples.append((u, i, j))
+                        
     def __len__(self):
-        return len(self.triplets)
-
+        return len(self.BPR_samples)
+    
     def __getitem__(self, idx):
-        u, pos, neg = self.triplets[idx]
+        u, pos, neg = self.BPR_samples[idx]
         return torch.tensor(u, dtype=torch.long), torch.tensor(pos, dtype=torch.long), torch.tensor(neg, dtype=torch.long)
-
-if __name__ == "__main__":
-    preprocess()

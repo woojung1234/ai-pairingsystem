@@ -1,19 +1,23 @@
 version: '3.8'
 
 services:
-  # MongoDB service
-  mongodb:
-    image: mongo:latest
-    container_name: ai-pairing-mongodb
+  # MySQL service
+  mysql-db:
+    image: mysql:8.0
+    container_name: ai-pairing-mysql
     restart: always
     ports:
-      - "27017:27017"
+      - "3306:3306"
     volumes:
-      - mongodb_data:/data/db
+      - mysql_data:/var/lib/mysql
+      - ./server/src/config/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
     environment:
-      - MONGO_INITDB_DATABASE=ai-pairing
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=ai_pairing_db
+      - MYSQL_USER=ai_pairing_user
+      - MYSQL_PASSWORD=ai_pairing_password
 
   # Backend API service
   server:
@@ -25,11 +29,15 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - mongodb
+      - mysql-db
     environment:
       - NODE_ENV=production
       - PORT=5000
-      - MONGODB_URI=mongodb://mongodb:27017/ai-pairing
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_USER=ai_pairing_user
+      - DB_PASSWORD=ai_pairing_password
+      - DB_NAME=ai_pairing_db
     volumes:
       - ./server:/app
       - /app/node_modules
@@ -71,5 +79,5 @@ networks:
 
 # Docker Volumes
 volumes:
-  mongodb_data:
+  mysql_data:
     driver: local

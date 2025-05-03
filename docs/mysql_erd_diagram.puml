@@ -1,0 +1,123 @@
+@startuml MySQL AI 페어링 시스템 ERD
+
+' Style 설정
+!define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define PRIMARY_KEY(x) <b><u>x</u></b>
+!define FOREIGN_KEY(x) <u>x</u>
+!define NOT_NULL <b>not null</b>
+
+' Liquors 테이블
+TABLE(Liquors, "Liquors\n(주류)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  liquor_id INT NOT_NULL UNIQUE
+  name VARCHAR(100) NOT_NULL
+  type VARCHAR(50)
+  description TEXT
+  origin VARCHAR(100)
+  alcohol_content DECIMAL(5,2)
+  image_url VARCHAR(255)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+' Liquor_Flavor_Profiles 테이블
+TABLE(LiquorFlavorProfiles, "Liquor_Flavor_Profiles\n(주류 풍미 프로필)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  FOREIGN_KEY(liquor_id) INT NOT_NULL
+  flavor VARCHAR(50) NOT_NULL
+}
+
+' Ingredients 테이블
+TABLE(Ingredients, "Ingredients\n(재료)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  ingredient_id INT NOT_NULL UNIQUE
+  name VARCHAR(100) NOT_NULL
+  category VARCHAR(50)
+  description TEXT
+  is_hub BOOLEAN
+  image_url VARCHAR(255)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+' Ingredient_Flavor_Profiles 테이블
+TABLE(IngredientFlavorProfiles, "Ingredient_Flavor_Profiles\n(재료 풍미 프로필)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  FOREIGN_KEY(ingredient_id) INT NOT_NULL
+  flavor VARCHAR(50) NOT_NULL
+}
+
+' Pairings 테이블
+TABLE(Pairings, "Pairings\n(페어링)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  FOREIGN_KEY(liquor_id) INT NOT_NULL
+  FOREIGN_KEY(ingredient_id) INT NOT_NULL
+  score DECIMAL(3,2) NOT_NULL
+  reason TEXT
+  user_rating DECIMAL(2,1)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+' Pairing_Shared_Compounds 테이블
+TABLE(PairingSharedCompounds, "Pairing_Shared_Compounds\n(페어링 공유 화합물)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  FOREIGN_KEY(pairing_id) INT NOT_NULL
+  compound_name VARCHAR(100) NOT_NULL
+}
+
+' Users 테이블
+TABLE(Users, "Users\n(사용자)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  username VARCHAR(50) NOT_NULL UNIQUE
+  email VARCHAR(100) NOT_NULL UNIQUE
+  password VARCHAR(255) NOT_NULL
+  role ENUM('user', 'admin')
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+' User_Favorite_Liquors 테이블
+TABLE(UserFavoriteLiquors, "User_Favorite_Liquors\n(사용자 선호 주류)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  FOREIGN_KEY(user_id) INT NOT_NULL
+  FOREIGN_KEY(liquor_id) INT NOT_NULL
+}
+
+' User_Favorite_Ingredients 테이블
+TABLE(UserFavoriteIngredients, "User_Favorite_Ingredients\n(사용자 선호 재료)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  FOREIGN_KEY(user_id) INT NOT_NULL
+  FOREIGN_KEY(ingredient_id) INT NOT_NULL
+}
+
+' User_Disliked_Liquors 테이블
+TABLE(UserDislikedLiquors, "User_Disliked_Liquors\n(사용자 비선호 주류)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  FOREIGN_KEY(user_id) INT NOT_NULL
+  FOREIGN_KEY(liquor_id) INT NOT_NULL
+}
+
+' User_Disliked_Ingredients 테이블
+TABLE(UserDislikedIngredients, "User_Disliked_Ingredients\n(사용자 비선호 재료)") {
+  PRIMARY_KEY(id) INT AUTO_INCREMENT
+  FOREIGN_KEY(user_id) INT NOT_NULL
+  FOREIGN_KEY(ingredient_id) INT NOT_NULL
+}
+
+' 관계 정의
+Liquors "1" -- "0..*" LiquorFlavorProfiles : has
+Ingredients "1" -- "0..*" IngredientFlavorProfiles : has
+Liquors "1" -- "0..*" Pairings : is in
+Ingredients "1" -- "0..*" Pairings : is in
+Pairings "1" -- "0..*" PairingSharedCompounds : has
+Users "1" -- "0..*" UserFavoriteLiquors : favors
+Users "1" -- "0..*" UserFavoriteIngredients : favors
+Users "1" -- "0..*" UserDislikedLiquors : dislikes
+Users "1" -- "0..*" UserDislikedIngredients : dislikes
+Liquors "1" -- "0..*" UserFavoriteLiquors : is favored by
+Ingredients "1" -- "0..*" UserFavoriteIngredients : is favored by
+Liquors "1" -- "0..*" UserDislikedLiquors : is disliked by
+Ingredients "1" -- "0..*" UserDislikedIngredients : is disliked by
+
+@enduml

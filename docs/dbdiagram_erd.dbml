@@ -1,0 +1,163 @@
+// AI 페어링 시스템 ERD
+Table nodes {
+  id int [pk, increment]
+  node_id int [unique, not null]
+  name varchar(100) [not null]
+  external_id varchar(50)
+  node_type node_type_enum [not null]
+  is_hub boolean [default: false]
+  description text
+  image_url varchar(255)
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Indexes {
+    node_id [name: "idx_node_id"]
+    name [name: "idx_name"]
+    node_type [name: "idx_node_type"]
+  }
+}
+
+Table edges {
+  id int [pk, increment]
+  source_id int [not null, ref: > nodes.id]
+  target_id int [not null, ref: > nodes.id]
+  score decimal(10,8)
+  edge_type varchar(20) [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Indexes {
+    (source_id, target_id, edge_type) [unique, name: "unique_edge"]
+    edge_type [name: "idx_edge_type"]
+  }
+}
+
+Table liquors {
+  id int [pk, increment]
+  node_id int [unique, not null, ref: - nodes.id]
+  name varchar(100) [not null]
+  type varchar(50)
+  description text
+  origin varchar(100)
+  alcohol_content decimal(5,2)
+  image_url varchar(255)
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Indexes {
+    name [name: "idx_name"]
+  }
+}
+
+Table ingredients {
+  id int [pk, increment]
+  node_id int [unique, not null, ref: - nodes.id]
+  name varchar(100) [not null]
+  category varchar(50)
+  description text
+  image_url varchar(255)
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Indexes {
+    name [name: "idx_name"]
+    category [name: "idx_category"]
+  }
+}
+
+Table compounds {
+  id int [pk, increment]  
+  node_id int [unique, not null, ref: - nodes.id]
+  name varchar(100) [not null]
+  external_id varchar(50)
+  chemical_formula varchar(100)
+  description text
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Indexes {
+    name [name: "idx_name"]
+  }
+}
+
+Table pairings {
+  id int [pk, increment]
+  liquor_id int [not null, ref: > liquors.id]
+  ingredient_id int [not null, ref: > ingredients.id]
+  score decimal(10,8) [not null]
+  explanation text
+  user_rating decimal(2,1)
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Indexes {
+    (liquor_id, ingredient_id) [unique, name: "unique_pairing"]
+  }
+}
+
+Table users {
+  id int [pk, increment]
+  username varchar(50) [unique, not null]
+  email varchar(100) [unique, not null]
+  password varchar(255) [not null]
+  role user_role_enum [default: 'user']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`]
+  
+  Indexes {
+    email [name: "idx_email"]
+  }
+}
+
+Table user_favorite_liquors {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  liquor_id int [not null, ref: > liquors.id]
+  
+  Indexes {
+    (user_id, liquor_id) [unique, name: "unique_user_liquor_fav"]
+  }
+}
+
+Table user_favorite_ingredients {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  ingredient_id int [not null, ref: > ingredients.id]
+  
+  Indexes {
+    (user_id, ingredient_id) [unique, name: "unique_user_ingredient_fav"]
+  }
+}
+
+Table user_disliked_liquors {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  liquor_id int [not null, ref: > liquors.id]
+  
+  Indexes {
+    (user_id, liquor_id) [unique, name: "unique_user_liquor_dis"]
+  }
+}
+
+Table user_disliked_ingredients {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  ingredient_id int [not null, ref: > ingredients.id]
+  
+  Indexes {
+    (user_id, ingredient_id) [unique, name: "unique_user_ingredient_dis"]
+  }
+}
+
+// Enums
+Enum node_type_enum {
+  ingredient
+  liquor
+  compound
+}
+
+Enum user_role_enum {
+  user
+  admin
+}

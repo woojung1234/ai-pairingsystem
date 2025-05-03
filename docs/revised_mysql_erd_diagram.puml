@@ -1,0 +1,127 @@
+@startuml
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b>x</b>
+!define unique(x) <u>x</u>
+!define not_null(x) <i>x</i>
+
+Table(nodes, "nodes") {
+  primary_key(id) INT AUTO_INCREMENT
+  unique(node_id) INT not_null
+  not_null(name) VARCHAR(100)
+  external_id VARCHAR(50)
+  not_null(node_type) ENUM('ingredient', 'liquor', 'compound')
+  is_hub BOOLEAN DEFAULT FALSE
+  description TEXT
+  image_url VARCHAR(255)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+Table(edges, "edges") {
+  primary_key(id) INT AUTO_INCREMENT
+  not_null(source_id) INT
+  not_null(target_id) INT
+  score DECIMAL(10,8)
+  not_null(edge_type) VARCHAR(20)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+Table(liquors, "liquors") {
+  primary_key(id) INT AUTO_INCREMENT
+  unique(node_id) INT not_null
+  not_null(name) VARCHAR(100)
+  type VARCHAR(50)
+  description TEXT
+  origin VARCHAR(100)
+  alcohol_content DECIMAL(5,2)
+  image_url VARCHAR(255)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+Table(ingredients, "ingredients") {
+  primary_key(id) INT AUTO_INCREMENT
+  unique(node_id) INT not_null
+  not_null(name) VARCHAR(100)
+  category VARCHAR(50)
+  description TEXT
+  image_url VARCHAR(255)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+Table(compounds, "compounds") {
+  primary_key(id) INT AUTO_INCREMENT
+  unique(node_id) INT not_null
+  not_null(name) VARCHAR(100)
+  external_id VARCHAR(50)
+  chemical_formula VARCHAR(100)
+  description TEXT
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+Table(pairings, "pairings") {
+  primary_key(id) INT AUTO_INCREMENT
+  not_null(liquor_id) INT
+  not_null(ingredient_id) INT
+  not_null(score) DECIMAL(10,8)
+  explanation TEXT
+  user_rating DECIMAL(2,1)
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+Table(users, "users") {
+  primary_key(id) INT AUTO_INCREMENT
+  unique(username) VARCHAR(50) not_null
+  unique(email) VARCHAR(100) not_null
+  not_null(password) VARCHAR(255)
+  role ENUM('user', 'admin') DEFAULT 'user'
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+Table(user_favorite_liquors, "user_favorite_liquors") {
+  primary_key(id) INT AUTO_INCREMENT
+  not_null(user_id) INT
+  not_null(liquor_id) INT
+}
+
+Table(user_favorite_ingredients, "user_favorite_ingredients") {
+  primary_key(id) INT AUTO_INCREMENT
+  not_null(user_id) INT
+  not_null(ingredient_id) INT
+}
+
+Table(user_disliked_liquors, "user_disliked_liquors") {
+  primary_key(id) INT AUTO_INCREMENT
+  not_null(user_id) INT
+  not_null(liquor_id) INT
+}
+
+Table(user_disliked_ingredients, "user_disliked_ingredients") {
+  primary_key(id) INT AUTO_INCREMENT
+  not_null(user_id) INT
+  not_null(ingredient_id) INT
+}
+
+' 관계 정의
+nodes "1" -- "0..1" liquors : "has"
+nodes "1" -- "0..1" ingredients : "has"
+nodes "1" -- "0..1" compounds : "has"
+nodes "1" -- "*" edges : "source"
+nodes "1" -- "*" edges : "target"
+liquors "1" -- "*" pairings : "has"
+ingredients "1" -- "*" pairings : "has"
+users "1" -- "*" user_favorite_liquors : "has"
+users "1" -- "*" user_favorite_ingredients : "has"
+users "1" -- "*" user_disliked_liquors : "has"
+users "1" -- "*" user_disliked_ingredients : "has"
+liquors "1" -- "*" user_favorite_liquors : "in"
+ingredients "1" -- "*" user_favorite_ingredients : "in"
+liquors "1" -- "*" user_disliked_liquors : "in"
+ingredients "1" -- "*" user_disliked_ingredients : "in"
+
+@enduml

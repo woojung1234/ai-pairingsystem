@@ -30,11 +30,10 @@ function AboutPage() {
       {/* Hero Section */}
       <Box sx={{ my: 4, textAlign: 'center' }}>
         <Typography variant="h3" component="h1" gutterBottom>
-          About AI Pairing System
+          AI 페어링 시스템 소개
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
-          Learn about our mission to revolutionize the way people discover food and drink pairings
-          through the power of artificial intelligence and data science.
+          인공지능과 데이터 과학의 힘을 통해 사람들이 음식과 음료 페어링을 발견하는 방식을 혁신하려는 우리의 사명에 대해 알아보세요.
         </Typography>
       </Box>
 
@@ -42,21 +41,16 @@ function AboutPage() {
       <Grid container spacing={4} sx={{ mb: 8 }}>
         <Grid item xs={12} md={6}>
           <Typography variant="h4" gutterBottom>
-            Our Mission
+            우리의 사명
           </Typography>
           <Typography paragraph>
-            At AI Pairing, we believe that finding the perfect combination of food and drink should
-            be an accessible, enjoyable experience for everyone—not just culinary experts.
+            AI 페어링에서는 완벽한 음식과 음료의 조합을 찾는 것이 요리 전문가뿐만 아니라 모든 사람이 접근하기 쉽고 즐거운 경험이 되어야 한다고 믿습니다.
           </Typography>
           <Typography paragraph>
-            Our mission is to demystify the science of flavor pairing by combining cutting-edge AI technology
-            with centuries of culinary wisdom, making it easy for anyone to discover incredible taste
-            combinations that delight the senses.
+            우리의 사명은 최첨단 AI 기술과 수세기에 걸친 요리 지혜를 결합하여 플레이버 페어링의 과학을 이해하기 쉽게 만들고, 누구나 감각을 즐겁게 하는 놀라운 맛의 조합을 쉽게 발견할 수 있도록 하는 것입니다.
           </Typography>
           <Typography paragraph>
-            Whether you're a professional bartender, a home cook, or simply someone who enjoys good food
-            and drink, our system provides personalized recommendations based on scientific analysis of
-            flavor compounds, cultural traditions, and user preferences.
+            전문 바텐더, 가정 요리사, 또는 단순히 맛있는 음식과 음료를 즐기는 사람이든, 우리 시스템은 플레이버 화합물의 과학적 분석, 문화적 전통, 사용자 선호도를 기반으로 개인화된 추천을 제공합니다.
           </Typography>
         </Grid>
         <Grid item xs={12} md={6}>
@@ -207,13 +201,13 @@ function AboutPage() {
               />
               <CardContent>
                 <Typography variant="h6">
-                  Dr. Emily Chen
+                에밀리 첸 박사
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Chief Data Scientist
+                수석 데이터 과학자
                 </Typography>
                 <Typography variant="body2">
-                  PhD in Food Science with expertise in flavor compound analysis
+                플레이버 화합물 분석 전문성을 갖춘 식품 과학 박사
                 </Typography>
               </CardContent>
             </Card>
@@ -229,13 +223,13 @@ function AboutPage() {
               />
               <CardContent>
                 <Typography variant="h6">
-                  Michael Rodriguez
+                마이클 로드리게스
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Lead Engineer
+                수석 엔지니어
                 </Typography>
                 <Typography variant="body2">
-                  Expert in AI systems and graph neural networks
+                AI 시스템 및 그래프 신경망 전문가
                 </Typography>
               </CardContent>
             </Card>
@@ -251,13 +245,13 @@ function AboutPage() {
               />
               <CardContent>
                 <Typography variant="h6">
-                  Sofia Martinez
+                소피아 마르티네즈
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Culinary Director
+                요리 디렉터
                 </Typography>
                 <Typography variant="body2">
-                  Award-winning mixologist with expertise in global spirits
+                글로벌 스피릿에 전문성을 갖춘 수상 경력의 믹솔로지스트
                 </Typography>
               </CardContent>
             </Card>
@@ -273,13 +267,13 @@ function AboutPage() {
               />
               <CardContent>
                 <Typography variant="h6">
-                  Dr. James Wilson
+                제임스 윌슨 박사
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Research Lead
+                연구 책임자
                 </Typography>
                 <Typography variant="body2">
-                  Specializing in sensory science and flavor perception
+                감각 과학 및 플레이버 인식 전문가
                 </Typography>
               </CardContent>
             </Card>

@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, RGCNConv, NNConv, MessagePassing
-from torch_geometric.utils import softmax
+from torch_geometric.nn import MessagePassing
 
 """
 all_node_emb = GNN(edge_index)
@@ -14,7 +13,7 @@ loss.backward()
 """
 
 class NeuralCF(nn.Module):
-    def __init__(self, num_users, num_items, num_nodes=8298, num_relations=2, emb_size=128, hidden_layers=[128, 64, 32], user_init=None, item_init=None):
+    def __init__(self, num_users, num_items, num_nodes=8298, num_relations=2, emb_size=128, hidden_layers=[256, 128, 64, 32], emb_init = None):
         super(NeuralCF, self).__init__()
         """
             num_users       :   술 노드의 개수
@@ -33,45 +32,18 @@ class NeuralCF(nn.Module):
         self.num_nodes = num_nodes
         
         self.embedding = nn.Embedding(num_nodes, emb_size) # GNN에서 사용될 노드 임베딩
+        
+        if emb_init is not None:
+            for node_idx, init_vector in emb_init.items():
+                self.embedding.weight.data[node_idx] = torch.tensor(init_vector, dtype=torch.float32)
 
         self.norm1 = nn.LayerNorm(emb_size)
         self.norm2 = nn.LayerNorm(emb_size)
         
         # RGNN
-        """self.rgcn1 = RGCNConv(emb_size, emb_size, num_relations)
-        self.rgcn2 = RGCNConv(emb_size, emb_size, num_relations)
-        self.rgcn3 = RGCNConv(emb_size, emb_size, num_relations)"""
-        
         self.wrgcn = WeightedRGCNConv(emb_size, emb_size, num_relations) # GNN layer
         self.wrgcn2 = WeightedRGCNConv(emb_size, emb_size, num_relations)
         self.wrgcn3 = WeightedRGCNConv(emb_size, emb_size, num_relations)
-        
-        # GNN
-        """self.conv1 = GCNConv(emb_size, emb_size) # GNN layer
-        self.conv2 = GCNConv(emb_size, emb_size)
-        self.conv3 = GCNConv(emb_size, emb_size)"""
-        
-        # GMF 
-        self.user_emb_gmf = nn.Embedding(num_users, emb_size)
-        self.item_emb_gmf = nn.Embedding(num_items, emb_size)
-
-        # MLP 
-        self.user_emb_mlp = nn.Embedding(num_users, emb_size)
-        self.item_emb_mlp = nn.Embedding(num_items, emb_size)
-
-        """if user_init is not None:
-            self.user_emb_mlp.weight.data.copy_(user_init.float())
-            self.user_emb_gmf.weight.data.copy_(user_init.float())
-        if item_init is not None:
-            self.item_emb_mlp.weight.data.copy_(item_init.float())
-            self.item_emb_gmf.weight.data.copy_(item_init.float())
-
-
-        nn.init.kaiming_uniform_(self.user_emb_mlp.weight, nonlinearity="relu")
-        nn.init.kaiming_uniform_(self.item_emb_mlp.weight, nonlinearity="relu")"""
-
-        #nn.init.orthogonal_(self.user_emb_mlp.weight)
-        #nn.init.orthogonal_(self.item_emb_mlp.weight)
 
         layers = []
         input_size = emb_size * 2
@@ -85,7 +57,7 @@ class NeuralCF(nn.Module):
         # 최종 결과 출력층 
         self.output_layer = nn.Linear(hidden_layers[-1] + emb_size, 1)
 
-    def forward(self, user_indices, item_indices, edge_index, edge_type, edge_weight=None):
+    def forward(self, user_indices, item_indices, edge_index, edge_type, edge_weight=None, is_embbed=False):
         """
             user_indices :   술 노드의 인덱스
             item_indices :   음식 노드의 인덱스
@@ -94,10 +66,6 @@ class NeuralCF(nn.Module):
         """
         # RGCN 기반 임베딩
         x = self.embedding(torch.arange(self.num_nodes, device=edge_index.device))
-        
-        """x = self.rgcn1(x, edge_index, edge_type)
-        x = self.rgcn2(x, edge_index, edge_type)
-        x = self.rgcn3(x, edge_index, edge_type)"""
         
         x = self.wrgcn(x, edge_index, edge_type, edge_weight)
         x = F.relu(x)
@@ -109,10 +77,8 @@ class NeuralCF(nn.Module):
         x = self.norm2(x)
         x = self.wrgcn3(x, edge_index, edge_type, edge_weight)
         
-        # GNN 기반 임베딩
-        """x = self.conv1(x, edge_index, edge_weight)
-        x = self.conv2(x, edge_index, edge_weight)
-        x = self.conv3(x, edge_index, edge_weight)"""
+        if is_embbed:
+            return x
 
         # GNN 결과 슬라이싱
         gmf_user_emb = x[user_indices]
@@ -137,8 +103,11 @@ class NeuralCF(nn.Module):
         """
         final_input = torch.cat([gmf_output, mlp_output], dim=-1)
         logits = self.output_layer(final_input)
-
-        return torch.sigmoid(logits).squeeze()
+        score = self.output_layer(final_input).squeeze() 
+        
+        #return torch.sigmoid(logits).squeeze()
+        #score = torch.tanh(score)
+        return score
 
 
 class WeightedRGCNConv(MessagePassing):

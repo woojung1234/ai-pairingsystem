@@ -15,6 +15,11 @@ const pairingRoutes = require('./routes/pairing');
 const userRoutes = require('./routes/user');
 const ingredientRoutes = require('./routes/ingredient');
 const liquorRoutes = require('./routes/liquor');
+const compoundRoutes = require('./routes/compound');
+const edgeRoutes = require('./routes/edge');
+const preferenceRoutes = require('./routes/preference');
+const recommendationRoutes = require('./routes/recommendation');
+const adminRoutes = require('./routes/admin');
 
 // Import database connection and initialization
 const connectDB = require('./config/db');
@@ -22,7 +27,7 @@ const initDatabase = require('./config/db-init');
 
 // Initialize express app
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5004;
 
 // Middleware
 app.use(cors());
@@ -39,16 +44,16 @@ if (process.env.NODE_ENV === 'production') {
   app.use(developmentLogger);
 }
 
-// Connect to MongoDB and initialize database if needed
+// Connect to MySQL and initialize database if needed
 connectDB()
   .then(() => {
-    console.log('MongoDB connected');
+    console.log('MySQL connected');
     return initDatabase();
   })
   .then(() => {
     console.log('Database initialization checked');
   })
-  .catch(err => console.error('MongoDB setup error:', err));
+  .catch(err => console.error('MySQL setup error:', err));
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../logs');
@@ -61,6 +66,11 @@ app.use('/api/pairing', pairingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/liquors', liquorRoutes);
+app.use('/api/compounds', compoundRoutes);
+app.use('/api/edges', edgeRoutes);
+app.use('/api/preferences', preferenceRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Root route
 app.get('/', (req, res) => {
