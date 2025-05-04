@@ -8,7 +8,7 @@ const {
   updateLiquor, 
   deleteLiquor 
 } = require('../controllers/liquorController');
-const { protect, authorize } = require('../middleware/auth');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 /**
  * @route   GET /api/liquors
@@ -36,20 +36,20 @@ router.get('/:id', getLiquorById);
  * @desc    Create a new liquor
  * @access  Private/Admin
  */
-router.post('/', protect, authorize('admin'), createLiquor);
+router.post('/', authMiddleware, adminMiddleware, createLiquor);
 
 /**
  * @route   PUT /api/liquors/:id
  * @desc    Update a liquor
  * @access  Private/Admin
  */
-router.put('/:id', protect, authorize('admin'), updateLiquor);
+router.put('/:id', authMiddleware, adminMiddleware, updateLiquor);
 
 /**
  * @route   DELETE /api/liquors/:id
  * @desc    Delete a liquor
  * @access  Private/Admin
  */
-router.delete('/:id', protect, authorize('admin'), deleteLiquor);
+router.delete('/:id', authMiddleware, adminMiddleware, deleteLiquor);
 
 module.exports = router;

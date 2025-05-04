@@ -52,6 +52,29 @@ ai-pairing/
 
 ## 현재까지 진행된 작업
 
+### 0. 버그 수정 (2025-05-04)
+- **모듈 경로 문제 해결**: 
+  - compoundController.js 파일에서는 `../../models/Compound`를 이미 올바르게 사용 중이었음
+  - 누락된 `models/mysql/Compound.js` 및 `models/mysql/Edge.js` 파일 생성
+  - MySQL 기반의 모델 파일들을 통일성 있게 관리
+- **인증 미들웨어 문제 해결**:
+  - `auth.js` 파일의 미들웨어 이름을 `protect`에서 `authMiddleware`로 변경
+  - `adminMiddleware` 미들웨어 추가
+  - 모든 라우트 파일(user.js, liquor.js, ingredient.js 등)에서 미들웨어 참조 수정
+- **라우트 순서 수정**:
+  - compound.js 라우터에서 `/search/:query` 경로를 `/:id` 경로보다 먼저 정의하도록 수정
+- **DB 모듈 참조 방식 수정**:
+  - `Node.js`, `Compound.js`, `Edge.js` 등 모든 모델 파일에서 db 모듈 참조 방식 수정 (`const pool = require(...)` → `const db = require(...); const pool = db.pool`)
+  - `index.js`에서 데이터베이스 연결 코드 수정
+- **데이터베이스 연결 정보 수정**:
+  - `.env` 파일에 MySQL 연결 정보 추가
+  - 데이터베이스 비밀번호 수정 (`rootpassword` → `8912@28DP`)
+- **데이터베이스 초기화 함수 개선**:
+  - prepared statement 프로토콜에서 지원되지 않는 `USE` 문 제거
+  - SQL 명령 실행 오류 처리 개선
+  - 이미 존재하는 테이블에 대한 예외 처리 추가
+- 서버 실행 오류 해결
+
 ### 1. 데이터베이스 전환 및 ERD 개선 완료
 - MongoDB에서 MySQL로 완전 전환
 - Hub_Nodes.csv와 Hub_Edges.csv 데이터셋 분석

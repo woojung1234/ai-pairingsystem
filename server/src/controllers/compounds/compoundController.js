@@ -1,7 +1,7 @@
 /**
  * Compound Controller - 화합물 관련 비즈니스 로직
  */
-const Compound = require('../../models/mysql/Compound');
+const Compound = require('../../models/Compound');
 const Node = require('../../models/mysql/Node');
 const Edge = require('../../models/mysql/Edge');
 const logger = require('../../utils/logger');

@@ -36,7 +36,7 @@ services:
       - DB_HOST=mysql-db
       - DB_PORT=3306
       - DB_USER=ai_pairing_user
-      - DB_PASSWORD=ai_pairing_password
+      - DB_PASSWORD=8912@28DP
       - DB_NAME=ai_pairing_db
     volumes:
       - ./server:/app

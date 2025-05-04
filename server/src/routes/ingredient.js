@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ingredientController = require('../controllers/ingredientController');
-const { protect, authorize } = require('../middleware/auth');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 /**
  * @route   GET /api/ingredients
@@ -43,20 +43,20 @@ router.get('/:id', ingredientController.getIngredientById);
  * @desc    Create a new ingredient
  * @access  Private/Admin
  */
-router.post('/', protect, authorize('admin'), ingredientController.createIngredient);
+router.post('/', authMiddleware, adminMiddleware, ingredientController.createIngredient);
 
 /**
  * @route   PUT /api/ingredients/:id
  * @desc    Update an ingredient
  * @access  Private/Admin
  */
-router.put('/:id', protect, authorize('admin'), ingredientController.updateIngredient);
+router.put('/:id', authMiddleware, adminMiddleware, ingredientController.updateIngredient);
 
 /**
  * @route   DELETE /api/ingredients/:id
  * @desc    Delete an ingredient
  * @access  Private/Admin
  */
-router.delete('/:id', protect, authorize('admin'), ingredientController.deleteIngredient);
+router.delete('/:id', authMiddleware, adminMiddleware, ingredientController.deleteIngredient);
 
 module.exports = router;

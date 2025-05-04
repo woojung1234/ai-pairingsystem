@@ -1,4 +1,5 @@
-const pool = require('../config/db');
+const db = require('../config/db');
+const pool = db.pool;
 const logger = require('../utils/logger');
 
 class Compound {

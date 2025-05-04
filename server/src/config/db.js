@@ -43,14 +43,25 @@ const initializeDB = async () => {
     
     // 파일이 존재하는지 확인
     if (fs.existsSync(initFilePath)) {
-      const initSql = fs.readFileSync(initFilePath, 'utf8');
+      let initSql = fs.readFileSync(initFilePath, 'utf8');
+      
+      // USE 문 제거 (connection pool에서 이미 데이터베이스를 지정했기 때문에 필요 없음)
+      initSql = initSql.replace(/USE.*;/, '');
       
       // SQL 명령어들 분리하여 실행
       const sqlStatements = initSql.split(';').filter(statement => statement.trim());
       
       for (const statement of sqlStatements) {
         if (statement.trim()) {
-          await connection.execute(`${statement};`);
+          try {
+            await connection.execute(`${statement}`);
+          } catch (err) {
+            // 이미 테이블이 존재하는 경우 등의 에러는 무시
+            if (!err.message.includes('already exists')) {
+              console.error(`Error executing statement: ${statement.substring(0, 50)}...`);
+              console.error(err.message);
+            }
+          }
         }
       }
       

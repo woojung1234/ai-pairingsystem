@@ -22,9 +22,9 @@ const recommendationRoutes = require('./routes/recommendation');
 const adminRoutes = require('./routes/admin');
 
 // Import database connection and initialization
-const connectDB = require('./config/db');
-const initDatabase = require('./config/db-init');
-
+const db = require('./config/db');
+// Import Swagger setup
+const setupSwagger = require('./config/swagger');
 // Initialize express app
 const app = express();
 const PORT = process.env.PORT || 5004;
@@ -45,10 +45,10 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Connect to MySQL and initialize database if needed
-connectDB()
+db.connectDB()
   .then(() => {
     console.log('MySQL connected');
-    return initDatabase();
+    return db.initializeDB();
   })
   .then(() => {
     console.log('Database initialization checked');
@@ -60,7 +60,8 @@ const logsDir = path.join(__dirname, '../../logs');
 if (!require('fs').existsSync(logsDir)) {
   require('fs').mkdirSync(logsDir, { recursive: true });
 }
-
+// Swagger UI 설정
+setupSwagger(app);
 // Routes
 app.use('/api/pairing', pairingRoutes);
 app.use('/api/users', userRoutes);
@@ -91,6 +92,7 @@ app.use((req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Swagger UI is available at http://localhost:${PORT}/api-docs`);
 });
 
 // Handle unhandled promise rejections

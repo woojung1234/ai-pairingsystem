@@ -1,4 +1,4 @@
-const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const yaml = require('yaml');
 const fs = require('fs');
 const path = require('path');
@@ -10,12 +10,9 @@ const openApiPaths = yaml.parse(fs.readFileSync(path.join(__dirname, '../docs/op
 // paths를 openApi 스펙에 병합
 openApiSpec.paths = openApiPaths.paths;
 
-// Swagger 설정
-const swaggerOptions = {
-  definition: openApiSpec,
-  apis: [], // 이미 YAML로 정의했으므로 비워둠
+// Swagger UI 설정 함수
+const setupSwagger = (app) => {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 };
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
-module.exports = swaggerSpec;
+module.exports = setupSwagger;
