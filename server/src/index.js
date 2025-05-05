@@ -20,6 +20,7 @@ const edgeRoutes = require('./routes/edge');
 const preferenceRoutes = require('./routes/preference');
 const recommendationRoutes = require('./routes/recommendation');
 const adminRoutes = require('./routes/admin');
+const debugRoutes = require('./routes/debug'); // 디버그 라우트 추가
 
 // Import database connection and initialization
 const db = require('./config/db');
@@ -72,6 +73,7 @@ app.use('/api/edges', edgeRoutes);
 app.use('/api/preferences', preferenceRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/debug', debugRoutes); // 디버그 라우트 등록
 
 // Root route
 app.get('/', (req, res) => {

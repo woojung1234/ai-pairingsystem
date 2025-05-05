@@ -52,7 +52,37 @@ ai-pairing/
 
 ## 현재까지 진행된 작업
 
-### 0. 버그 수정 (2025-05-04)
+### 0. API 컨트롤러 MongoDB에서 MySQL로 마이그레이션 (2025-05-05)
+- **컨트롤러 코드 MongoDB에서 MySQL로 마이그레이션**:
+  - liquorController.js - MongoDB 쿼리 메소드를 MySQL 모델 메소드로 변경
+    - find(), findOne() 등을 getAll(), getById() 등으로 수정
+    - 데이터 처리 로직을 MySQL 모델에 맞게 수정
+  - ingredientController.js - MySQL 스타일로 코드 변경
+    - pool 모듈 추가 임포트
+    - 카테고리 조회 로직을 MySQL 쿼리로 변경
+    - 페이지네이션 로직을 클라이언트 측에서 처리하도록 수정
+  - API 엔드포인트 기능 확인 및 테스트
+  - MongoDB 형식의 모델 메소드 호출로 인한 서버 오류 해결
+
+### 1. Hub_Nodes 및 Hub_Edges 데이터 마이그레이션 완료 (2025-05-04)
+- **MySQL 데이터베이스에 그래프 데이터 적재 완료**:
+  - Hub_Nodes.csv에서 nodes 테이블로 2,005개 노드 데이터 임포트
+  - Hub_Edges.csv에서 edges 테이블로 37,392개 엣지 데이터 임포트
+  - 노드 유형별 분포: compound(1,589), ingredient(393), liquor(23)
+  - 엣지 유형별 분포: ingr-fcomp(35,437), ingr-ingr(1,897), ingr-dcomp(58)
+- **데이터 정합성 및 DB 스키마 개선**:
+  - nodes 테이블의 name 필드 길이를 VARCHAR(100)에서 VARCHAR(255)로 확장
+  - 누락된 score 값을 허용하도록 NULL 처리 로직 구현
+  - 데이터 중복 방지를 위한 UNIQUE KEY 제약조건 적용
+
+### 2. 데이터 마이그레이션 스크립트 추가 (2025-05-04)
+- **데이터 마이그레이션 스크립트 개발**:
+  - `server/src/scripts/import-hub-data.js` 스크립트 생성
+  - Hub_Nodes.csv와 Hub_Edges.csv 파일을 MySQL 데이터베이스로 가져오는 기능 구현
+  - 노드 및 엣지 데이터의 일관성 확인 및 유효성 검사 로직 추가
+  - CSV 파싱 및 데이터베이스 트랜잭션 처리 기능 구현
+
+### 3. 버그 수정 (2025-05-04)
 - **모듈 경로 문제 해결**: 
   - compoundController.js 파일에서는 `../../models/Compound`를 이미 올바르게 사용 중이었음
   - 누락된 `models/mysql/Compound.js` 및 `models/mysql/Edge.js` 파일 생성
@@ -75,7 +105,7 @@ ai-pairing/
   - 이미 존재하는 테이블에 대한 예외 처리 추가
 - 서버 실행 오류 해결
 
-### 1. 데이터베이스 전환 및 ERD 개선 완료
+### 4. 데이터베이스 전환 및 ERD 개선 완료
 - MongoDB에서 MySQL로 완전 전환
 - Hub_Nodes.csv와 Hub_Edges.csv 데이터셋 분석
 - 새로운 ERD 설계 완료:
@@ -105,23 +135,33 @@ ai-pairing/
 
 ## 다음 진행 단계
 
-### 1. API 문서화 작업 [다음 예정]
-- OpenAPI/Swagger 스펙 작성
-- API 엔드포인트 문서화
-- 요청/응답 스키마 정의
+### 1. API 보완 및 버그 수정 [진행 중]
+- ✅ 사용자 컨트롤러 코드를 MongoDB에서 MySQL로 완전히 마이그레이션
+- ✅ Auth 미들웨어를 MySQL 호환 방식으로 수정
+- ✅ ingredientController.js의 구문 오류 수정
+- ✅ userController.js의 pool 참조 문제 수정
+- ✅ MySQL 데이터베이스 연결 설정 수정
+- ✅ 로그아웃 API 엔드포인트 추가
+- MongoDB에서 MySQL로 마이그레이션 완료 후 나머지 컨트롤러 오류 수정
+- API 응답 형식 통일 및 오류 메시지 개선
 
 ### 2. 프론트엔드 서비스 연동 [다음 예정]
-- 새로 추가된 API 엔드포인트 통합
+- 새로 구성된 MySQL 데이터베이스와 API 연동
 - Preferences API 연동
 - Recommendations API 연동
 - Admin 페이지 개발
 
-### 3. AI 모델 통합 [다음 예정]
+### 3. API 문서화 작업 [다음 예정]
+- OpenAPI/Swagger 스펙 업데이트
+- API 엔드포인트 문서화
+- 요청/응답 스키마 정의
+
+### 4. AI 모델 통합 [다음 예정]
 - 페어링 점수 예측 API 개선
 - 설명 생성 로직 고도화
 - 성능 최적화
 
-### 4. 배포 환경 구성 [다음 예정]
+### 5. 배포 환경 구성 [다음 예정]
 - Docker 컨테이너 최적화
 - CI/CD 파이프라인 구축
 - AWS 배포 설정

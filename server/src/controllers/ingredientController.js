@@ -1,4 +1,6 @@
 const Ingredient = require('../models/Ingredient');
+const logger = require('../utils/logger');
+const pool = require('../config/db').pool;
 
 /**
  * @desc   Get all ingredients
@@ -9,25 +11,25 @@ exports.getIngredients = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
     
-    const ingredients = await Ingredient.find()
-      .sort({ name: 1 })
-      .skip(skip)
-      .limit(limit);
+    // 수정된 부분: MySQL 모델 사용
+    const ingredients = await Ingredient.getAll();
     
-    const total = await Ingredient.countDocuments();
+    // 클라이언트 측 페이지네이션 처리
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedIngredients = ingredients.slice(startIndex, endIndex);
     
     return res.json({
       success: true,
-      count: ingredients.length,
-      total,
+      count: paginatedIngredients.length,
+      total: ingredients.length,
       page,
-      pages: Math.ceil(total / limit),
-      data: ingredients
+      pages: Math.ceil(ingredients.length / limit),
+      data: paginatedIngredients
     });
   } catch (error) {
-    console.error('Error in getIngredients:', error);
+    logger.error('Error in getIngredients:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -42,7 +44,8 @@ exports.getIngredientById = async (req, res) => {
     const { id } = req.params;
     const ingredientId = parseInt(id);
     
-    const ingredient = await Ingredient.findOne({ ingredient_id: ingredientId });
+    // 수정된 부분: MySQL 모델 사용
+    const ingredient = await Ingredient.getById(ingredientId);
     
     if (!ingredient) {
       return res.status(404).json({ success: false, error: 'Ingredient not found' });
@@ -53,7 +56,7 @@ exports.getIngredientById = async (req, res) => {
       data: ingredient
     });
   } catch (error) {
-    console.error('Error in getIngredientById:', error);
+    logger.error('Error in getIngredientById:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -71,9 +74,8 @@ exports.searchIngredients = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Please provide a search query' });
     }
     
-    const ingredients = await Ingredient.find({
-      name: { $regex: query, $options: 'i' }
-    }).sort({ name: 1 });
+    // 수정된 부분: MySQL 모델 사용
+    const ingredients = await Ingredient.searchByName(query);
     
     return res.json({
       success: true,
@@ -81,7 +83,7 @@ exports.searchIngredients = async (req, res) => {
       data: ingredients
     });
   } catch (error) {
-    console.error('Error in searchIngredients:', error);
+    logger.error('Error in searchIngredients:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -99,9 +101,8 @@ exports.getIngredientsByCategory = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Please provide a category' });
     }
     
-    const ingredients = await Ingredient.find({
-      category: { $regex: category, $options: 'i' }
-    }).sort({ name: 1 });
+    // 수정된 부분: MySQL 모델 사용
+    const ingredients = await Ingredient.getByCategory(category);
     
     return res.json({
       success: true,
@@ -109,7 +110,7 @@ exports.getIngredientsByCategory = async (req, res) => {
       data: ingredients
     });
   } catch (error) {
-    console.error('Error in getIngredientsByCategory:', error);
+    logger.error('Error in getIngredientsByCategory:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -121,15 +122,17 @@ exports.getIngredientsByCategory = async (req, res) => {
  */
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Ingredient.distinct('category');
+    // 수정된 부분: MySQL에서 카테고리 목록 조회
+    const [rows] = await pool.execute('SELECT DISTINCT category FROM ingredients WHERE category IS NOT NULL AND category != ""');
+    const categories = rows.map(row => row.category);
     
     return res.json({
       success: true,
       count: categories.length,
-      data: categories.filter(category => category && category.trim() !== '')
+      data: categories
     });
   } catch (error) {
-    console.error('Error in getCategories:', error);
+    logger.error('Error in getCategories:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -141,36 +144,30 @@ exports.getCategories = async (req, res) => {
  */
 exports.createIngredient = async (req, res) => {
   try {
-    const { ingredient_id, name, category, description, flavor_profile, image_url } = req.body;
+    const { name, category, description, image_url } = req.body;
     
     // Validate required fields
-    if (!ingredient_id || !name) {
-      return res.status(400).json({ success: false, error: 'Please provide ingredient_id and name' });
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'Please provide name' });
     }
     
-    // Check if ingredient already exists
-    const existingIngredient = await Ingredient.findOne({ ingredient_id });
-    
-    if (existingIngredient) {
-      return res.status(400).json({ success: false, error: 'Ingredient with this ID already exists' });
-    }
-    
-    // Create new ingredient
-    const newIngredient = await Ingredient.create({
-      ingredient_id,
+    // 수정된 부분: MySQL 모델 사용
+    const ingredientData = {
       name,
       category,
       description,
-      flavor_profile,
-      image_url
-    });
+      imageUrl: image_url
+    };
+    
+    const newIngredientId = await Ingredient.create(ingredientData);
+    const newIngredient = await Ingredient.getById(newIngredientId);
     
     return res.status(201).json({
       success: true,
       data: newIngredient
     });
   } catch (error) {
-    console.error('Error in createIngredient:', error);
+    logger.error('Error in createIngredient:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -185,36 +182,30 @@ exports.updateIngredient = async (req, res) => {
     const { id } = req.params;
     const ingredientId = parseInt(id);
     
-    // Find ingredient
-    let ingredient = await Ingredient.findOne({ ingredient_id: ingredientId });
+    // 수정된 부분: MySQL 모델 사용
+    const ingredient = await Ingredient.getById(ingredientId);
     
     if (!ingredient) {
       return res.status(404).json({ success: false, error: 'Ingredient not found' });
     }
     
     // Update fields
-    const updatedData = {
-      name: req.body.name || ingredient.name,
-      category: req.body.category || ingredient.category,
-      description: req.body.description || ingredient.description,
-      flavor_profile: req.body.flavor_profile || ingredient.flavor_profile,
-      image_url: req.body.image_url || ingredient.image_url,
-      updated_at: Date.now()
+    const ingredientData = {
+      name: req.body.name,
+      category: req.body.category,
+      description: req.body.description,
+      imageUrl: req.body.image_url
     };
     
-    // Update in database
-    ingredient = await Ingredient.findOneAndUpdate(
-      { ingredient_id: ingredientId },
-      { $set: updatedData },
-      { new: true }
-    );
+    await Ingredient.update(ingredientId, ingredientData);
+    const updatedIngredient = await Ingredient.getById(ingredientId);
     
     return res.json({
       success: true,
-      data: ingredient
+      data: updatedIngredient
     });
   } catch (error) {
-    console.error('Error in updateIngredient:', error);
+    logger.error('Error in updateIngredient:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -229,10 +220,10 @@ exports.deleteIngredient = async (req, res) => {
     const { id } = req.params;
     const ingredientId = parseInt(id);
     
-    // Find and delete ingredient
-    const ingredient = await Ingredient.findOneAndDelete({ ingredient_id: ingredientId });
+    // 수정된 부분: MySQL 모델 사용
+    const success = await Ingredient.delete(ingredientId);
     
-    if (!ingredient) {
+    if (!success) {
       return res.status(404).json({ success: false, error: 'Ingredient not found' });
     }
     
@@ -241,7 +232,7 @@ exports.deleteIngredient = async (req, res) => {
       data: {}
     });
   } catch (error) {
-    console.error('Error in deleteIngredient:', error);
+    logger.error('Error in deleteIngredient:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };

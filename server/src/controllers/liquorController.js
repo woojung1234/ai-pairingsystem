@@ -1,4 +1,5 @@
 const Liquor = require('../models/Liquor');
+const logger = require('../utils/logger');
 
 /**
  * @desc   Get all liquors
@@ -9,25 +10,25 @@ exports.getLiquors = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
     
-    const liquors = await Liquor.find()
-      .sort({ name: 1 })
-      .skip(skip)
-      .limit(limit);
+    // 수정된 부분: MySQL 모델 사용
+    const liquors = await Liquor.getAll();
     
-    const total = await Liquor.countDocuments();
+    // 클라이언트 측 페이지네이션 처리
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedLiquors = liquors.slice(startIndex, endIndex);
     
     return res.json({
       success: true,
-      count: liquors.length,
-      total,
+      count: paginatedLiquors.length,
+      total: liquors.length,
       page,
-      pages: Math.ceil(total / limit),
-      data: liquors
+      pages: Math.ceil(liquors.length / limit),
+      data: paginatedLiquors
     });
   } catch (error) {
-    console.error('Error in getLiquors:', error);
+    logger.error('Error in getLiquors:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -42,7 +43,8 @@ exports.getLiquorById = async (req, res) => {
     const { id } = req.params;
     const liquorId = parseInt(id);
     
-    const liquor = await Liquor.findOne({ liquor_id: liquorId });
+    // 수정된 부분: MySQL 모델 사용
+    const liquor = await Liquor.getById(liquorId);
     
     if (!liquor) {
       return res.status(404).json({ success: false, error: 'Liquor not found' });
@@ -53,7 +55,7 @@ exports.getLiquorById = async (req, res) => {
       data: liquor
     });
   } catch (error) {
-    console.error('Error in getLiquorById:', error);
+    logger.error('Error in getLiquorById:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -71,9 +73,8 @@ exports.searchLiquors = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Please provide a search query' });
     }
     
-    const liquors = await Liquor.find({
-      name: { $regex: query, $options: 'i' }
-    }).sort({ name: 1 });
+    // 수정된 부분: MySQL 모델 사용
+    const liquors = await Liquor.searchByName(query);
     
     return res.json({
       success: true,
@@ -81,7 +82,7 @@ exports.searchLiquors = async (req, res) => {
       data: liquors
     });
   } catch (error) {
-    console.error('Error in searchLiquors:', error);
+    logger.error('Error in searchLiquors:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -93,38 +94,32 @@ exports.searchLiquors = async (req, res) => {
  */
 exports.createLiquor = async (req, res) => {
   try {
-    const { liquor_id, name, type, description, origin, alcohol_content, flavor_profile, image_url } = req.body;
+    const { name, type, description, origin, alcohol_content, image_url } = req.body;
     
     // Validate required fields
-    if (!liquor_id || !name) {
-      return res.status(400).json({ success: false, error: 'Please provide liquor_id and name' });
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'Please provide name' });
     }
     
-    // Check if liquor already exists
-    const existingLiquor = await Liquor.findOne({ liquor_id });
-    
-    if (existingLiquor) {
-      return res.status(400).json({ success: false, error: 'Liquor with this ID already exists' });
-    }
-    
-    // Create new liquor
-    const newLiquor = await Liquor.create({
-      liquor_id,
+    // 수정된 부분: MySQL 모델 사용
+    const liquorData = {
       name,
       type,
       description,
       origin,
-      alcohol_content,
-      flavor_profile,
-      image_url
-    });
+      alcoholContent: alcohol_content,
+      imageUrl: image_url
+    };
+    
+    const newLiquorId = await Liquor.create(liquorData);
+    const newLiquor = await Liquor.getById(newLiquorId);
     
     return res.status(201).json({
       success: true,
       data: newLiquor
     });
   } catch (error) {
-    console.error('Error in createLiquor:', error);
+    logger.error('Error in createLiquor:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -139,38 +134,32 @@ exports.updateLiquor = async (req, res) => {
     const { id } = req.params;
     const liquorId = parseInt(id);
     
-    // Find liquor
-    let liquor = await Liquor.findOne({ liquor_id: liquorId });
+    // 수정된 부분: MySQL 모델 사용
+    const liquor = await Liquor.getById(liquorId);
     
     if (!liquor) {
       return res.status(404).json({ success: false, error: 'Liquor not found' });
     }
     
     // Update fields
-    const updatedData = {
-      name: req.body.name || liquor.name,
-      type: req.body.type || liquor.type,
-      description: req.body.description || liquor.description,
-      origin: req.body.origin || liquor.origin,
-      alcohol_content: req.body.alcohol_content || liquor.alcohol_content,
-      flavor_profile: req.body.flavor_profile || liquor.flavor_profile,
-      image_url: req.body.image_url || liquor.image_url,
-      updated_at: Date.now()
+    const liquorData = {
+      name: req.body.name,
+      type: req.body.type,
+      description: req.body.description,
+      origin: req.body.origin,
+      alcoholContent: req.body.alcohol_content,
+      imageUrl: req.body.image_url
     };
     
-    // Update in database
-    liquor = await Liquor.findOneAndUpdate(
-      { liquor_id: liquorId },
-      { $set: updatedData },
-      { new: true }
-    );
+    await Liquor.update(liquorId, liquorData);
+    const updatedLiquor = await Liquor.getById(liquorId);
     
     return res.json({
       success: true,
-      data: liquor
+      data: updatedLiquor
     });
   } catch (error) {
-    console.error('Error in updateLiquor:', error);
+    logger.error('Error in updateLiquor:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
@@ -185,10 +174,10 @@ exports.deleteLiquor = async (req, res) => {
     const { id } = req.params;
     const liquorId = parseInt(id);
     
-    // Find and delete liquor
-    const liquor = await Liquor.findOneAndDelete({ liquor_id: liquorId });
+    // 수정된 부분: MySQL 모델 사용
+    const success = await Liquor.delete(liquorId);
     
-    if (!liquor) {
+    if (!success) {
       return res.status(404).json({ success: false, error: 'Liquor not found' });
     }
     
@@ -197,7 +186,7 @@ exports.deleteLiquor = async (req, res) => {
       data: {}
     });
   } catch (error) {
-    console.error('Error in deleteLiquor:', error);
+    logger.error('Error in deleteLiquor:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };

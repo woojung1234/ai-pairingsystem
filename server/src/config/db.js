@@ -5,11 +5,11 @@ const logger = require('../utils/logger');
 
 // MySQL 연결 풀 설정
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'rootpassword',
-  database: process.env.DB_NAME || 'ai_pairing_db',
+  host: 'localhost',
+  port: 3307,
+  user: 'root',
+  password: '8912@28DP',
+  database: 'ai_pairing_db',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

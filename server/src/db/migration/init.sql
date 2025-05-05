@@ -1,8 +1,8 @@
 -- AI 페어링 시스템 데이터베이스 초기화 스크립트
 
 -- 데이터베이스 생성
-CREATE DATABASE IF NOT EXISTS ai_pairing;
-USE ai_pairing;
+CREATE DATABASE IF NOT EXISTS ai_pairing_db;
+USE ai_pairing_db;
 
 -- 테이블 생성 전 기존 테이블 삭제 (있는 경우)
 DROP TABLE IF EXISTS user_disliked_ingredients;

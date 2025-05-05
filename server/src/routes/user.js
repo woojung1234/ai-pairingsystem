@@ -18,6 +18,13 @@ router.post('/register', userController.registerUser);
 router.post('/login', userController.loginUser);
 
 /**
+ * @route   POST /api/users/logout
+ * @desc    Logout user
+ * @access  Private
+ */
+router.post('/logout', authMiddleware, userController.logoutUser);
+
+/**
  * @route   GET /api/users/me
  * @desc    Get current user
  * @access  Private
