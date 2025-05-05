@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 class Compound {
   static async getAll() {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT c.*, n.is_hub
         FROM compounds c
         JOIN nodes n ON c.node_id = n.id
@@ -19,7 +19,7 @@ class Compound {
 
   static async getById(id) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT c.*, n.is_hub, n.created_at as node_created_at, n.updated_at as node_updated_at
         FROM compounds c
         JOIN nodes n ON c.node_id = n.id
@@ -34,7 +34,7 @@ class Compound {
 
   static async searchByName(searchTerm) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT c.*, n.is_hub
         FROM compounds c
         JOIN nodes n ON c.node_id = n.id
@@ -62,7 +62,7 @@ class Compound {
       await connection.beginTransaction();
       
       // Create node first
-      const [nodeResult] = await connection.execute(
+      const [nodeResult] = await connection.query(
         `INSERT INTO nodes 
          (node_id, name, external_id, node_type, is_hub, description, image_url)
          VALUES (?, ?, ?, 'compound', ?, ?, ?)`,
@@ -79,7 +79,7 @@ class Compound {
       const nodeId = nodeResult.insertId;
       
       // Create compound
-      const [compoundResult] = await connection.execute(
+      const [compoundResult] = await connection.query(
         `INSERT INTO compounds 
          (node_id, name, external_id, chemical_formula, description)
          VALUES (?, ?, ?, ?, ?)`,
@@ -116,7 +116,7 @@ class Compound {
       
       if (compoundUpdates.length > 0) {
         compoundValues.push(id);
-        await connection.execute(
+        await connection.query(
           `UPDATE compounds SET ${compoundUpdates.join(', ')} WHERE id = ?`,
           compoundValues
         );
@@ -140,7 +140,7 @@ class Compound {
       
       if (nodeUpdates.length > 0) {
         nodeValues.push(id);
-        await connection.execute(
+        await connection.query(
           `UPDATE nodes n
            JOIN compounds c ON n.id = c.node_id
            SET ${nodeUpdates.join(', ')}
@@ -163,7 +163,7 @@ class Compound {
   static async delete(id) {
     try {
       // Cascading delete will handle nodes table
-      const [result] = await pool.execute(
+      const [result] = await pool.query(
         'DELETE FROM compounds WHERE id = ?',
         [id]
       );

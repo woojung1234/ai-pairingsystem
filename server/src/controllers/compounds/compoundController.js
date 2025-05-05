@@ -13,11 +13,15 @@ const logger = require('../../utils/logger');
  */
 const getAllCompounds = async (req, res) => {
   try {
-    const compounds = await Compound.findAll();
-    res.json(compounds);
+    const compounds = await Compound.getAll();
+    res.json({
+      success: true,
+      count: compounds.length,
+      data: compounds
+    });
   } catch (error) {
     logger.error(`Error in getAllCompounds: ${error.message}`);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
@@ -28,22 +32,24 @@ const getAllCompounds = async (req, res) => {
  */
 const getCompoundById = async (req, res) => {
   try {
-    const compound = await Compound.findById(req.params.id);
+    const id = parseInt(req.params.id);
+    const compound = await Compound.getById(id);
     
     if (!compound) {
-      return res.status(404).json({ message: 'Compound not found' });
+      return res.status(404).json({ success: false, error: 'Compound not found' });
     }
 
-    // 관련 엣지 정보도 함께 조회
-    const edges = await Edge.findByNodeId(compound.node_id);
+    // 관련 엣지 정보도 함께 조회 (Edge 모델 수정 필요한 경우 추가 작업)
+    // const edges = await Edge.getByNodeId(compound.node_id);
     
-    res.json({
-      ...compound,
-      relationships: edges
+    return res.json({
+      success: true,
+      data: compound
+      // relationships: edges (Edge 모델 수정 후 활성화)
     });
   } catch (error) {
     logger.error(`Error in getCompoundById: ${error.message}`);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
@@ -57,14 +63,18 @@ const searchCompounds = async (req, res) => {
     const { query } = req.params;
     
     if (!query || query.trim() === '') {
-      return res.status(400).json({ message: 'Search query is required' });
+      return res.status(400).json({ success: false, error: 'Search query is required' });
     }
 
-    const compounds = await Compound.search(query);
-    res.json(compounds);
+    const compounds = await Compound.searchByName(query);
+    return res.json({
+      success: true,
+      count: compounds.length,
+      data: compounds
+    });
   } catch (error) {
     logger.error(`Error in searchCompounds: ${error.message}`);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
@@ -75,38 +85,27 @@ const searchCompounds = async (req, res) => {
  */
 const createCompound = async (req, res) => {
   try {
-    const { node_id, name, external_id, chemical_formula, description } = req.body;
-
-    // node_id 중복 확인
-    const existingNode = await Node.findByNodeId(node_id);
-    if (existingNode) {
-      return res.status(400).json({ message: 'Node with this ID already exists' });
-    }
-
-    // 노드 생성
-    const nodeData = {
-      node_id,
-      name,
-      external_id,
-      node_type: 'compound',
-      description
-    };
-    const node = await Node.create(nodeData);
+    const { name, externalId, chemicalFormula, description, isHub } = req.body;
 
     // 화합물 데이터 생성
     const compoundData = {
-      node_id: node.id,
       name,
-      external_id,
-      chemical_formula,
-      description
+      externalId,
+      chemicalFormula,
+      description,
+      isHub: isHub || false
     };
-    const compound = await Compound.create(compoundData);
+    
+    const newCompoundId = await Compound.create(compoundData);
+    const newCompound = await Compound.getById(newCompoundId);
 
-    res.status(201).json(compound);
+    return res.status(201).json({
+      success: true,
+      data: newCompound
+    });
   } catch (error) {
     logger.error(`Error in createCompound: ${error.message}`);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
@@ -117,32 +116,30 @@ const createCompound = async (req, res) => {
  */
 const updateCompound = async (req, res) => {
   try {
-    const { id } = req.params;
-    const updateData = req.body;
+    const id = parseInt(req.params.id);
+    const compoundData = req.body;
 
-    const compound = await Compound.findById(id);
+    // 화합물 존재 확인
+    const compound = await Compound.getById(id);
     if (!compound) {
-      return res.status(404).json({ message: 'Compound not found' });
+      return res.status(404).json({ success: false, error: 'Compound not found' });
     }
 
     // 화합물 업데이트
-    if (updateData.name || updateData.external_id || updateData.chemical_formula || updateData.description) {
-      await Compound.update(id, updateData);
+    const success = await Compound.update(id, compoundData);
+    
+    if (!success) {
+      return res.status(400).json({ success: false, error: 'Failed to update compound' });
     }
-
-    // 노드 테이블도 업데이트
-    if (updateData.name || updateData.description) {
-      const nodeUpdateData = {};
-      if (updateData.name) nodeUpdateData.name = updateData.name;
-      if (updateData.description) nodeUpdateData.description = updateData.description;
-      await Node.update(compound.node_id, nodeUpdateData);
-    }
-
-    const updatedCompound = await Compound.findById(id);
-    res.json(updatedCompound);
+    
+    const updatedCompound = await Compound.getById(id);
+    return res.json({
+      success: true,
+      data: updatedCompound
+    });
   } catch (error) {
     logger.error(`Error in updateCompound: ${error.message}`);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
@@ -153,20 +150,28 @@ const updateCompound = async (req, res) => {
  */
 const deleteCompound = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
 
-    const compound = await Compound.findById(id);
+    // 화합물 존재 확인
+    const compound = await Compound.getById(id);
     if (!compound) {
-      return res.status(404).json({ message: 'Compound not found' });
+      return res.status(404).json({ success: false, error: 'Compound not found' });
     }
 
-    // 화합물 삭제 (CASCADE로 노드도 자동 삭제)
-    await Compound.delete(id);
+    // 화합물 삭제
+    const success = await Compound.delete(id);
+    
+    if (!success) {
+      return res.status(400).json({ success: false, error: 'Failed to delete compound' });
+    }
 
-    res.json({ message: 'Compound deleted successfully' });
+    return res.json({
+      success: true,
+      data: {}
+    });
   } catch (error) {
     logger.error(`Error in deleteCompound: ${error.message}`);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 

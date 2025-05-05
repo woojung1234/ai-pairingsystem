@@ -142,6 +142,13 @@ ai-pairing/
 - ✅ userController.js의 pool 참조 문제 수정
 - ✅ MySQL 데이터베이스 연결 설정 수정
 - ✅ 로그아웃 API 엔드포인트 추가
+- ✅ Liquor 모델에서 execute를 query로 변경
+- ✅ Ingredient 모델에서 execute를 query로 변경
+- ✅ Compound 모델에서 execute를 query로 변경
+- ✅ compoundController.js 파일을 MySQL 호환 방식으로 수정
+- ✅ Edge 모델 및 컨트롤러 수정, getAllEdges 메서드 추가
+- ✅ Edge API에 ID로 단일 엣지 조회 기능 추가
+- ✅ Node 모델 메서드 이름을 일관성 있게 변경 (find* → get*)
 - MongoDB에서 MySQL로 마이그레이션 완료 후 나머지 컨트롤러 오류 수정
 - API 응답 형식 통일 및 오류 메시지 개선
 

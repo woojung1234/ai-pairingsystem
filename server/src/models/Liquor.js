@@ -1,10 +1,11 @@
-const pool = require('../config/db');
+const db = require('../config/db');
+const pool = db.pool;
 const logger = require('../utils/logger');
 
 class Liquor {
   static async getAll() {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT l.*, n.is_hub
         FROM liquors l
         JOIN nodes n ON l.node_id = n.id
@@ -18,7 +19,7 @@ class Liquor {
 
   static async getById(id) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT l.*, n.is_hub, n.created_at as node_created_at, n.updated_at as node_updated_at
         FROM liquors l
         JOIN nodes n ON l.node_id = n.id
@@ -33,7 +34,7 @@ class Liquor {
 
   static async searchByName(searchTerm) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT l.*, n.is_hub
         FROM liquors l
         JOIN nodes n ON l.node_id = n.id
@@ -61,7 +62,7 @@ class Liquor {
       await connection.beginTransaction();
       
       // Create node first
-      const [nodeResult] = await connection.execute(
+      const [nodeResult] = await connection.query(
         `INSERT INTO nodes 
          (node_id, name, external_id, node_type, is_hub, description, image_url)
          VALUES (?, ?, ?, 'liquor', false, ?, ?)`,
@@ -71,7 +72,7 @@ class Liquor {
       const nodeId = nodeResult.insertId;
       
       // Create liquor
-      const [liquorResult] = await connection.execute(
+      const [liquorResult] = await connection.query(
         `INSERT INTO liquors 
          (node_id, name, type, description, origin, alcohol_content, image_url)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -108,7 +109,7 @@ class Liquor {
       
       if (liquorUpdates.length > 0) {
         liquorValues.push(id);
-        await connection.execute(
+        await connection.query(
           `UPDATE liquors SET ${liquorUpdates.join(', ')} WHERE id = ?`,
           liquorValues
         );
@@ -127,7 +128,7 @@ class Liquor {
       
       if (nodeUpdates.length > 0) {
         nodeValues.push(id);
-        await connection.execute(
+        await connection.query(
           `UPDATE nodes n
            JOIN liquors l ON n.id = l.node_id
            SET ${nodeUpdates.join(', ')}
@@ -150,7 +151,7 @@ class Liquor {
   static async delete(id) {
     try {
       // Cascading delete will handle nodes table
-      const [result] = await pool.execute(
+      const [result] = await pool.query(
         'DELETE FROM liquors WHERE id = ?',
         [id]
       );

@@ -9,11 +9,11 @@ const logger = require('../../utils/logger');
 
 class Edge {
   /**
-   * 모든 Edge 조회
-   */
-  static async findAll() {
+ * 모든 Edge 조회
+ */
+  static async getAll() {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT e.*, 
                sn.name as source_name, sn.node_type as source_type,
                tn.name as target_name, tn.node_type as target_type
@@ -24,7 +24,7 @@ class Edge {
       `);
       return rows;
     } catch (error) {
-      logger.error(`Error in Edge.findAll: ${error.message}`);
+      logger.error(`Error in Edge.getAll: ${error.message}`);
       throw error;
     }
   }
@@ -32,9 +32,9 @@ class Edge {
   /**
    * ID로 Edge 조회
    */
-  static async findById(id) {
+  static async getById(id) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT e.*, 
                sn.name as source_name, sn.node_type as source_type,
                tn.name as target_name, tn.node_type as target_type
@@ -46,7 +46,7 @@ class Edge {
       
       return rows[0] || null;
     } catch (error) {
-      logger.error(`Error in Edge.findById: ${error.message}`);
+      logger.error(`Error in Edge.getById: ${error.message}`);
       throw error;
     }
   }
@@ -54,9 +54,9 @@ class Edge {
   /**
    * 노드 ID로 관련 Edge 조회
    */
-  static async findByNodeId(nodeId) {
+  static async getByNodeId(nodeId) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT e.*, 
                sn.name as source_name, sn.node_type as source_type,
                tn.name as target_name, tn.node_type as target_type
@@ -69,7 +69,7 @@ class Edge {
       
       return rows;
     } catch (error) {
-      logger.error(`Error in Edge.findByNodeId: ${error.message}`);
+      logger.error(`Error in Edge.getByNodeId: ${error.message}`);
       throw error;
     }
   }
@@ -77,7 +77,7 @@ class Edge {
   /**
    * 두 노드 간의 Edge 조회
    */
-  static async findByNodes(sourceId, targetId, edgeType = null) {
+  static async getByNodes(sourceId, targetId, edgeType = null) {
     try {
       let query = `
         SELECT e.*, 
@@ -96,10 +96,10 @@ class Edge {
         params.push(edgeType);
       }
       
-      const [rows] = await pool.execute(query, params);
+      const [rows] = await pool.query(query, params);
       return rows[0] || null;
     } catch (error) {
-      logger.error(`Error in Edge.findByNodes: ${error.message}`);
+      logger.error(`Error in Edge.getByNodes: ${error.message}`);
       throw error;
     }
   }
@@ -114,18 +114,18 @@ class Edge {
       await connection.beginTransaction();
       
       // 중복 확인
-      const [existing] = await connection.execute(
+      const [existing] = await connection.query(
         'SELECT id FROM edges WHERE source_id = ? AND target_id = ? AND edge_type = ?',
         [edgeData.source_id, edgeData.target_id, edgeData.edge_type]
       );
       
       if (existing.length > 0) {
         await connection.commit();
-        return await this.findById(existing[0].id);
+        return await this.getById(existing[0].id);
       }
       
       // Edge 생성
-      const [result] = await connection.execute(
+      const [result] = await connection.query(
         `INSERT INTO edges (source_id, target_id, edge_type, score, notes)
          VALUES (?, ?, ?, ?, ?)`,
         [
@@ -141,7 +141,7 @@ class Edge {
       
       // 생성된 Edge 반환
       const id = result.insertId;
-      return this.findById(id);
+      return this.getById(id);
     } catch (error) {
       await connection.rollback();
       logger.error(`Error in Edge.create: ${error.message}`);
@@ -188,7 +188,7 @@ class Edge {
       values.push(id);
       
       // 업데이트 쿼리 실행
-      await connection.execute(
+      await connection.query(
         `UPDATE edges SET ${updates.join(', ')}, updated_at = NOW() WHERE id = ?`,
         values
       );
@@ -209,7 +209,7 @@ class Edge {
    */
   static async delete(id) {
     try {
-      const [result] = await pool.execute(
+      const [result] = await pool.query(
         'DELETE FROM edges WHERE id = ?',
         [id]
       );
@@ -217,6 +217,29 @@ class Edge {
       return result.affectedRows > 0;
     } catch (error) {
       logger.error(`Error in Edge.delete: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * 엣지 타입으로 조회
+   */
+  static async getByType(edgeType) {
+    try {
+      const [rows] = await pool.query(`
+        SELECT e.*, 
+               sn.name as source_name, sn.node_type as source_type,
+               tn.name as target_name, tn.node_type as target_type
+        FROM edges e
+        JOIN nodes sn ON e.source_id = sn.id
+        JOIN nodes tn ON e.target_id = tn.id
+        WHERE e.edge_type = ?
+        ORDER BY e.score DESC
+      `, [edgeType]);
+      
+      return rows;
+    } catch (error) {
+      logger.error(`Error in Edge.getByType: ${error.message}`);
       throw error;
     }
   }

@@ -1,10 +1,11 @@
-const pool = require('../config/db');
+const db = require('../config/db');
+const pool = db.pool;
 const logger = require('../utils/logger');
 
 class Ingredient {
   static async getAll() {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT i.*, n.is_hub
         FROM ingredients i
         JOIN nodes n ON i.node_id = n.id
@@ -18,7 +19,7 @@ class Ingredient {
 
   static async getById(id) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT i.*, n.is_hub, n.created_at as node_created_at, n.updated_at as node_updated_at
         FROM ingredients i
         JOIN nodes n ON i.node_id = n.id
@@ -33,7 +34,7 @@ class Ingredient {
 
   static async getByCategory(category) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT i.*, n.is_hub
         FROM ingredients i
         JOIN nodes n ON i.node_id = n.id
@@ -48,7 +49,7 @@ class Ingredient {
 
   static async searchByName(searchTerm) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT i.*, n.is_hub
         FROM ingredients i
         JOIN nodes n ON i.node_id = n.id
@@ -76,7 +77,7 @@ class Ingredient {
       await connection.beginTransaction();
       
       // Create node first
-      const [nodeResult] = await connection.execute(
+      const [nodeResult] = await connection.query(
         `INSERT INTO nodes 
          (node_id, name, external_id, node_type, is_hub, description, image_url)
          VALUES (?, ?, ?, 'ingredient', false, ?, ?)`,
@@ -86,7 +87,7 @@ class Ingredient {
       const nodeId = nodeResult.insertId;
       
       // Create ingredient
-      const [ingredientResult] = await connection.execute(
+      const [ingredientResult] = await connection.query(
         `INSERT INTO ingredients 
          (node_id, name, category, description, image_url)
          VALUES (?, ?, ?, ?, ?)`,
@@ -123,7 +124,7 @@ class Ingredient {
       
       if (ingredientUpdates.length > 0) {
         ingredientValues.push(id);
-        await connection.execute(
+        await connection.query(
           `UPDATE ingredients SET ${ingredientUpdates.join(', ')} WHERE id = ?`,
           ingredientValues
         );
@@ -142,7 +143,7 @@ class Ingredient {
       
       if (nodeUpdates.length > 0) {
         nodeValues.push(id);
-        await connection.execute(
+        await connection.query(
           `UPDATE nodes n
            JOIN ingredients i ON n.id = i.node_id
            SET ${nodeUpdates.join(', ')}
@@ -165,7 +166,7 @@ class Ingredient {
   static async delete(id) {
     try {
       // Cascading delete will handle nodes table
-      const [result] = await pool.execute(
+      const [result] = await pool.query(
         'DELETE FROM ingredients WHERE id = ?',
         [id]
       );

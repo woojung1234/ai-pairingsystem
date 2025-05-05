@@ -11,7 +11,7 @@ class Node {
    * @param {Object} options - 조회 옵션 (타입, 허브 여부 등)
    * @returns {Promise<Array>} 노드 객체 배열
    */
-  static async findAll(options = {}) {
+  static async getAll(options = {}) {
     try {
       let query = 'SELECT * FROM nodes';
       const whereConditions = [];
@@ -56,7 +56,7 @@ class Node {
    * @param {number} id - 노드 ID
    * @returns {Promise<Object|null>} 노드 객체 또는 null
    */
-  static async findById(id) {
+  static async getById(id) {
     try {
       const query = 'SELECT * FROM nodes WHERE id = ?';
       const [rows] = await pool.query(query, [id]);
@@ -72,7 +72,7 @@ class Node {
    * @param {number} nodeId - 외부 노드 ID
    * @returns {Promise<Object|null>} 노드 객체 또는 null
    */
-  static async findByNodeId(nodeId) {
+  static async getByNodeId(nodeId) {
     try {
       const query = 'SELECT * FROM nodes WHERE node_id = ?';
       const [rows] = await pool.query(query, [nodeId]);
@@ -106,7 +106,7 @@ class Node {
         nodeData.image_url || null
       ]);
 
-      return this.findById(result.insertId);
+      return this.getById(result.insertId);
     } catch (error) {
       logger.error(`Error in Node.create: ${error.message}`);
       throw error;
@@ -134,7 +134,7 @@ class Node {
       `;
       
       await pool.query(query, [...values, id]);
-      return this.findById(id);
+      return this.getById(id);
     } catch (error) {
       logger.error(`Error in Node.update: ${error.message}`);
       throw error;
@@ -162,7 +162,7 @@ class Node {
    * @param {string} query - 검색어
    * @returns {Promise<Array>} 검색 결과 배열
    */
-  static async search(query) {
+  static async searchByName(query) {
     try {
       const searchQuery = `
         SELECT * FROM nodes
