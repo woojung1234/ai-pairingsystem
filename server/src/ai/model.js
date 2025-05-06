@@ -130,11 +130,9 @@ async function getRecommendations(liquorId, limit = 10) {
  */
 async function getExplanation(liquorId, ingredientId) {
   try {
-    // Get liquor and ingredient details from database
-    const [liquor, ingredient] = await Promise.all([
-      Liquor.findOne({ liquor_id: liquorId }),
-      Ingredient.findOne({ ingredient_id: ingredientId })
-    ]);
+    // Get liquor and ingredient details from database using the correct method call
+    const liquor = await Liquor.getById(liquorId);
+    const ingredient = await Ingredient.getById(ingredientId);
 
     if (!liquor || !ingredient) {
       throw new Error('Liquor or ingredient not found');
@@ -145,10 +143,10 @@ async function getExplanation(liquorId, ingredientId) {
     
     // Calculate level of compatibility
     let compatibilityLevel;
-    if (score >= 0.8) compatibilityLevel = "excellent";
-    else if (score >= 0.6) compatibilityLevel = "good";
-    else if (score >= 0.4) compatibilityLevel = "moderate";
-    else compatibilityLevel = "challenging";
+    if (score >= 0.8) compatibilityLevel = "탁월한";
+    else if (score >= 0.6) compatibilityLevel = "좋은";
+    else if (score >= 0.4) compatibilityLevel = "적당한";
+    else compatibilityLevel = "도전적인";
 
     // Create a shared compounds list (would be from the model in production)
     const sharedCompounds = getSharedCompounds(liquor, ingredient);
@@ -215,19 +213,20 @@ async function generateExplanationWithAI(
   try {
     // Format the prompt with information about the pairing
     const prompt = `
-You are a expert sommelier and food pairing specialist. You have analyzed the pairing of ${liquorName} with ${ingredientName}.
-The pairing score from our FlavorDiffusion model is ${score.toFixed(2)} out of 1.00, indicating a ${compatibilityLevel} compatibility.
+당신은 전문 소믈리에이자 음식 페어링 전문가입니다. ${liquorName}과(와) ${ingredientName}의 페어링을 분석했습니다.
+FlavorDiffusion 모델에서 나온 페어링 점수는 1.00점 만점에 ${score.toFixed(2)}점으로, 이는 ${compatibilityLevel} 수준의 궁합을 나타냅니다.
 
-Liquor flavor profile: ${liquorFlavors.length > 0 ? liquorFlavors.join(', ') : 'Not specified'}
-Ingredient flavor profile: ${ingredientFlavors.length > 0 ? ingredientFlavors.join(', ') : 'Not specified'}
-${sharedCompounds.length > 0 ? `Shared flavor compounds: ${sharedCompounds.join(', ')}` : ''}
+주류 풍미 프로필: ${liquorFlavors.length > 0 ? liquorFlavors.join(', ') : '명시되지 않음'}
+재료 풍미 프로필: ${ingredientFlavors.length > 0 ? ingredientFlavors.join(', ') : '명시되지 않음'}
+${sharedCompounds.length > 0 ? `공유 풍미 화합물: ${sharedCompounds.join(', ')}` : ''}
 
-Please provide a concise, informative explanation (2-3 sentences) of why this pairing works well or doesn't work well, focusing on:
-1. How the flavors complement or contrast each other
-2. Any specific flavor compounds or notes that are particularly important
-3. How this pairing might enhance the overall tasting experience
+이 페어링이 왜 잘 어울리는지 또는 잘 어울리지 않는지에 대한 간결하고 정보가 풍부한 설명(2-3문장)을 한국어로 제공해주세요. 다음 사항에 초점을 맞추세요:
+1. 풍미가 어떻게 서로 보완하거나 대조되는지
+2. 특히 중요한 특정 풍미 화합물이나 노트
+3. 이 페어링이 전체적인 시식 경험을 어떻게 향상시킬 수 있는지
 
-Keep your explanation informative and scientific but accessible to a non-expert. Do not use bullet points or paragraph breaks. Keep it concise.
+설명은 전문적이고 과학적이지만 비전문가도 이해할 수 있게 작성해주세요. 글머리 기호나 단락 나누기를 사용하지 마세요. 간결하게 유지하세요.
+반드시 한국어로 응답해주세요.
 `;
 
     // Call the OpenAI API
@@ -236,7 +235,7 @@ Keep your explanation informative and scientific but accessible to a non-expert.
       messages: [
         {
           role: "system",
-          content: "You are a knowledgeable sommelier and food pairing expert who explains the science behind food and drink pairings in an accessible way."
+          content: "당신은 음식과 음료 페어링의 과학적 원리를 이해하기 쉽게 설명하는 지식이 풍부한 소믈리에이자 음식 페어링 전문가입니다. 모든 응답은 한국어로 제공합니다."
         },
         {
           role: "user",
@@ -253,9 +252,9 @@ Keep your explanation informative and scientific but accessible to a non-expert.
     console.error('Error generating explanation with AI:', error);
     
     // Fallback explanation if API call fails
-    return `The ${compatibilityLevel} pairing between ${liquorName} and ${ingredientName} is based on their complementary flavor profiles. ${
+    return `${liquorName}과(와) ${ingredientName}의 ${compatibilityLevel} 페어링은 보완적인 풍미 프로필을 바탕으로 합니다. ${
       liquorFlavors.length > 0 && ingredientFlavors.length > 0
-        ? `The ${liquorFlavors[0]} notes in the ${liquorName} harmonize well with the ${ingredientFlavors[0]} character of the ${ingredientName}.`
+        ? `${liquorName}의 ${liquorFlavors[0]} 노트는 ${ingredientName}의 ${ingredientFlavors[0]} 특성과 잘 어우러집니다.`
         : ''
     }`;
   }
@@ -304,6 +303,60 @@ function getSharedCompounds(liquor, ingredient) {
   const numShared = Math.floor(Math.random() * 4);
   const shuffled = [...allCompounds].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, numShared);
+}
+
+/**
+ * Generate a random pairing score for development/testing
+ * @returns {Number} - Random score between 0.1 and 0.9
+ */
+function getRandomScore() {
+  // 0.1 to 0.9 range with 2 decimal places
+  return Math.round((0.1 + Math.random() * 0.8) * 100) / 100;
+}
+
+/**
+ * Generate mock recommendations for development/testing
+ * @param {Number} limit - Number of recommendations to generate
+ * @returns {Array} - Array of mock recommendations
+ */
+function getMockRecommendations(limit) {
+  const recommendations = [];
+  for (let i = 0; i < limit; i++) {
+    recommendations.push({
+      ingredient_id: Math.floor(Math.random() * 100) + 1,
+      score: getRandomScore()
+    });
+  }
+  return recommendations;
+}
+
+/**
+ * Get shared compounds between a liquor and ingredient
+ * @param {Object} liquor - Liquor object
+ * @param {Object} ingredient - Ingredient object
+ * @returns {Array} - Array of shared compound names
+ */
+function getSharedCompounds(liquor, ingredient) {
+  // In a real implementation, this would query the database or call the model
+  // For now, return some mock data
+  const mockCompounds = [
+    'Limonene', 'Beta-Caryophyllene', 'Linalool', 'Myrcene', 'Pinene',
+    'Geraniol', 'Terpineol', 'Citral', 'Eugenol', 'Cinnamaldehyde'
+  ];
+  
+  // Generate a random number of shared compounds (0-3)
+  const numShared = Math.floor(Math.random() * 4);
+  const sharedCompounds = [];
+  
+  for (let i = 0; i < numShared; i++) {
+    const randomIndex = Math.floor(Math.random() * mockCompounds.length);
+    const compound = mockCompounds[randomIndex];
+    if (!sharedCompounds.includes(compound)) {
+      sharedCompounds.push(compound);
+    }
+  }
+  
+  return sharedCompounds;
 }
 
 module.exports = {

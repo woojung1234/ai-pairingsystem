@@ -1,10 +1,11 @@
-const pool = require('../config/db');
+const db = require('../config/db');
+const pool = db.pool;
 const logger = require('../utils/logger');
 
 class Pairing {
   static async getAll() {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT p.*, 
                l.name as liquor_name, l.type as liquor_type,
                i.name as ingredient_name, i.category as ingredient_category
@@ -21,7 +22,7 @@ class Pairing {
 
   static async getById(id) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT p.*, 
                l.name as liquor_name, l.type as liquor_type, l.origin as liquor_origin,
                i.name as ingredient_name, i.category as ingredient_category
@@ -39,7 +40,7 @@ class Pairing {
 
   static async getByLiquorAndIngredient(liquorId, ingredientId) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT p.*
         FROM pairings p
         WHERE p.liquor_id = ? AND p.ingredient_id = ?
@@ -53,7 +54,7 @@ class Pairing {
 
   static async getByLiquor(liquorId) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT p.*, 
                i.name as ingredient_name, i.category as ingredient_category
         FROM pairings p
@@ -70,7 +71,7 @@ class Pairing {
 
   static async getByIngredient(ingredientId) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT p.*, 
                l.name as liquor_name, l.type as liquor_type
         FROM pairings p
@@ -87,7 +88,7 @@ class Pairing {
 
   static async getTopPairings(limit = 10) {
     try {
-      const [rows] = await pool.execute(`
+      const [rows] = await pool.query(`
         SELECT p.*, 
                l.name as liquor_name, l.type as liquor_type,
                i.name as ingredient_name, i.category as ingredient_category
@@ -108,7 +109,7 @@ class Pairing {
     const { liquorId, ingredientId, score, explanation, userRating } = pairingData;
     
     try {
-      const [result] = await pool.execute(
+      const [result] = await pool.query(
         `INSERT INTO pairings 
          (liquor_id, ingredient_id, score, explanation, user_rating)
          VALUES (?, ?, ?, ?, ?)
@@ -142,7 +143,7 @@ class Pairing {
     values.push(id);
     
     try {
-      const [result] = await pool.execute(
+      const [result] = await pool.query(
         `UPDATE pairings SET ${updates.join(', ')} WHERE id = ?`,
         values
       );
@@ -156,7 +157,7 @@ class Pairing {
 
   static async updateRating(id, rating) {
     try {
-      const [result] = await pool.execute(
+      const [result] = await pool.query(
         'UPDATE pairings SET user_rating = ? WHERE id = ?',
         [rating, id]
       );
@@ -170,7 +171,7 @@ class Pairing {
 
   static async delete(id) {
     try {
-      const [result] = await pool.execute(
+      const [result] = await pool.query(
         'DELETE FROM pairings WHERE id = ?',
         [id]
       );

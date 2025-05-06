@@ -32,6 +32,51 @@ class Liquor {
     }
   }
 
+  static async findOne(criteria) {
+    try {
+      // criteria 객체에서 key-value 쌍 추출
+      const conditions = [];
+      const values = [];
+      
+      Object.entries(criteria).forEach(([key, value]) => {
+        // 필드명을 SQL 친화적으로 변환 (예: nodeId -> node_id)
+        const fieldName = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+        
+        // 테이블 별칭 추가 (node_id는 두 테이블에 모두 있으므로 주의)
+        const prefix = key === 'node_id' ? 'l.' : (key.startsWith('node_') ? 'n.' : 'l.');
+        
+        conditions.push(`${prefix}${fieldName} = ?`);
+        values.push(value);
+      });
+      
+      if (conditions.length === 0) {
+        return null;
+      }
+      
+      const [rows] = await pool.query(`
+        SELECT l.*, n.is_hub, n.created_at as node_created_at, n.updated_at as node_updated_at
+        FROM liquors l
+        JOIN nodes n ON l.node_id = n.id
+        WHERE ${conditions.join(' AND ')}
+        LIMIT 1
+      `, values);
+      
+      // Log the query for debugging
+      console.log('Liquor.findOne query:', `
+        SELECT l.*, n.is_hub, n.created_at as node_created_at, n.updated_at as node_updated_at
+        FROM liquors l
+        JOIN nodes n ON l.node_id = n.id
+        WHERE ${conditions.join(' AND ')}
+        LIMIT 1
+      `, values);
+      
+      return rows[0];
+    } catch (error) {
+      logger.error('Error in Liquor.findOne:', error);
+      throw error;
+    }
+  }
+
   static async searchByName(searchTerm) {
     try {
       const [rows] = await pool.query(`

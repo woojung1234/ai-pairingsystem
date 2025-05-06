@@ -1,0 +1,335 @@
+# Pairing endpoints
+/api/pairing/predict:
+  post:
+    tags:
+      - pairing
+    summary: Predict pairing score
+    description: Predict score for a liquor and ingredient pairing
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - liquorId
+              - ingredientId
+            properties:
+              liquorId:
+                type: integer
+              ingredientId:
+                type: integer
+    responses:
+      '200':
+        description: Pairing prediction
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    score:
+                      type: number
+                      format: float
+                    liquor:
+                      type: object
+                    ingredient:
+                      type: object
+      '400':
+        description: Invalid input
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '500':
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/api/pairing/score/{liquorId}/{ingredientId}:
+  get:
+    tags:
+      - pairing
+    summary: Get pairing score
+    description: Get score for a specific liquor and ingredient pairing
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: liquorId
+        required: true
+        schema:
+          type: integer
+        description: Liquor ID
+      - in: path
+        name: ingredientId
+        required: true
+        schema:
+          type: integer
+        description: Ingredient ID
+    responses:
+      '200':
+        description: Pairing details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    score:
+                      type: number
+                      format: float
+                    reason:
+                      type: string
+                    liquor:
+                      type: object
+                    ingredient:
+                      type: object
+      '404':
+        description: Pairing not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '500':
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/api/pairing/explanation/{liquorId}/{ingredientId}:
+  get:
+    tags:
+      - pairing
+    summary: Get pairing explanation
+    description: Get explanation for a specific liquor and ingredient pairing
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: liquorId
+        required: true
+        schema:
+          type: integer
+        description: Liquor ID
+      - in: path
+        name: ingredientId
+        required: true
+        schema:
+          type: integer
+        description: Ingredient ID
+    responses:
+      '200':
+        description: Pairing explanation
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    explanation:
+                      type: string
+                    confidence:
+                      type: number
+                      format: float
+                    factors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          weight:
+                            type: number
+      '404':
+        description: Pairing not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '500':
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/api/pairing/recommendations/{liquorId}:
+  get:
+    tags:
+      - pairing
+    summary: Get ingredient recommendations
+    description: Get recommended ingredients for a specific liquor
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: liquorId
+        required: true
+        schema:
+          type: integer
+        description: Liquor ID
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 5
+        description: Number of recommendations
+    responses:
+      '200':
+        description: Ingredient recommendations
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    liquor:
+                      type: object
+                    recommendations:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          score:
+                            type: number
+                            format: float
+                          ingredient:
+                            type: object
+      '404':
+        description: Liquor not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '500':
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/api/pairing/top:
+  get:
+    tags:
+      - pairing
+    summary: Get top pairings
+    description: Get top rated pairings
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 10
+        description: Number of pairings to return
+    responses:
+      '200':
+        description: Top pairings
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      score:
+                        type: number
+                        format: float
+                      liquor:
+                        type: object
+                      ingredient:
+                        type: object
+      '500':
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+/api/pairing/rate/{pairingId}:
+  post:
+    tags:
+      - pairing
+    summary: Rate a pairing
+    description: Rate a specific pairing
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: pairingId
+        required: true
+        schema:
+          type: integer
+        description: Pairing ID
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - rating
+            properties:
+              rating:
+                type: integer
+                minimum: 1
+                maximum: 5
+                description: Rating from 1 to 5
+    responses:
+      '200':
+        description: Rating saved
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+      '400':
+        description: Invalid input
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '404':
+        description: Pairing not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      '500':
+        description: Server error
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'

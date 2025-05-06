@@ -149,6 +149,13 @@ ai-pairing/
 - ✅ Edge 모델 및 컨트롤러 수정, getAllEdges 메서드 추가
 - ✅ Edge API에 ID로 단일 엣지 조회 기능 추가
 - ✅ Node 모델 메서드 이름을 일관성 있게 변경 (find* → get*)
+- ✅ Pairing 모델에서 pool.execute를 pool.query로 변경 (2025-05-06)
+- ✅ AI 모델 통합을 위한 predict.py 및 recommend.py 파일 생성 (2025-05-06)
+- ✅ pairingController.js에서 findOne 메소드 호출을 getById로 변경 (2025-05-06)
+- ✅ model.js에서 Liquor 및 Ingredient 모델의 메소드 호출 방식 통일 (2025-05-06)
+- ✅ 페어링 API HTTP 500 내부 서버 오류 해결 (2025-05-06)
+- ✅ Pairing 모델에서 db 모듈 가져오기 수정 (2025-05-06)
+- ✅ getPairingScoreByIds 컨트롤러에 강화된 오류 처리 추가 (2025-05-06)
 - MongoDB에서 MySQL로 마이그레이션 완료 후 나머지 컨트롤러 오류 수정
 - API 응답 형식 통일 및 오류 메시지 개선
 

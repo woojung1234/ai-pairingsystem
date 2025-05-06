@@ -6,9 +6,10 @@ const path = require('path');
 // OpenAPI 파일들을 읽어서 병합
 const openApiSpec = yaml.parse(fs.readFileSync(path.join(__dirname, '../docs/openapi.yaml'), 'utf8'));
 const openApiPaths = yaml.parse(fs.readFileSync(path.join(__dirname, '../docs/openapi-paths.yaml'), 'utf8'));
+const openApiPairing = yaml.parse(fs.readFileSync(path.join(__dirname, '../docs/openapi-pairing.yaml'), 'utf8'));
 
 // paths를 openApi 스펙에 병합
-openApiSpec.paths = openApiPaths.paths;
+openApiSpec.paths = { ...openApiPaths.paths, ...openApiPairing };
 
 // Swagger UI 설정 함수
 const setupSwagger = (app) => {
