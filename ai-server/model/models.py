@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import MessagePassing
+from torch_geometric.nn import MessagePassing, GCNConv, SAGEConv, GATConv
 
 """
 all_node_emb = GNN(edge_index)
@@ -169,3 +169,103 @@ class WeightedRGCNConv(MessagePassing):
         if self.bias is not None:
             out = out + self.bias
         return out
+
+
+class FlavorDiffusionModel(nn.Module):
+    """
+    Graph Neural Network based model for predicting pairing scores between liquors and ingredients
+    by modeling flavor diffusion in the ingredient-compound-liquor network.
+    """
+    def __init__(self, node_features=64, hidden_channels=128, num_layers=3, dropout=0.3):
+        super(FlavorDiffusionModel, self).__init__()
+        
+        self.node_features = node_features
+        self.hidden_channels = hidden_channels
+        self.num_layers = num_layers
+        self.dropout = dropout
+        
+        # Node embeddings - will be initialized from pre-trained vectors or randomly
+        self.node_embedding = nn.Embedding(10000, node_features)  # Max 10k nodes
+        
+        # GNN layers
+        self.conv_layers = nn.ModuleList()
+        self.conv_layers.append(GATConv(node_features, hidden_channels, heads=8, dropout=dropout))
+        
+        for _ in range(num_layers - 2):
+            self.conv_layers.append(
+                GATConv(hidden_channels * 8, hidden_channels, heads=8, dropout=dropout)
+            )
+        
+        self.conv_layers.append(GATConv(hidden_channels * 8, hidden_channels, heads=1, dropout=dropout))
+        
+        # MLP for score prediction
+        self.mlp = nn.Sequential(
+            nn.Linear(hidden_channels * 2, hidden_channels),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_channels, hidden_channels // 2),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_channels // 2, 1)
+        )
+        
+    def forward(self, x, edge_index, liquor_idx, ingredient_idx):
+        """
+        Forward pass for the FlavorDiffusionModel
+        
+        Args:
+            x: Node features (num_nodes, node_features)
+            edge_index: Graph edge indices
+            liquor_idx: Index of the liquor node
+            ingredient_idx: Index of the ingredient node
+            
+        Returns:
+            score: Pairing score between liquor and ingredient
+        """
+        # If x is None, use node embeddings
+        if x is None:
+            x = self.node_embedding(torch.arange(10000, device=edge_index.device))
+        
+        # Apply GNN layers
+        for i, conv in enumerate(self.conv_layers):
+            x = conv(x, edge_index)
+            if i < len(self.conv_layers) - 1:  # No activation on final layer
+                x = F.relu(x)
+                x = F.dropout(x, p=self.dropout, training=self.training)
+        
+        # Extract node embeddings for liquor and ingredient
+        liquor_emb = x[liquor_idx]
+        ingredient_emb = x[ingredient_idx]
+        
+        # Concatenate embeddings
+        pair_emb = torch.cat([liquor_emb, ingredient_emb], dim=-1)
+        
+        # Predict score using MLP
+        score = self.mlp(pair_emb)
+        
+        # Apply sigmoid to constrain score between 0 and 1
+        return torch.sigmoid(score).squeeze()
+    
+    def get_embeddings(self, x, edge_index):
+        """
+        Get node embeddings from the model
+        
+        Args:
+            x: Node features
+            edge_index: Graph edge indices
+            
+        Returns:
+            embeddings: Node embeddings after GNN layers
+        """
+        # If x is None, use node embeddings
+        if x is None:
+            x = self.node_embedding(torch.arange(10000, device=edge_index.device))
+        
+        # Apply GNN layers
+        for i, conv in enumerate(self.conv_layers):
+            x = conv(x, edge_index)
+            if i < len(self.conv_layers) - 1:  # No activation on final layer
+                x = F.relu(x)
+                x = F.dropout(x, p=self.dropout, training=self.training)
+        
+        return x

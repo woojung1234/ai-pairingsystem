@@ -19,7 +19,7 @@ from utils import load_checkpoint, normalize_score
 parser = argparse.ArgumentParser(description='Generate ingredient recommendations using FlavorDiffusion Model')
 parser.add_argument('--liquor_id', type=int, required=True, help='ID of the liquor node')
 parser.add_argument('--limit', type=int, default=10, help='Maximum number of recommendations to return')
-parser.add_argument('--checkpoint', type=str, default='./checkpoint/best_model.pt', help='Path to model checkpoint')
+parser.add_argument('--checkpoint', type=str, default='./checkpoint/best_model.pth', help='Path to model checkpoint')
 parser.add_argument('--device', type=str, default='cpu', help='Device to use for computation')
 
 def load_model(checkpoint_path, device):

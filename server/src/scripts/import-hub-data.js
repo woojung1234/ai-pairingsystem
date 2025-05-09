@@ -65,8 +65,8 @@ async function importHubData() {
         CREATE TABLE IF NOT EXISTS nodes (
           id INT AUTO_INCREMENT PRIMARY KEY,
           node_id INT NOT NULL UNIQUE,
-          name VARCHAR(100) NOT NULL,
-          external_id VARCHAR(50),
+          name VARCHAR(255) NOT NULL,
+          external_id VARCHAR(100),
           node_type ENUM('ingredient', 'liquor', 'compound') NOT NULL,
           is_hub BOOLEAN DEFAULT FALSE,
           description TEXT,
@@ -86,12 +86,11 @@ async function importHubData() {
           source_id INT NOT NULL,
           target_id INT NOT NULL,
           score DECIMAL(10,8),
-          edge_type VARCHAR(20) NOT NULL,
+          edge_type VARCHAR(50) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          FOREIGN KEY (source_id) REFERENCES nodes(id) ON DELETE CASCADE,
-          FOREIGN KEY (target_id) REFERENCES nodes(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_edge (source_id, target_id, edge_type),
+          INDEX idx_source (source_id),
+          INDEX idx_target (target_id),
           INDEX idx_edge_type (edge_type)
         )
       `);

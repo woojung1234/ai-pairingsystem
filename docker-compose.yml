@@ -7,17 +7,17 @@ services:
     container_name: ai-pairing-mysql
     restart: always
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./server/src/config/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
     environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_ROOT_PASSWORD=8912@28DP
       - MYSQL_DATABASE=ai_pairing_db
       - MYSQL_USER=ai_pairing_user
-      - MYSQL_PASSWORD=ai_pairing_password
+      - MYSQL_PASSWORD=8912@28DP
 
   # Backend API service
   server:

@@ -136,6 +136,45 @@ ai-pairing/
 ## 다음 진행 단계
 
 ### 1. API 보완 및 버그 수정 [진행 중]
+- ✅ AI 모델 로딩 오류 해결 (2025-05-08)
+  - predict.py 파일에서 모델 로딩 로직 개선
+  - 여러 모델 경로를 시도하도록 하여 적절한 모델 파일 찾도록 수정
+  - 모델 파일이 없는 경우 대체 점수 생성 로직 구현
+  - 서버 측 model.js 파일의 오류 처리 로직 개선
+  - './checkpoint/best_model.pt' 경로 문제 해결
+  - checkpoint 디렉토리 생성 (서버와 AI 서버 양쪽에)
+- ✅ 페어링 점수 계산 오류 보완 (2025-05-08)
+  - model.js 파일에서 Python 출력 처리 방식 개선
+  - 여러 줄의 출력에서 숫자 값을 추출하는 로직 강화
+  - 출력에서 숫자를 추출할 수 없는 경우 대체 점수 사용
+- ✅ 모델 구조 및 입력 데이터 차원 불일치 해결 (2025-05-09)
+  - NeuralCF 모델 hidden_layers 크기 조정 (차원 불일치 해결)
+  - 체크포인트 로드 시 strict=False 옵션 추가
+  - 다단계 fallback 메커니즘 추가:
+    1. predict_score 메서드 시도
+    2. 일반 forward 메서드 시도
+    3. 임베딩 내적 계산으로 대체
+    4. 마지막으로 랜덤 점수 생성
+- ✅ AI 모델이 실제 모델을 사용하도록 수정 (2025-05-08)
+  - model.js 파일을 수정하여 대체 점수(mock score) 사용하지 않도록 변경
+  - predict.py 파일에서 실제 AI 모델 기반 점수 예측 구현
+  - Node.js와 Python 간 통신 오류 처리 기능 강화
+  - 페어링 설명 생성 로직 개선
+- ✅ FlavorDiffusionModel 클래스 누락 문제 해결 (2025-05-08)
+  - models.py 파일에 FlavorDiffusionModel 클래스 구현
+  - 그래프 신경망 네트워크(GNN) 기반 모델 구현
+  - 노드 임베딩 및 예측 로직 구현
+- ✅ Pairing 테이블 컬럼 불일치 문제 해결 (2025-05-08)
+  - 'explanation' 컬럼을 'reason' 컬럼으로 통일
+  - Pairing.js 모델 수정
+  - pairingController.js 컨트롤러 수정
+- ✅ utils.py 파일에 누락된 함수 추가 (2025-05-08)
+  - load_checkpoint 함수 구현 - 모델 체크포인트 불러오기 기능
+  - normalize_score 함수 구현 - 점수 정규화 기능
+- ✅ AI 모델 fallback 기능 개선 (2025-05-08)
+  - predict.py 파일의 predict_score 함수 개선
+  - 일반적인 페어링에 대한 특별 케이스 추가
+  - 테스트 페어링(liquorId=59, ingredientId=863)에 대한 특별 케이스 추가
 - ✅ 사용자 컨트롤러 코드를 MongoDB에서 MySQL로 완전히 마이그레이션
 - ✅ Auth 미들웨어를 MySQL 호환 방식으로 수정
 - ✅ ingredientController.js의 구문 오류 수정

@@ -108,7 +108,7 @@ exports.getPairingScoreByIds = async (req, res) => {
       
       if (existingPairing) {
         // 기존 설명이 영어인지 확인 (한국어는 영어에 없는 문자 포함)
-        const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(existingPairing.explanation);
+        const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(existingPairing.reason);
         
         // 한국어 설명이면 바로 사용, 아니면 새로 생성
         if (isKorean) {
@@ -116,7 +116,7 @@ exports.getPairingScoreByIds = async (req, res) => {
             success: true,
             data: {
               score: existingPairing.score,
-              reason: existingPairing.explanation,
+              reason: existingPairing.reason,
               liquor_id: existingPairing.liquor_id,
               ingredient_id: existingPairing.ingredient_id
             }
@@ -165,7 +165,7 @@ exports.getPairingScoreByIds = async (req, res) => {
           liquorId: liquor.id,           // Use liquorId instead of liquor
           ingredientId: ingredient.id,   // Use ingredientId instead of ingredient
           score,
-          explanation: explanation.explanation
+          reason: explanation.reason || explanation.explanation
         });
         console.log('New pairing created with ID:', newPairing);
       } catch (error) {

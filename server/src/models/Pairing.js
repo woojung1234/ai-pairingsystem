@@ -111,11 +111,11 @@ class Pairing {
     try {
       const [result] = await pool.query(
         `INSERT INTO pairings 
-         (liquor_id, ingredient_id, score, explanation, user_rating)
+         (liquor_id, ingredient_id, score, reason, user_rating)
          VALUES (?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
          score = VALUES(score),
-         explanation = VALUES(explanation),
+         reason = VALUES(reason),
          user_rating = VALUES(user_rating)`,
         [liquorId, ingredientId, score, explanation || null, userRating || null]
       );
