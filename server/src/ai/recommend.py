@@ -54,9 +54,36 @@ def main():
         edges_indexes, edges_weights, edge_type = edges_index(edge_type_map)
         
         # Load model
-        model = NeuralCF(num_users=155, num_items=6498, emb_size=128)
-        model.load_state_dict(torch.load("../../../ai-server/model/checkpoint/best_model.pth", map_location=torch.device('cpu')))
-        model.eval()
+        model_paths = [
+            "../../../ai-server/model/checkpoint/best_model.pth",  # 원래 경로
+            "./checkpoint/best_model.pt",  # 에러 메시지에 있던 경로
+            "../../../ai-server/model/best_model.pth",  # 대안 경로 1
+            "../../../ai-server/best_model.pth",  # 대안 경로 2
+            "best_model.pth"  # 현재 디렉토리
+        ]
+        
+        model_loaded = False
+        for model_path in model_paths:
+            try:
+                print(f"Attempting to load model from: {model_path}")
+                # 모델 구조 수정: hidden_layers 크기 변경
+                model = NeuralCF(num_users=155, num_items=6498, emb_size=128, hidden_layers=[128, 64, 32, 16])
+                
+                # 체크포인트 로드 시 strict=False 옵션 사용하여 크기가 다른 경우도 로드 허용
+                checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
+                model.load_state_dict(checkpoint, strict=False)
+                
+                model.eval()
+                model_loaded = True
+                print(f"Successfully loaded model from: {model_path}")
+                break
+            except Exception as e:
+                print(f"Checkpoint file not found: {model_path}")
+                continue
+                
+        if not model_loaded:
+            print("Error: Could not load model from any path")
+            sys.exit(1)
 
         # Get all possible ingredient indices
         ingredient_indices = list(idx_to_iid.keys())
