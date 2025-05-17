@@ -19,65 +19,64 @@ import NotFoundPage from './pages/NotFoundPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 
-// Create a theme inspired by the Figma design
-// 더 고급스러운 와인 테마 스타일 (App.js 내의 테마 부분)
+// 고급 레스토랑 분위기를 위한 테마 설정
 const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#7D0A0A', // 더 깊은 와인 레드
-      light: '#9B1B1B',
-      dark: '#580707',
+      main: '#8B0000', // 짙은 레드
+      light: '#A52A2A',
+      dark: '#600000',
     },
     secondary: {
-      main: '#D4AF37', // 골드
-      light: '#E8C868',
-      dark: '#A78829',
+      main: '#DDB668', // 고급스러운 골드
+      light: '#E5C989',
+      dark: '#BE9B55',
     },
     background: {
-      default: '#0D0D0D', // 더 어두운 배경
-      paper: '#171717', // 더 어두운 카드 배경
+      default: '#121212', // 어두운 다크 모드 배경
+      paper: '#1E1E1E', // 어두운 카드 배경
     },
     text: {
-      primary: '#F5F0E6', // 따뜻한 화이트
-      secondary: 'rgba(245, 240, 230, 0.7)',
+      primary: '#F8F0E3', // 따뜻한 화이트
+      secondary: 'rgba(248, 240, 227, 0.7)',
     },
-    divider: 'rgba(212, 175, 55, 0.2)', // 반투명 골드
+    divider: 'rgba(221, 182, 104, 0.2)', // 반투명 골드
   },
   typography: {
-    fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+    fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
     h1: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+      fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
       fontWeight: 700,
       fontSize: '3.75rem',
       letterSpacing: '0.02em',
       lineHeight: 1.1,
     },
     h2: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+      fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
       fontWeight: 600,
       fontSize: '3rem',
       letterSpacing: '0.02em',
       lineHeight: 1.2,
     },
     h3: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+      fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
       fontWeight: 600,
       fontSize: '2.25rem',
       letterSpacing: '0.02em',
     },
     h4: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+      fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
       fontWeight: 500,
       fontSize: '1.8rem',
     },
     h5: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+      fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
       fontWeight: 500,
       fontSize: '1.4rem',
     },
     h6: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+      fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
       fontWeight: 500,
       fontSize: '1.15rem',
     },
@@ -122,16 +121,16 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         '@global': {
-          '@import': "url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&family=Noto+Serif+KR:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500&display=swap')",
+          '@import': "url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500&display=swap')",
         },
         'html, body': {
           scrollBehavior: 'smooth',
         },
         body: {
-          backgroundColor: '#0D0D0D',
-          backgroundImage: 'linear-gradient(to bottom, #0D0D0D, #121212)',
+          backgroundColor: '#121212',
+          backgroundImage: 'linear-gradient(to bottom, #121212, #1A1A1A)',
           minHeight: '100vh',
-          color: '#F5F0E6',
+          color: '#F8F0E3',
         },
         '&::-webkit-scrollbar': {
           width: '8px',
@@ -140,10 +139,10 @@ const theme = createTheme({
           backgroundColor: '#121212',
         },
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(212, 175, 55, 0.3)',
+          backgroundColor: 'rgba(221, 182, 104, 0.3)',
           borderRadius: '4px',
           '&:hover': {
-            backgroundColor: 'rgba(212, 175, 55, 0.5)',
+            backgroundColor: 'rgba(221, 182, 104, 0.5)',
           },
         },
       },
@@ -173,15 +172,15 @@ const theme = createTheme({
           },
         },
         containedPrimary: {
-          background: 'linear-gradient(135deg, #7D0A0A 0%, #9B1B1B 100%)',
+          background: 'linear-gradient(135deg, #600000 0%, #8B0000 100%)',
         },
         containedSecondary: {
-          background: 'linear-gradient(135deg, #A78829 0%, #D4AF37 100%)',
-          color: '#0D0D0D',
+          background: 'linear-gradient(135deg, #BE9B55 0%, #DDB668 100%)',
+          color: '#121212',
         },
         outlinedSecondary: {
-          borderColor: '#D4AF37',
-          color: '#D4AF37',
+          borderColor: '#DDB668',
+          color: '#DDB668',
         },
       },
     },
@@ -189,19 +188,19 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: 'none',
-          borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
+          borderBottom: '1px solid rgba(221, 182, 104, 0.15)',
           backdropFilter: 'blur(10px)',
-          backgroundColor: 'rgba(13, 13, 13, 0.9)',
+          backgroundColor: 'rgba(18, 18, 18, 0.9)',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(23, 23, 23, 0.8)',
+          backgroundColor: 'rgba(30, 30, 30, 0.8)',
           backdropFilter: 'blur(8px)',
           borderRadius: 4,
-          border: '1px solid rgba(212, 175, 55, 0.1)',
+          border: '1px solid rgba(221, 182, 104, 0.1)',
           overflow: 'hidden',
           transition: 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
           '&:hover': {
@@ -221,7 +220,7 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(23, 23, 23, 0.8)',
+          backgroundColor: 'rgba(30, 30, 30, 0.8)',
           backgroundImage: 'none',
         },
         elevation1: {
@@ -235,9 +234,9 @@ const theme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(212, 175, 55, 0.15)',
+          backgroundColor: 'rgba(221, 182, 104, 0.15)',
           '&::before, &::after': {
-            borderColor: 'rgba(212, 175, 55, 0.15)',
+            borderColor: 'rgba(221, 182, 104, 0.15)',
           },
         },
       },
@@ -245,7 +244,7 @@ const theme = createTheme({
     MuiLink: {
       styleOverrides: {
         root: {
-          color: '#D4AF37',
+          color: '#DDB668',
           textDecoration: 'none',
           position: 'relative',
           transition: 'all 0.3s ease',
@@ -256,11 +255,11 @@ const theme = createTheme({
             left: 0,
             width: 0,
             height: '1px',
-            backgroundColor: '#D4AF37',
+            backgroundColor: '#DDB668',
             transition: 'width 0.3s ease',
           },
           '&:hover': {
-            color: '#E8C868',
+            color: '#E5C989',
             textDecoration: 'none',
             '&::after': {
               width: '100%',
@@ -274,20 +273,20 @@ const theme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             '& fieldset': {
-              borderColor: 'rgba(212, 175, 55, 0.2)',
+              borderColor: 'rgba(221, 182, 104, 0.2)',
               transition: 'border-color 0.3s ease',
             },
             '&:hover fieldset': {
-              borderColor: 'rgba(212, 175, 55, 0.4)',
+              borderColor: 'rgba(221, 182, 104, 0.4)',
             },
             '&.Mui-focused fieldset': {
-              borderColor: '#D4AF37',
+              borderColor: '#DDB668',
             },
           },
           '& .MuiInputLabel-root': {
-            color: 'rgba(245, 240, 230, 0.7)',
+            color: 'rgba(248, 240, 227, 0.7)',
             '&.Mui-focused': {
-              color: '#D4AF37',
+              color: '#DDB668',
             },
           },
         },
@@ -300,7 +299,7 @@ const theme = createTheme({
           fontWeight: 500,
         },
         filled: {
-          backgroundColor: 'rgba(212, 175, 55, 0.15)',
+          backgroundColor: 'rgba(221, 182, 104, 0.15)',
         },
       },
     },
