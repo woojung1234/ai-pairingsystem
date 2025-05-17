@@ -23,7 +23,7 @@ import RegisterPage from './pages/RegisterPage';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#8e24aa', // Purple
+      main: '#E5C989', 
     },
     secondary: {
       main: '#ff6f00', // Amber
