@@ -29,7 +29,11 @@ const theme = createTheme({
       main: '#ff6f00', // Amber
     },
     background: {
-      default: '#f5f5f5',
+      default: '#f5f5f5', // 기존 배경색 유지
+    },
+    text: {
+      primary: '#E5C989',   // 주요 텍스트 색상을 베이지색으로 설정
+      secondary: '#d4bb7a', // 보조 텍스트는 조금 더 어두운 베이지색으로
     },
   },
   typography: {
@@ -85,7 +89,7 @@ function App() {
       <CssBaseline />
       <div className="App">
         <Header isAuthenticated={isAuthenticated} user={user} onLogout={handleLogout} />
-        <main style={{ minHeight: 'calc(100vh - 160px)', padding: '20px' }}>
+        <main style={{ minHeight: 'calc(100vh - 160px)', padding: '20px', marginTop: '40px' }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/pairing" element={<PairingPage />} />
