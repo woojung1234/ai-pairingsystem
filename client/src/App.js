@@ -85,7 +85,7 @@ function App() {
       <CssBaseline />
       <div className="App">
         <Header isAuthenticated={isAuthenticated} user={user} onLogout={handleLogout} />
-        <main style={{ minHeight: 'calc(100vh - 160px)', padding: '20px' }}>
+        <main style={{ minHeight: 'calc(100vh - 160px)', padding: '20px', marginTop: '40px' }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/pairing" element={<PairingPage />} />
