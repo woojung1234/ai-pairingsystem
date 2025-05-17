@@ -57,7 +57,7 @@ function Header({ isAuthenticated, user, onLogout }) {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <LocalBarIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
