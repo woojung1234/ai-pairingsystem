@@ -117,23 +117,58 @@ function HomePage() {
 
   return (
     <div>
-      {/* 페어링 배너 - 검색 바 대신 버튼만 포함 */}
-      <section className="pairing-banner">
-        <h2 className="banner-title">마음에 딱 맞는 궁합이에요!</h2>
-        
-        <div className="banner-description">
-          당신이 좋아하는 술과 음식의 완벽한 조합을 찾아보세요.<br />
-          어떤 조합이 당신의 미각을 놀라게 할지 궁금하지 않으신가요?
-        </div>
-        
-        <button 
-          className="explore-button"
-          onClick={handlePairingExplore}
-        >
-          <ExploreIcon className="explore-icon" />
-          완벽한 페어링 찾기
-        </button>
-      </section>
+      {/* 페어링 배너 - wine-glass.png를 배경으로 설정 */}
+      <section className="pairing-banner" style={{
+  position: 'relative',
+  overflow: 'hidden',
+  width: '100vw', // 뷰포트 너비의 100%로 확장
+  marginLeft: 'calc(-50vw + 50%)', // 화면 중앙에서 양쪽으로 확장
+  backgroundImage: 'url(/images/wine-bg.jpg)', // 배경 이미지 추가
+  backgroundSize: 'contain',
+  opacity: 1.0,
+  backgroundPosition: 'center',
+  boxShadow: 'inset 0 0 0 2000px rgba(0, 0, 0, 0.7)' // 어두운 오버레이
+}}>
+  {/* 와인잔 이미지는 그대로 중앙에 유지 */}
+  <div style={{
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: 'url(/images/wine-glass.png)',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center center',
+    backgroundSize: 'contain',
+    opacity: 0.5,
+    filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.15)) contrast(1.2)',
+    zIndex: 0
+  }}></div>
+  
+  {/* 배너 콘텐츠 */}
+  <div style={{ 
+    position: 'relative', 
+    zIndex: 1,
+    padding: '0 20px',
+    maxWidth: '800px',
+    margin: '0 auto'
+  }}>
+    <h2 className="banner-title">마음에 딱 맞는 궁합이에요!</h2>
+    
+    <div className="banner-description">
+      당신이 좋아하는 술과 음식의 완벽한 조합을 찾아보세요.<br />
+      어떤 조합이 당신의 미각을 놀라게 할지 궁금하지 않으신가요?
+    </div>
+    
+    <button 
+      className="explore-button"
+      onClick={handlePairingExplore}
+    >
+      <ExploreIcon className="explore-icon" />
+      완벽한 페어링 찾기
+    </button>
+  </div>
+</section>
       
       {/* 주류 카테고리 슬라이더 */}
       <section className="category-slider">

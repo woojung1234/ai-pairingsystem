@@ -335,7 +335,7 @@ img {
 
 .category-card {
   width: calc(25% - 16px);
-  height: 200px;
+  height: 240px; /* 높이를 조금 더 늘려 비율 개선 */
   position: relative;
   margin: 0 8px;
   background-color: var(--background-dark);
@@ -549,4 +549,58 @@ img {
 .category-card {
   margin: 0 8px;
   width: auto !important;
+}
+/* 배너 아이콘 스타일 */
+.banner-icons {
+  display: flex;
+  width: 100%;
+  max-width: 1000px;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.banner-icon-left, .banner-icon-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-icon-img {
+  width: 80px; /* PNG 이미지 크기 조절 */
+  height: auto; /* 비율 유지 */
+  object-fit: contain; /* 이미지 비율 유지 */
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2)); /* 그림자 효과 */
+  transition: transform 0.3s ease; /* 호버 효과를 위한 트랜지션 */
+}
+
+.banner-icon-img:hover {
+  transform: scale(1.1); /* 호버 시 살짝 확대 */
+}
+
+.banner-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* 반응형 설정 */
+@media (max-width: 768px) {
+  .banner-icon-img {
+    width: 60px; /* 작은 화면에서는 이미지 크기 줄임 */
+  }
+  
+  .banner-icons {
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .banner-icon-left, .banner-icon-right {
+    display: none; /* 모바일에서는 아이콘 숨김 (선택 사항) */
+  }
 }
