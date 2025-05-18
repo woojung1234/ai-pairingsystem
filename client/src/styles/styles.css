@@ -533,3 +533,20 @@ img {
   padding-top: 80px;
   padding-bottom: 80px;
 }
+/* 슬라이더 관련 스타일 */
+.slick-slider {
+  margin: 0 -8px;
+}
+
+.slick-slide > div {
+  padding: 0;
+}
+
+.slick-prev, .slick-next {
+  display: none !important;
+}
+
+.category-card {
+  margin: 0 8px;
+  width: auto !important;
+}
