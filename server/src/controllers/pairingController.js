@@ -2,6 +2,7 @@ const { getPairingScore, getRecommendations, getExplanation } = require('../ai/m
 const Pairing = require('../models/Pairing');
 const Liquor = require('../models/Liquor');
 const Ingredient = require('../models/Ingredient');
+const koreanMapper = require('../utils/koreanMapper');
 
 /**
  * Predict pairing score for a liquor and ingredient
@@ -73,6 +74,159 @@ exports.predictPairingScore = async (req, res) => {
     console.error('Error in predictPairingScore controller:', error);
     console.error(error.stack);
     return res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
+/**
+ * Predict pairing score with Korean input
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.predictPairingScoreKorean = async (req, res) => {
+  try {
+    const { liquor, ingredient } = req.body;
+    
+    console.log('Korean pairing request:', { liquor, ingredient });
+    
+    // Validate input
+    if (!liquor || !ingredient) {
+      return res.status(400).json({ 
+        success: false, 
+        error: '한글 주류명과 재료명을 모두 입력해주세요' 
+      });
+    }
+    
+    // Convert Korean to node_ids
+    const mappingResult = koreanMapper.getNodeIdByKorean(liquor, ingredient);
+    
+    if (!mappingResult.liquorNodeId || !mappingResult.ingredientNodeId) {
+      return res.status(404).json({
+        success: false,
+        error: '매칭되는 주류 또는 재료를 찾을 수 없습니다',
+        korean_input: { liquor, ingredient },
+        suggestions: mappingResult.suggestions
+      });
+    }
+    
+    console.log('Mapped to node_ids:', {
+      liquor: mappingResult.liquorNodeId,
+      ingredient: mappingResult.ingredientNodeId
+    });
+    
+    // Get score from AI model using node_ids
+    const score = await getPairingScore(mappingResult.liquorNodeId, mappingResult.ingredientNodeId);
+    
+    // Get explanation
+    const explanation = await getExplanation(mappingResult.liquorNodeId, mappingResult.ingredientNodeId);
+    
+    return res.json({
+      success: true,
+      data: {
+        korean_input: { liquor, ingredient },
+        english_names: {
+          liquor: mappingResult.liquorName,
+          ingredient: mappingResult.ingredientName
+        },
+        node_ids: {
+          liquor: mappingResult.liquorNodeId,
+          ingredient: mappingResult.ingredientNodeId
+        },
+        score,
+        explanation: explanation.explanation || explanation.reason,
+        compatibility_level: explanation.compatibility_level
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in Korean pairing prediction:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: '서버 오류가 발생했습니다' 
+    });
+  }
+};
+
+/**
+ * Get recommendations with Korean input
+ */
+exports.getRecommendationsKorean = async (req, res) => {
+  try {
+    const { liquor } = req.body;
+    const limit = parseInt(req.body.limit || 10);
+    
+    if (!liquor) {
+      return res.status(400).json({ 
+        success: false, 
+        error: '한글 주류명을 입력해주세요' 
+      });
+    }
+    
+    // Convert Korean to node_id
+    const liquorResults = koreanMapper.searchByKorean(liquor, 'liquor');
+    
+    if (liquorResults.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: '매칭되는 주류를 찾을 수 없습니다',
+        korean_input: liquor
+      });
+    }
+    
+    const liquorNodeId = liquorResults[0].nodeId;
+    
+    // Get recommendations from AI model
+    const recommendations = await getRecommendations(liquorNodeId, limit);
+    
+    return res.json({
+      success: true,
+      data: {
+        korean_input: liquor,
+        english_name: liquorResults[0].name,
+        liquor_node_id: liquorNodeId,
+        recommendations
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in Korean recommendations:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: '서버 오류가 발생했습니다' 
+    });
+  }
+};
+
+/**
+ * Search liquors and ingredients by Korean text
+ */
+exports.searchByKorean = async (req, res) => {
+  try {
+    const { query, type = 'both' } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        error: '검색어를 입력해주세요'
+      });
+    }
+    
+    const results = koreanMapper.searchByKorean(query, type);
+    
+    return res.json({
+      success: true,
+      data: {
+        query,
+        type,
+        results
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in Korean search:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: '서버 오류가 발생했습니다' 
+    });
   }
 };
 
@@ -374,7 +528,3 @@ exports.ratePairing = async (req, res) => {
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
-
-// 이 함수는 제거됨 - MongoDB 메서드를 사용하기 때문에 MySQL에서 오류가 발생함
-
-// 이 함수는 제거됨 - save() 메서드를 사용하는 MongoDB 방식이기 때문에 MySQL에서 오류가 발생함

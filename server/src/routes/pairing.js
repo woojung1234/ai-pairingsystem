@@ -10,6 +10,27 @@ const pairingController = require('../controllers/pairingController');
 router.post('/predict', pairingController.predictPairingScore);
 
 /**
+ * @route   POST /api/pairing/korean/predict
+ * @desc    Predict pairing score with Korean input
+ * @access  Public
+ */
+router.post('/korean/predict', pairingController.predictPairingScoreKorean);
+
+/**
+ * @route   POST /api/pairing/korean/recommend
+ * @desc    Get recommendations with Korean input
+ * @access  Public
+ */
+router.post('/korean/recommend', pairingController.getRecommendationsKorean);
+
+/**
+ * @route   GET /api/pairing/korean/search
+ * @desc    Search liquors and ingredients by Korean text
+ * @access  Public
+ */
+router.get('/korean/search', pairingController.searchByKorean);
+
+/**
  * @route   GET /api/pairing/score/:liquorId/:ingredientId
  * @desc    Get pairing score for a liquor and ingredient
  * @access  Public
