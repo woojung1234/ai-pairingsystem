@@ -1,6 +1,7 @@
 class KoreanPairingService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || '';
+    // baseURL에서 /api 제거하거나 환경에 따라 조정
+    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   }
 
   async predictPairing(koreanLiquor, koreanIngredient) {
