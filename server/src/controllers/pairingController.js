@@ -116,8 +116,51 @@ exports.predictPairingScoreKorean = async (req, res) => {
     // Get score from AI model using node_ids
     const score = await getPairingScore(mappingResult.liquorNodeId, mappingResult.ingredientNodeId);
     
-    // Get explanation
-    const explanation = await getExplanation(mappingResult.liquorNodeId, mappingResult.ingredientNodeId);
+    // Get liquor and ingredient details using getByNodeId
+    const [liquorDetails, ingredientDetails] = await Promise.all([
+      Liquor.getByNodeId(mappingResult.liquorNodeId),
+      Ingredient.getByNodeId(mappingResult.ingredientNodeId)
+    ]);
+    
+    // Check if we found the details
+    if (!liquorDetails || !ingredientDetails) {
+      console.warn('Could not find liquor or ingredient details in database');
+      // Still continue with the score, but without full explanation
+      return res.json({
+        success: true,
+        data: {
+          korean_input: { liquor, ingredient },
+          english_names: {
+            liquor: mappingResult.liquorName,
+            ingredient: mappingResult.ingredientName
+          },
+          node_ids: {
+            liquor: mappingResult.liquorNodeId,
+            ingredient: mappingResult.ingredientNodeId
+          },
+          score,
+          explanation: "페어링 점수가 계산되었지만 상세 설명을 생성할 수 없습니다.",
+          compatibility_level: score >= 0.8 ? "강력 추천 조합" : 
+                              score >= 0.6 ? "추천 조합" : 
+                              score >= 0.4 ? "무난한 조합" : "실험적인 조합"
+        }
+      });
+    }
+    
+    // Get explanation using node_ids
+    let explanation;
+    try {
+      explanation = await getExplanation(mappingResult.liquorNodeId, mappingResult.ingredientNodeId);
+    } catch (explanationError) {
+      console.error('Error getting explanation:', explanationError);
+      // Provide fallback explanation
+      explanation = {
+        explanation: `${liquor}과 ${ingredient}의 조합은 ${score.toFixed(2)} 점수를 받았습니다. 이는 ${score >= 0.8 ? "매우 좋은" : score >= 0.6 ? "좋은" : score >= 0.4 ? "무난한" : "실험적인"} 조합으로 평가됩니다.`,
+        compatibility_level: score >= 0.8 ? "강력 추천 조합" : 
+                            score >= 0.6 ? "추천 조합" : 
+                            score >= 0.4 ? "무난한 조합" : "실험적인 조합"
+      };
+    }
     
     return res.json({
       success: true,
