@@ -1,12 +1,13 @@
 class KoreanPairingService {
   constructor() {
-    // baseURL에서 /api 제거하거나 환경에 따라 조정
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    // 포트를 5004로 수정하고 /api까지 포함
+    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5004/api';
   }
 
   async predictPairing(koreanLiquor, koreanIngredient) {
     try {
-      const response = await fetch(`${this.baseURL}/api/pairing/korean/predict`, {
+      // /api를 제거하여 중복 방지
+      const response = await fetch(`${this.baseURL}/pairing/korean/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,7 +33,8 @@ class KoreanPairingService {
 
   async getRecommendations(koreanLiquor, limit = 10) {
     try {
-      const response = await fetch(`${this.baseURL}/api/pairing/korean/recommend`, {
+      // /api를 제거하여 중복 방지
+      const response = await fetch(`${this.baseURL}/pairing/korean/recommend`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,8 +60,9 @@ class KoreanPairingService {
 
   async searchItems(query, type = 'both') {
     try {
+      // /api를 제거하여 중복 방지
       const response = await fetch(
-        `${this.baseURL}/api/pairing/korean/search?query=${encodeURIComponent(query)}&type=${type}`
+        `${this.baseURL}/pairing/korean/search?query=${encodeURIComponent(query)}&type=${type}`
       );
 
       const data = await response.json();
