@@ -190,6 +190,160 @@ exports.predictPairingScoreKorean = async (req, res) => {
 };
 
 /**
+ * Find the best pairing combination for Korean liquor and ingredient input
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.findBestPairingKorean = async (req, res) => {
+  try {
+    const { liquor, ingredient } = req.body;
+    
+    console.log('Best pairing request:', { liquor, ingredient });
+    
+    // Validate input
+    if (!liquor || !ingredient) {
+      return res.status(400).json({ 
+        success: false, 
+        error: '한글 주류명과 재료명을 모두 입력해주세요' 
+      });
+    }
+    
+    // Get possible combinations
+    const liquorResults = koreanMapper.searchByKorean(liquor, 'liquor');
+    const ingredientResults = koreanMapper.searchByKorean(ingredient, 'ingredient');
+    
+    if (liquorResults.length === 0 || ingredientResults.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: '매칭되는 주류 또는 재료를 찾을 수 없습니다',
+        korean_input: { liquor, ingredient },
+        suggestions: {
+          liquors: liquorResults,
+          ingredients: ingredientResults
+        }
+      });
+    }
+    
+    console.log(`Found ${liquorResults.length} liquor matches, ${ingredientResults.length} ingredient matches`);
+    
+    // Test combinations and find the best score
+    let bestCombination = null;
+    let bestScore = -1;
+    const testedCombinations = [];
+    
+    // Test up to 3x3 combinations to find the best one
+    const maxLiquors = Math.min(3, liquorResults.length);
+    const maxIngredients = Math.min(3, ingredientResults.length);
+    
+    for (let i = 0; i < maxLiquors; i++) {
+      for (let j = 0; j < maxIngredients; j++) {
+        const liquorCandidate = liquorResults[i];
+        const ingredientCandidate = ingredientResults[j];
+        
+        try {
+          console.log(`Testing combination: ${liquorCandidate.name} + ${ingredientCandidate.name}`);
+          
+          const score = await getPairingScore(liquorCandidate.nodeId, ingredientCandidate.nodeId);
+          
+          const combination = {
+            liquor: liquorCandidate,
+            ingredient: ingredientCandidate,
+            score: score
+          };
+          
+          testedCombinations.push(combination);
+          
+          if (score > bestScore) {
+            bestScore = score;
+            bestCombination = combination;
+          }
+          
+          console.log(`Score: ${score} (current best: ${bestScore})`);
+          
+        } catch (error) {
+          console.error(`Error testing combination ${liquorCandidate.name} + ${ingredientCandidate.name}:`, error);
+          // Continue with other combinations
+        }
+      }
+    }
+    
+    if (!bestCombination) {
+      return res.status(500).json({
+        success: false,
+        error: '페어링 점수를 계산할 수 없습니다'
+      });
+    }
+    
+    console.log(`Best combination found: ${bestCombination.liquor.name} + ${bestCombination.ingredient.name} (score: ${bestScore})`);
+    
+    // Get detailed explanation for the best combination
+    let explanation;
+    try {
+      explanation = await getExplanation(bestCombination.liquor.nodeId, bestCombination.ingredient.nodeId);
+    } catch (explanationError) {
+      console.error('Error getting explanation:', explanationError);
+      explanation = {
+        explanation: `${liquor}과 ${ingredient}의 최적 조합은 ${bestScore.toFixed(2)} 점수를 받았습니다.`,
+        compatibility_level: bestScore >= 0.8 ? "강력 추천 조합" : 
+                            bestScore >= 0.6 ? "추천 조합" : 
+                            bestScore >= 0.4 ? "무난한 조합" : "실험적인 조합"
+      };
+    }
+    
+    // Get liquor and ingredient details
+    const [liquorDetails, ingredientDetails] = await Promise.all([
+      Liquor.getByNodeId(bestCombination.liquor.nodeId),
+      Ingredient.getByNodeId(bestCombination.ingredient.nodeId)
+    ]);
+    
+    return res.json({
+      success: true,
+      data: {
+        korean_input: { liquor, ingredient },
+        best_combination: {
+          liquor: {
+            korean: bestCombination.liquor.korean,
+            english: bestCombination.liquor.name,
+            node_id: bestCombination.liquor.nodeId,
+            match_type: bestCombination.liquor.matchType,
+            priority: bestCombination.liquor.priority,
+            details: liquorDetails
+          },
+          ingredient: {
+            korean: bestCombination.ingredient.korean,
+            english: bestCombination.ingredient.name,
+            node_id: bestCombination.ingredient.nodeId,
+            match_type: bestCombination.ingredient.matchType,
+            priority: bestCombination.ingredient.priority,
+            details: ingredientDetails
+          },
+          score: bestScore,
+          explanation: explanation.explanation || explanation.reason,
+          compatibility_level: explanation.compatibility_level
+        },
+        all_tested_combinations: testedCombinations.map(combo => ({
+          liquor: combo.liquor.name,
+          ingredient: combo.ingredient.name,
+          score: combo.score
+        })).sort((a, b) => b.score - a.score), // 점수 순으로 정렬
+        search_info: {
+          liquor_candidates: liquorResults.length,
+          ingredient_candidates: ingredientResults.length,
+          combinations_tested: testedCombinations.length
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in findBestPairingKorean:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: '서버 오류가 발생했습니다' 
+    });
+  }
+};
+
+/**
  * Get recommendations with Korean input
  */
 exports.getRecommendationsKorean = async (req, res) => {
