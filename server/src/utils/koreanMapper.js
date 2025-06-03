@@ -6,8 +6,41 @@ class KoreanToNodeIdMapper {
     this.nodesData = null;
     this.liquorMap = new Map();
     this.ingredientMap = new Map();
+    this.koreanToEnglishMap = new Map(); // 새로 추가: CSV 매핑
     this.koreanMappings = this.loadKoreanMappings();
+    this.loadKoreanLiquorMapping(); // 새로 추가: CSV 로드
     this.loadNodesData();
+  }
+
+  loadKoreanLiquorMapping() {
+    try {
+      const csvPath = path.join(__dirname, '../../../EnglishKorean_Liquor_Names.csv');
+      
+      if (!fs.existsSync(csvPath)) {
+        console.warn('Korean liquor mapping CSV file not found');
+        return;
+      }
+      
+      const csvData = fs.readFileSync(csvPath, 'utf-8');
+      const lines = csvData.split('\n').slice(1); // 헤더 제거
+      
+      lines.forEach(line => {
+        if (line.trim()) {
+          const [liquor_name, korean_name] = line.split(',');
+          if (liquor_name && korean_name) {
+            const cleanLiquorName = liquor_name.trim();
+            const cleanKoreanName = korean_name.trim();
+            
+            // 한국어 이름을 키로, 영어 이름을 값으로 저장
+            this.koreanToEnglishMap.set(cleanKoreanName, cleanLiquorName);
+          }
+        }
+      });
+      
+      console.log(`Loaded ${this.koreanToEnglishMap.size} Korean liquor mappings from CSV`);
+    } catch (error) {
+      console.error('Error loading Korean liquor mapping:', error);
+    }
   }
 
   loadNodesData() {
@@ -248,11 +281,46 @@ class KoreanToNodeIdMapper {
 
   searchByKorean(koreanText, type = 'both') {
     const results = [];
+    
+    // 1. 먼저 CSV 매핑에서 정확한 매치 찾기 (주류만)
+    if (type === 'liquor' || type === 'both') {
+      // 정확한 매치부터 찾기
+      if (this.koreanToEnglishMap.has(koreanText)) {
+        const englishName = this.koreanToEnglishMap.get(koreanText);
+        const nodeId = this.liquorMap.get(englishName.toLowerCase());
+        if (nodeId) {
+          results.push({
+            nodeId,
+            name: englishName,
+            type: 'liquor',
+            korean: koreanText,
+            matchType: 'exact'
+          });
+        }
+      }
+      
+      // 부분 매치 찾기
+      for (const [korean, english] of this.koreanToEnglishMap.entries()) {
+        if (korean.includes(koreanText) || koreanText.includes(korean)) {
+          const nodeId = this.liquorMap.get(english.toLowerCase());
+          if (nodeId && !results.find(r => r.nodeId === nodeId)) {
+            results.push({
+              nodeId,
+              name: english,
+              type: 'liquor',
+              korean: korean,
+              matchType: 'partial'
+            });
+          }
+        }
+      }
+    }
+
+    // 2. 기존 매핑 방식으로 보완
     const mappings = type === 'liquor' ? { liquors: this.koreanMappings.liquors } : 
                     type === 'ingredient' ? { ingredients: this.koreanMappings.ingredients } :
                     this.koreanMappings;
 
-    // 직접 매핑 검색
     for (const [category, categoryMappings] of Object.entries(mappings)) {
       const dataMap = category === 'liquors' ? this.liquorMap : this.ingredientMap;
       
@@ -261,12 +329,14 @@ class KoreanToNodeIdMapper {
           // 해당하는 영어 이름들로 실제 데이터 검색
           for (const englishName of englishNames) {
             for (const [dbName, nodeId] of dataMap.entries()) {
-              if (dbName.includes(englishName.toLowerCase())) {
+              if (dbName.includes(englishName.toLowerCase()) && 
+                  !results.find(r => r.nodeId === nodeId)) {
                 results.push({
                   nodeId,
                   name: dbName,
                   type: category.slice(0, -1), // 'liquors' -> 'liquor'
-                  korean: koreanName
+                  korean: koreanName,
+                  matchType: 'mapping'
                 });
               }
             }
@@ -275,12 +345,21 @@ class KoreanToNodeIdMapper {
       }
     }
 
-    // 중복 제거 후 상위 5개 반환
-    const uniqueResults = results.filter((result, index, self) => 
-      index === self.findIndex(r => r.nodeId === result.nodeId)
-    );
+    // 정확한 매치를 우선순위로 정렬
+    results.sort((a, b) => {
+      if (a.matchType === 'exact' && b.matchType !== 'exact') return -1;
+      if (a.matchType !== 'exact' && b.matchType === 'exact') return 1;
+      if (a.matchType === 'partial' && b.matchType === 'mapping') return -1;
+      if (a.matchType === 'mapping' && b.matchType === 'partial') return 1;
+      return 0;
+    });
 
-    return uniqueResults.slice(0, 5);
+    console.log(`Korean search for "${koreanText}": found ${results.length} results`);
+    results.forEach((result, i) => {
+      console.log(`  ${i+1}. ${result.name} (${result.matchType}) → node_id: ${result.nodeId}`);
+    });
+
+    return results.slice(0, 5);
   }
 
   getNodeIdByKorean(koreanLiquor, koreanIngredient) {
