@@ -279,6 +279,63 @@ class KoreanToNodeIdMapper {
     };
   }
 
+  // *** 새로운 메서드: 품질 점수 계산 ***
+  calculateItemQuality(dbName, englishKeyword) {
+    // 기본 품질 점수
+    let quality = 0;
+    
+    // 1. 정확한 매치 (최고 품질)
+    if (dbName === englishKeyword.toLowerCase()) {
+      quality = 1000;
+    }
+    // 2. 간단한 매치 (높은 품질)
+    else if (this.isSimpleMatch(dbName, englishKeyword)) {
+      quality = 800;
+    }
+    // 3. 복잡한 매치 (중간 품질)
+    else if (this.isComplexMatch(dbName, englishKeyword)) {
+      quality = 400;
+    }
+    // 4. 매우 구체적인 매치 (낮은 품질)
+    else {
+      quality = 100;
+    }
+    
+    // 이름 길이에 따른 페널티 (길수록 구체적)
+    const lengthPenalty = Math.min(dbName.length * 2, 100);
+    quality = Math.max(quality - lengthPenalty, 50);
+    
+    return quality;
+  }
+
+  // 간단한 매치인지 확인
+  isSimpleMatch(dbName, keyword) {
+    const simplePatterns = {
+      'wine': ['red_wine', 'white_wine', 'dry_wine'],
+      'beef': ['ground_beef', 'beef_steak', 'beef_roast'],
+      'chicken': ['chicken_breast', 'chicken_thigh', 'roast_chicken'],
+      'pork': ['pork_chop', 'pork_loin', 'ground_pork'],
+      'cheese': ['cheddar_cheese', 'mozzarella_cheese', 'cream_cheese'],
+      'fish': ['salmon_fillet', 'tuna_steak', 'white_fish']
+    };
+    
+    const patterns = simplePatterns[keyword.toLowerCase()] || [];
+    return patterns.some(pattern => dbName === pattern);
+  }
+
+  // 복잡한 매치인지 확인
+  isComplexMatch(dbName, keyword) {
+    const complexPatterns = {
+      'wine': ['chardonnay_wine', 'cabernet_wine', 'burgundy_wine', 'chianti_wine'],
+      'beef': ['ribeye_steak', 'sirloin_steak', 'beef_tenderloin'],
+      'chicken': ['chicken_wings', 'chicken_drumstick', 'chicken_cutlet'],
+      'pork': ['pork_shoulder', 'pork_belly', 'pork_tenderloin']
+    };
+    
+    const patterns = complexPatterns[keyword.toLowerCase()] || [];
+    return patterns.some(pattern => dbName.includes(pattern));
+  }
+
   searchByKorean(koreanText, type = 'both') {
     const results = [];
     
@@ -295,7 +352,8 @@ class KoreanToNodeIdMapper {
             type: 'liquor',
             korean: koreanText,
             matchType: 'exact',
-            priority: 1000 // 최고 우선순위
+            priority: 1000,
+            quality: 1000
           });
         }
       }
@@ -311,14 +369,15 @@ class KoreanToNodeIdMapper {
               type: 'liquor',
               korean: korean,
               matchType: 'partial',
-              priority: 500
+              priority: 500,
+              quality: 500
             });
           }
         }
       }
     }
 
-    // 2. 기존 매핑 방식으로 보완
+    // 2. 기존 매핑 방식으로 보완 - *** 개선된 버전 ***
     const mappings = type === 'liquor' ? { liquors: this.koreanMappings.liquors } : 
                     type === 'ingredient' ? { ingredients: this.koreanMappings.ingredients } :
                     this.koreanMappings;
@@ -328,45 +387,38 @@ class KoreanToNodeIdMapper {
       
       for (const [koreanName, englishNames] of Object.entries(categoryMappings)) {
         if (koreanText.includes(koreanName) || koreanName.includes(koreanText)) {
-          // 해당하는 영어 이름들로 실제 데이터 검색
+          
+          // *** 각 영어 키워드별로 매칭 결과 수집 ***
           for (const englishName of englishNames) {
+            const categoryResults = [];
+            
             for (const [dbName, nodeId] of dataMap.entries()) {
-              // *** 중요한 수정: 정확한 매치를 우선순위로 처리 ***
-              let priority = 100; // 기본 우선순위
-              let matchType = 'mapping';
-              
-              // 정확한 매치인지 확인
-              if (dbName === englishName.toLowerCase()) {
-                priority = 800; // 높은 우선순위
-                matchType = 'exact_mapping';
-              } else if (dbName.includes(englishName.toLowerCase())) {
-                // "wine"을 포함하는 경우들을 세분화
-                if (englishName.toLowerCase() === 'wine') {
-                  // 일반적인 와인 타입들에 높은 우선순위 부여
-                  if (dbName.includes('red_wine') || 
-                      dbName.includes('white_wine') || 
-                      dbName.includes('dry_wine')) {
-                    priority = 400;
-                  } else if (dbName.includes('chardonnay') || 
-                           dbName.includes('cabernet') || 
-                           dbName.includes('burgundy')) {
-                    priority = 300;
-                  } else {
-                    priority = 100; // black_berry_wine 같은 특수한 것들
-                  }
-                }
-                matchType = 'partial_mapping';
-              }
-              
-              if (!results.find(r => r.nodeId === nodeId)) {
-                results.push({
+              if (dbName.includes(englishName.toLowerCase())) {
+                // 품질 점수 계산
+                const quality = this.calculateItemQuality(dbName, englishName);
+                
+                categoryResults.push({
                   nodeId,
                   name: dbName,
-                  type: category.slice(0, -1), // 'liquors' -> 'liquor'
+                  type: category.slice(0, -1),
                   korean: koreanName,
-                  matchType,
-                  priority
+                  matchType: dbName === englishName.toLowerCase() ? 'exact_mapping' : 'partial_mapping',
+                  priority: quality,
+                  quality: quality,
+                  keyword: englishName // 디버깅용
                 });
+              }
+            }
+            
+            // *** 각 키워드별로 상위 N개만 선택 ***
+            const topResults = categoryResults
+              .sort((a, b) => b.quality - a.quality)
+              .slice(0, 8); // 키워드당 최대 8개
+            
+            // 중복 제거하고 추가
+            for (const result of topResults) {
+              if (!results.find(r => r.nodeId === result.nodeId)) {
+                results.push(result);
               }
             }
           }
@@ -374,22 +426,30 @@ class KoreanToNodeIdMapper {
       }
     }
 
-    // *** 수정된 정렬 로직: 우선순위와 매치 타입 모두 고려 ***
+    // *** 최종 정렬 및 제한 ***
     results.sort((a, b) => {
-      // 1. 우선순위가 높은 것 먼저
-      if (a.priority !== b.priority) {
-        return b.priority - a.priority;
+      // 1. 품질 점수 우선
+      if (a.quality !== b.quality) {
+        return b.quality - a.quality;
       }
-      // 2. 우선순위가 같으면 이름 길이가 짧은 것 (더 일반적인 것)
+      // 2. 이름 길이 (짧을수록 일반적)
       return a.name.length - b.name.length;
     });
 
-    console.log(`Korean search for "${koreanText}": found ${results.length} results`);
-    results.forEach((result, i) => {
-      console.log(`  ${i+1}. ${result.name} (${result.matchType}, priority: ${result.priority}) → node_id: ${result.nodeId}`);
+    console.log(`Korean search for "${koreanText}": found ${results.length} results (filtered from potentially thousands)`);
+    
+    // *** 상위 결과만 로깅 ***
+    const topResults = results.slice(0, 15);
+    topResults.forEach((result, i) => {
+      console.log(`  ${i+1}. ${result.name} (${result.matchType}, quality: ${result.quality}) → node_id: ${result.nodeId}`);
     });
 
-    return results; // *** 제한 제거: 모든 결과 반환 ***
+    if (results.length > 15) {
+      console.log(`  ... and ${results.length - 15} more results (showing top 15)`);
+    }
+
+    // *** 최대 30개로 제한 ***
+    return results.slice(0, 30);
   }
 
   // *** 새로운 메서드: 전체 데이터에서 해당 카테고리 모든 아이템 반환 ***
@@ -446,8 +506,8 @@ class KoreanToNodeIdMapper {
     return {
       success: true,
       combinations: {
-        liquors: liquorResults, // 모든 결과 반환
-        ingredients: ingredientResults // 모든 결과 반환
+        liquors: liquorResults, // 이미 필터링된 결과
+        ingredients: ingredientResults // 이미 필터링된 결과
       }
     };
   }
