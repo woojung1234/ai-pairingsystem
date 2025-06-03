@@ -389,7 +389,42 @@ class KoreanToNodeIdMapper {
       console.log(`  ${i+1}. ${result.name} (${result.matchType}, priority: ${result.priority}) → node_id: ${result.nodeId}`);
     });
 
-    return results.slice(0, 5);
+    return results; // *** 제한 제거: 모든 결과 반환 ***
+  }
+
+  // *** 새로운 메서드: 전체 데이터에서 해당 카테고리 모든 아이템 반환 ***
+  getAllMatchingItems(koreanText, type) {
+    const results = [];
+    const mappings = type === 'liquor' ? this.koreanMappings.liquors : this.koreanMappings.ingredients;
+    const dataMap = type === 'liquor' ? this.liquorMap : this.ingredientMap;
+    
+    // 해당 한국어에 매칭되는 영어 키워드들 찾기
+    const matchingKeywords = [];
+    
+    for (const [koreanName, englishNames] of Object.entries(mappings)) {
+      if (koreanText.includes(koreanName) || koreanName.includes(koreanText)) {
+        matchingKeywords.push(...englishNames);
+      }
+    }
+    
+    // 모든 데이터에서 키워드에 해당하는 아이템들 찾기
+    for (const [dbName, nodeId] of dataMap.entries()) {
+      for (const keyword of matchingKeywords) {
+        if (dbName.includes(keyword.toLowerCase())) {
+          if (!results.find(r => r.nodeId === nodeId)) {
+            results.push({
+              nodeId,
+              name: dbName,
+              type: type,
+              korean: koreanText
+            });
+          }
+        }
+      }
+    }
+    
+    console.log(`Found ${results.length} items for "${koreanText}" in category "${type}"`);
+    return results;
   }
 
   // 새로운 메서드 추가: 최적의 페어링 조합 찾기
@@ -408,15 +443,11 @@ class KoreanToNodeIdMapper {
       };
     }
     
-    // 상위 3개씩 조합해서 최고 점수 찾기
-    const maxLiquors = Math.min(3, liquorResults.length);
-    const maxIngredients = Math.min(3, ingredientResults.length);
-    
     return {
       success: true,
       combinations: {
-        liquors: liquorResults.slice(0, maxLiquors),
-        ingredients: ingredientResults.slice(0, maxIngredients)
+        liquors: liquorResults, // 모든 결과 반환
+        ingredients: ingredientResults // 모든 결과 반환
       }
     };
   }
