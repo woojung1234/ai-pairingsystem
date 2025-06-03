@@ -191,6 +191,7 @@ exports.predictPairingScoreKorean = async (req, res) => {
 
 /**
  * Find the best pairing combination for Korean liquor and ingredient input
+ * *** 수정된 버전: 전체 데이터베이스에서 최적 조합 탐색 ***
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
@@ -208,9 +209,9 @@ exports.findBestPairingKorean = async (req, res) => {
       });
     }
     
-    // Get possible combinations
-    const liquorResults = koreanMapper.searchByKorean(liquor, 'liquor');
-    const ingredientResults = koreanMapper.searchByKorean(ingredient, 'ingredient');
+    // *** 새로운 방식: 전체 매칭 결과 가져오기 ***
+    const liquorResults = koreanMapper.searchByKorean(liquor, 'liquor'); // 모든 결과
+    const ingredientResults = koreanMapper.searchByKorean(ingredient, 'ingredient'); // 모든 결과
     
     if (liquorResults.length === 0 || ingredientResults.length === 0) {
       return res.status(404).json({
@@ -225,23 +226,27 @@ exports.findBestPairingKorean = async (req, res) => {
     }
     
     console.log(`Found ${liquorResults.length} liquor matches, ${ingredientResults.length} ingredient matches`);
+    console.log('Will test ALL combinations for optimal pairing...');
     
-    // Test combinations and find the best score
+    // *** 모든 조합 테스트 ***
     let bestCombination = null;
     let bestScore = -1;
     const testedCombinations = [];
     
-    // Test up to 3x3 combinations to find the best one
-    const maxLiquors = Math.min(3, liquorResults.length);
-    const maxIngredients = Math.min(3, ingredientResults.length);
+    // 성능을 위해 최대 조합 수 제한 (너무 많으면 시간이 오래 걸림)
+    const maxLiquors = Math.min(20, liquorResults.length); // 최대 20개 주류
+    const maxIngredients = Math.min(20, ingredientResults.length); // 최대 20개 재료
     
+    console.log(`Testing ${maxLiquors} liquors × ${maxIngredients} ingredients = ${maxLiquors * maxIngredients} combinations`);
+    
+    // 모든 조합 테스트
     for (let i = 0; i < maxLiquors; i++) {
       for (let j = 0; j < maxIngredients; j++) {
         const liquorCandidate = liquorResults[i];
         const ingredientCandidate = ingredientResults[j];
         
         try {
-          console.log(`Testing combination: ${liquorCandidate.name} + ${ingredientCandidate.name}`);
+          console.log(`Testing combination ${i * maxIngredients + j + 1}/${maxLiquors * maxIngredients}: ${liquorCandidate.name} + ${ingredientCandidate.name}`);
           
           const score = await getPairingScore(liquorCandidate.nodeId, ingredientCandidate.nodeId);
           
@@ -256,12 +261,13 @@ exports.findBestPairingKorean = async (req, res) => {
           if (score > bestScore) {
             bestScore = score;
             bestCombination = combination;
+            console.log(`🎯 New best combination found! Score: ${score.toFixed(3)} - ${liquorCandidate.name} + ${ingredientCandidate.name}`);
+          } else {
+            console.log(`Score: ${score.toFixed(3)} (current best: ${bestScore.toFixed(3)})`);
           }
           
-          console.log(`Score: ${score} (current best: ${bestScore})`);
-          
         } catch (error) {
-          console.error(`Error testing combination ${liquorCandidate.name} + ${ingredientCandidate.name}:`, error);
+          console.error(`❌ Error testing combination ${liquorCandidate.name} + ${ingredientCandidate.name}:`, error);
           // Continue with other combinations
         }
       }
@@ -274,7 +280,7 @@ exports.findBestPairingKorean = async (req, res) => {
       });
     }
     
-    console.log(`Best combination found: ${bestCombination.liquor.name} + ${bestCombination.ingredient.name} (score: ${bestScore})`);
+    console.log(`🏆 Final best combination: ${bestCombination.liquor.name} + ${bestCombination.ingredient.name} (score: ${bestScore.toFixed(3)})`);
     
     // Get detailed explanation for the best combination
     let explanation;
@@ -283,7 +289,7 @@ exports.findBestPairingKorean = async (req, res) => {
     } catch (explanationError) {
       console.error('Error getting explanation:', explanationError);
       explanation = {
-        explanation: `${liquor}과 ${ingredient}의 최적 조합은 ${bestScore.toFixed(2)} 점수를 받았습니다.`,
+        explanation: `${liquor}과 ${ingredient}의 최적 조합인 ${bestCombination.liquor.name}과 ${bestCombination.ingredient.name}은 ${bestScore.toFixed(2)} 점수를 받았습니다.`,
         compatibility_level: bestScore >= 0.8 ? "강력 추천 조합" : 
                             bestScore >= 0.6 ? "추천 조합" : 
                             bestScore >= 0.4 ? "무난한 조합" : "실험적인 조합"
@@ -295,6 +301,17 @@ exports.findBestPairingKorean = async (req, res) => {
       Liquor.getByNodeId(bestCombination.liquor.nodeId),
       Ingredient.getByNodeId(bestCombination.ingredient.nodeId)
     ]);
+    
+    // Sort all tested combinations by score (highest first)
+    const sortedCombinations = testedCombinations
+      .map(combo => ({
+        liquor: combo.liquor.name,
+        ingredient: combo.ingredient.name,
+        score: combo.score,
+        liquor_priority: combo.liquor.priority,
+        ingredient_priority: combo.ingredient.priority
+      }))
+      .sort((a, b) => b.score - a.score);
     
     return res.json({
       success: true,
@@ -321,15 +338,24 @@ exports.findBestPairingKorean = async (req, res) => {
           explanation: explanation.explanation || explanation.reason,
           compatibility_level: explanation.compatibility_level
         },
-        all_tested_combinations: testedCombinations.map(combo => ({
-          liquor: combo.liquor.name,
-          ingredient: combo.ingredient.name,
-          score: combo.score
-        })).sort((a, b) => b.score - a.score), // 점수 순으로 정렬
+        all_tested_combinations: sortedCombinations.slice(0, 20), // 상위 20개만 표시
         search_info: {
           liquor_candidates: liquorResults.length,
           ingredient_candidates: ingredientResults.length,
-          combinations_tested: testedCombinations.length
+          combinations_tested: testedCombinations.length,
+          total_possible_combinations: liquorResults.length * ingredientResults.length,
+          search_strategy: "comprehensive_ai_scoring"
+        },
+        performance_stats: {
+          best_score: bestScore,
+          worst_score: Math.min(...testedCombinations.map(c => c.score)),
+          average_score: testedCombinations.reduce((sum, c) => sum + c.score, 0) / testedCombinations.length,
+          score_distribution: {
+            excellent: testedCombinations.filter(c => c.score >= 0.8).length,
+            good: testedCombinations.filter(c => c.score >= 0.6 && c.score < 0.8).length,
+            fair: testedCombinations.filter(c => c.score >= 0.4 && c.score < 0.6).length,
+            poor: testedCombinations.filter(c => c.score < 0.4).length
+          }
         }
       }
     });
