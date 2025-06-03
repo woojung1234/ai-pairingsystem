@@ -294,7 +294,8 @@ class KoreanToNodeIdMapper {
             name: englishName,
             type: 'liquor',
             korean: koreanText,
-            matchType: 'exact'
+            matchType: 'exact',
+            priority: 1000 // 최고 우선순위
           });
         }
       }
@@ -309,7 +310,8 @@ class KoreanToNodeIdMapper {
               name: english,
               type: 'liquor',
               korean: korean,
-              matchType: 'partial'
+              matchType: 'partial',
+              priority: 500
             });
           }
         }
@@ -329,14 +331,41 @@ class KoreanToNodeIdMapper {
           // 해당하는 영어 이름들로 실제 데이터 검색
           for (const englishName of englishNames) {
             for (const [dbName, nodeId] of dataMap.entries()) {
-              if (dbName.includes(englishName.toLowerCase()) && 
-                  !results.find(r => r.nodeId === nodeId)) {
+              // *** 중요한 수정: 정확한 매치를 우선순위로 처리 ***
+              let priority = 100; // 기본 우선순위
+              let matchType = 'mapping';
+              
+              // 정확한 매치인지 확인
+              if (dbName === englishName.toLowerCase()) {
+                priority = 800; // 높은 우선순위
+                matchType = 'exact_mapping';
+              } else if (dbName.includes(englishName.toLowerCase())) {
+                // "wine"을 포함하는 경우들을 세분화
+                if (englishName.toLowerCase() === 'wine') {
+                  // 일반적인 와인 타입들에 높은 우선순위 부여
+                  if (dbName.includes('red_wine') || 
+                      dbName.includes('white_wine') || 
+                      dbName.includes('dry_wine')) {
+                    priority = 400;
+                  } else if (dbName.includes('chardonnay') || 
+                           dbName.includes('cabernet') || 
+                           dbName.includes('burgundy')) {
+                    priority = 300;
+                  } else {
+                    priority = 100; // black_berry_wine 같은 특수한 것들
+                  }
+                }
+                matchType = 'partial_mapping';
+              }
+              
+              if (!results.find(r => r.nodeId === nodeId)) {
                 results.push({
                   nodeId,
                   name: dbName,
                   type: category.slice(0, -1), // 'liquors' -> 'liquor'
                   korean: koreanName,
-                  matchType: 'mapping'
+                  matchType,
+                  priority
                 });
               }
             }
@@ -345,21 +374,51 @@ class KoreanToNodeIdMapper {
       }
     }
 
-    // 정확한 매치를 우선순위로 정렬
+    // *** 수정된 정렬 로직: 우선순위와 매치 타입 모두 고려 ***
     results.sort((a, b) => {
-      if (a.matchType === 'exact' && b.matchType !== 'exact') return -1;
-      if (a.matchType !== 'exact' && b.matchType === 'exact') return 1;
-      if (a.matchType === 'partial' && b.matchType === 'mapping') return -1;
-      if (a.matchType === 'mapping' && b.matchType === 'partial') return 1;
-      return 0;
+      // 1. 우선순위가 높은 것 먼저
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority;
+      }
+      // 2. 우선순위가 같으면 이름 길이가 짧은 것 (더 일반적인 것)
+      return a.name.length - b.name.length;
     });
 
     console.log(`Korean search for "${koreanText}": found ${results.length} results`);
     results.forEach((result, i) => {
-      console.log(`  ${i+1}. ${result.name} (${result.matchType}) → node_id: ${result.nodeId}`);
+      console.log(`  ${i+1}. ${result.name} (${result.matchType}, priority: ${result.priority}) → node_id: ${result.nodeId}`);
     });
 
     return results.slice(0, 5);
+  }
+
+  // 새로운 메서드 추가: 최적의 페어링 조합 찾기
+  async getBestPairingCombination(koreanLiquor, koreanIngredient) {
+    const liquorResults = this.searchByKorean(koreanLiquor, 'liquor');
+    const ingredientResults = this.searchByKorean(koreanIngredient, 'ingredient');
+    
+    if (liquorResults.length === 0 || ingredientResults.length === 0) {
+      return {
+        success: false,
+        error: '매칭되는 주류 또는 재료를 찾을 수 없습니다',
+        suggestions: {
+          liquors: liquorResults,
+          ingredients: ingredientResults
+        }
+      };
+    }
+    
+    // 상위 3개씩 조합해서 최고 점수 찾기
+    const maxLiquors = Math.min(3, liquorResults.length);
+    const maxIngredients = Math.min(3, ingredientResults.length);
+    
+    return {
+      success: true,
+      combinations: {
+        liquors: liquorResults.slice(0, maxLiquors),
+        ingredients: ingredientResults.slice(0, maxIngredients)
+      }
+    };
   }
 
   getNodeIdByKorean(koreanLiquor, koreanIngredient) {
