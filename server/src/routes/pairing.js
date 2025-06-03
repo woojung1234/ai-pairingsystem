@@ -17,6 +17,13 @@ router.post('/predict', pairingController.predictPairingScore);
 router.post('/korean/predict', pairingController.predictPairingScoreKorean);
 
 /**
+ * @route   POST /api/pairing/korean/best
+ * @desc    Find the best pairing combination for Korean liquor and ingredient input
+ * @access  Public
+ */
+router.post('/korean/best', pairingController.findBestPairingKorean);
+
+/**
  * @route   POST /api/pairing/korean/recommend
  * @desc    Get recommendations with Korean input
  * @access  Public
