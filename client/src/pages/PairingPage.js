@@ -4,13 +4,13 @@ import axios from 'axios';
 import koreanPairingService from '../services/koreanPairingService';
 import {
   Box, Container, Typography, Button, Grid, Card, TextField, Paper,
-  Chip, CircularProgress, Fade, Autocomplete, useTheme, useMediaQuery,
-  alpha, Rating, Switch, FormControlLabel, Tab, Tabs, Alert,
+  Chip, CircularProgress, Fade, useTheme, useMediaQuery,
+  alpha, Rating, Tab, Tabs, Alert,
 } from '@mui/material';
 import {
   Search as SearchIcon, WineBar as WineBarIcon, Restaurant as RestaurantIcon,
   LocalBar as LocalBarIcon, Liquor as LiquorIcon, Shuffle as ShuffleIcon,
-  Star as StarIcon, Translate as TranslateIcon,
+  Star as StarIcon,
 } from '@mui/icons-material';
 
 function TabPanel({ children, value, index }) {
@@ -21,7 +21,7 @@ function TabPanel({ children, value, index }) {
   );
 }
 
-// 영어 재료명을 한글로 번역하는 함수 - 대폭 확장
+// 영어 재료명을 한글로 번역하는 함수
 const translateIngredientName = (englishName) => {
   if (!englishName || typeof englishName !== 'string') {
     return '알 수 없음';
@@ -55,43 +55,16 @@ function PairingPage() {
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
-  const liquorIdParam = queryParams.get('liquorId');
-  const ingredientIdParam = queryParams.get('ingredientId');
   const koreanParam = queryParams.get('korean');
 
-  const [inputMode, setInputMode] = useState(koreanParam === 'true' ? 'korean' : 'select');
   const [tabValue, setTabValue] = useState(0);
-  const [liquors, setLiquors] = useState([]);
-  const [ingredients, setIngredients] = useState([]);
-  const [selectedLiquor, setSelectedLiquor] = useState(liquorIdParam ? Number(liquorIdParam) : null);
-  const [selectedIngredient, setSelectedIngredient] = useState(ingredientIdParam ? Number(ingredientIdParam) : null);
   const [koreanLiquor, setKoreanLiquor] = useState('');
   const [koreanIngredient, setKoreanIngredient] = useState('');
   const [pairingResults, setPairingResults] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState(null);
   const [activeView, setActiveView] = useState('search');
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [liquorsResponse, ingredientsResponse] = await Promise.all([
-          axios.get('/api/liquors'),
-          axios.get('/api/ingredients')
-        ]);
-        
-        setLiquors(Array.isArray(liquorsResponse.data) ? liquorsResponse.data : liquorsResponse.data.data || []);
-        setIngredients(Array.isArray(ingredientsResponse.data) ? ingredientsResponse.data : ingredientsResponse.data.data || []);
-        setLoading(false);
-      } catch (err) {
-        setError('데이터를 불러오는 중 오류가 발생했습니다.');
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   const handleKoreanSearch = async () => {
     if (tabValue === 0) {
@@ -134,8 +107,6 @@ function PairingPage() {
   };
 
   const handleClearSearch = () => {
-    setSelectedLiquor(null);
-    setSelectedIngredient(null);
     setKoreanLiquor('');
     setKoreanIngredient('');
     setPairingResults(null);
@@ -175,16 +146,9 @@ function PairingPage() {
     return name || '알 수 없음';
   };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress size={60} />
-      </Box>
-    );
-  }
-
   return (
     <Box>
+      {/* Header */}
       <Box sx={{ 
         py: 12, 
         backgroundColor: alpha(theme.palette.primary.main, 0.05),
@@ -196,124 +160,134 @@ function PairingPage() {
               완벽한 페어링 찾기
             </Typography>
             <Typography variant="h6" sx={{ mb: 5, maxWidth: 700, mx: 'auto', lineHeight: 1.8 }}>
-              좋아하는 주류나 음식을 선택하면 AI가 최적의 페어링을 추천해 드립니다.
+              좋아하는 주류나 음식을 입력하면 AI가 최적의 페어링을 추천해 드립니다.
             </Typography>
           </Box>
         </Container>
       </Box>
 
+      {/* Search */}
       <Container maxWidth="lg" sx={{ my: 8 }}>
         <Paper elevation={3} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2 }}>
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-            <FormControlLabel
-              control={<Switch checked={inputMode === 'korean'} onChange={(e) => setInputMode(e.target.checked ? 'korean' : 'select')} />}
-              label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><TranslateIcon /><Typography>한글로 입력하기</Typography></Box>}
+          <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+            <Tab 
+              label="페어링 분석" 
+              icon={<WineBarIcon />}
+              iconPosition="start"
+              sx={{ minHeight: 64, fontSize: '1.1rem' }}
             />
-          </Box>
+            <Tab 
+              label="재료 추천" 
+              icon={<RestaurantIcon />}
+              iconPosition="start"
+              sx={{ minHeight: 64, fontSize: '1.1rem' }}
+            />
+          </Tabs>
 
-          {inputMode === 'korean' ? (
-            <Box>
-              <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                <Tab label="페어링 분석" />
-                <Tab label="재료 추천" />
-              </Tabs>
-
-              <TabPanel value={tabValue} index={0}>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={5}>
-                    <TextField
-                      fullWidth
-                      label="주류 (한글)"
-                      placeholder="예: 위스키, 와인, 맥주"
-                      value={koreanLiquor}
-                      onChange={(e) => setKoreanLiquor(e.target.value)}
-                      disabled={searching}
-                      InputProps={{ startAdornment: <WineBarIcon sx={{ mr: 1, color: 'primary.main' }} /> }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={5}>
-                    <TextField
-                      fullWidth
-                      label="재료 (한글)"
-                      placeholder="예: 치즈, 초콜릿, 고기"
-                      value={koreanIngredient}
-                      onChange={(e) => setKoreanIngredient(e.target.value)}
-                      disabled={searching}
-                      InputProps={{ startAdornment: <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} /> }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      sx={{ height: 56 }}
-                      onClick={handleKoreanSearch}
-                      disabled={searching || !koreanLiquor || !koreanIngredient}
-                      startIcon={searching ? <CircularProgress size={20} /> : <SearchIcon />}
-                    >
-                      {searching ? '분석 중...' : '분석'}
-                    </Button>
-                  </Grid>
-                </Grid>
-              </TabPanel>
-
-              <TabPanel value={tabValue} index={1}>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={8}>
-                    <TextField
-                      fullWidth
-                      label="주류 (한글)"
-                      placeholder="예: 위스키, 와인, 맥주"
-                      value={koreanLiquor}
-                      onChange={(e) => setKoreanLiquor(e.target.value)}
-                      disabled={searching}
-                      InputProps={{ startAdornment: <WineBarIcon sx={{ mr: 1, color: 'primary.main' }} /> }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      sx={{ height: 56 }}
-                      onClick={handleKoreanSearch}
-                      disabled={searching || !koreanLiquor}
-                      startIcon={searching ? <CircularProgress size={20} /> : <SearchIcon />}
-                    >
-                      {searching ? '추천 중...' : '추천받기'}
-                    </Button>
-                  </Grid>
-                </Grid>
-              </TabPanel>
+          <TabPanel value={tabValue} index={0}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
+                주류와 재료의 페어링 점수를 분석합니다
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                두 가지를 모두 입력하시면 AI가 얼마나 잘 어울리는지 분석해드립니다.
+              </Typography>
             </Box>
-          ) : (
-            <Grid container spacing={4}>
+            
+            <Grid container spacing={3}>
               <Grid item xs={12} md={5}>
-                <Autocomplete
-                  options={liquors}
-                  getOptionLabel={(option) => option.name || ''}
-                  value={liquors.find(l => l.id === selectedLiquor) || null}
-                  onChange={(e, v) => setSelectedLiquor(v?.id || null)}
-                  renderInput={(params) => <TextField {...params} label="주류 선택" />}
+                <TextField
+                  fullWidth
+                  label="주류"
+                  placeholder="예: 위스키, 와인, 맥주, 소주"
+                  value={koreanLiquor}
+                  onChange={(e) => setKoreanLiquor(e.target.value)}
+                  disabled={searching}
+                  InputProps={{ 
+                    startAdornment: <WineBarIcon sx={{ mr: 1, color: 'primary.main' }} />,
+                  }}
+                  sx={{ '& .MuiInputBase-root': { height: 64 } }}
                 />
               </Grid>
               <Grid item xs={12} md={5}>
-                <Autocomplete
-                  options={ingredients}
-                  getOptionLabel={(option) => option.name || ''}
-                  value={ingredients.find(i => i.id === selectedIngredient) || null}
-                  onChange={(e, v) => setSelectedIngredient(v?.id || null)}
-                  renderInput={(params) => <TextField {...params} label="재료 선택" />}
+                <TextField
+                  fullWidth
+                  label="재료"
+                  placeholder="예: 치즈, 초콜릿, 고기, 해산물"
+                  value={koreanIngredient}
+                  onChange={(e) => setKoreanIngredient(e.target.value)}
+                  disabled={searching}
+                  InputProps={{ 
+                    startAdornment: <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />,
+                  }}
+                  sx={{ '& .MuiInputBase-root': { height: 64 } }}
                 />
               </Grid>
               <Grid item xs={12} md={2}>
-                <Button variant="contained" fullWidth sx={{ height: 56 }}>검색</Button>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  sx={{ height: 64 }}
+                  onClick={handleKoreanSearch}
+                  disabled={searching || !koreanLiquor || !koreanIngredient}
+                  startIcon={searching ? <CircularProgress size={20} /> : <SearchIcon />}
+                >
+                  {searching ? '분석 중...' : '분석하기'}
+                </Button>
               </Grid>
             </Grid>
-          )}
+          </TabPanel>
 
-          {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
+          <TabPanel value={tabValue} index={1}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
+                주류에 어울리는 재료를 추천합니다
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                좋아하는 주류를 입력하시면 AI가 가장 잘 어울리는 재료 3가지를 추천해드립니다.
+              </Typography>
+            </Box>
+            
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={8}>
+                <TextField
+                  fullWidth
+                  label="주류"
+                  placeholder="예: 위스키, 와인, 맥주, 소주, 진, 럼"
+                  value={koreanLiquor}
+                  onChange={(e) => setKoreanLiquor(e.target.value)}
+                  disabled={searching}
+                  InputProps={{ 
+                    startAdornment: <WineBarIcon sx={{ mr: 1, color: 'primary.main' }} />,
+                  }}
+                  sx={{ '& .MuiInputBase-root': { height: 64 } }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  sx={{ height: 64 }}
+                  onClick={handleKoreanSearch}
+                  disabled={searching || !koreanLiquor}
+                  startIcon={searching ? <CircularProgress size={20} /> : <StarIcon />}
+                >
+                  {searching ? '추천 중...' : '추천받기'}
+                </Button>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          {error && (
+            <Alert severity="error" sx={{ mt: 3 }}>
+              {error}
+            </Alert>
+          )}
         </Paper>
 
+        {/* Results */}
         {activeView === 'results' && pairingResults && (
           <Fade in={true}>
             <Box mt={4}>
@@ -321,11 +295,14 @@ function PairingPage() {
                 <Typography variant="h3" sx={{ fontWeight: 600 }}>
                   {tabValue === 0 ? '페어링 분석 결과' : '재료 추천 결과'}
                 </Typography>
-                <Button variant="outlined" onClick={handleClearSearch}>새 검색</Button>
+                <Button variant="outlined" onClick={handleClearSearch} size="large">
+                  새 검색
+                </Button>
               </Box>
 
               <Paper elevation={2} sx={{ p: 4, borderRadius: 2 }}>
                 {tabValue === 0 ? (
+                  // 페어링 분석 결과
                   <Grid container spacing={4}>
                     <Grid item xs={12} md={8}>
                       <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
@@ -361,15 +338,16 @@ function PairingPage() {
                     </Grid>
                   </Grid>
                 ) : (
+                  // 재료 추천 결과
                   <Box>
                     <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
-                      {translateIngredientName(pairingResults.liquor_name) || koreanLiquor} 추천 재료
+                      {translateIngredientName(pairingResults.liquor_name) || koreanLiquor} 추천 재료 TOP 3
                     </Typography>
                     
                     {pairingResults.overall_explanation && (
                       <Paper sx={{ p: 3, mb: 4, backgroundColor: alpha(theme.palette.info.main, 0.05) }}>
                         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                          전체 추천 설명
+                          💡 전체 추천 설명
                         </Typography>
                         <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
                           {pairingResults.overall_explanation}
@@ -381,7 +359,7 @@ function PairingPage() {
                       {pairingResults.recommendations?.map((rec, index) => {
                         const ingredientName = getIngredientName(rec);
                         return (
-                          <Grid item xs={12} sm={6} md={4} key={index}>
+                          <Grid item xs={12} md={4} key={index}>
                             <Card sx={{ 
                               p: 3, 
                               height: '100%',
@@ -392,19 +370,27 @@ function PairingPage() {
                               }
                             }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="h5" sx={{ 
+                                  fontWeight: 700, 
+                                  color: 'primary.main',
+                                  mr: 1,
+                                  minWidth: 32
+                                }}>
+                                  #{index + 1}
+                                </Typography>
                                 <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />
                                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                                   {translateIngredientName(ingredientName)}
                                 </Typography>
                               </Box>
                               
-                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                 영어명: {ingredientName}
                               </Typography>
                               
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                                 <Rating value={getStarRating(rec.score)} readOnly size="small" sx={{ mr: 1 }} />
-                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                <Typography variant="body1" sx={{ fontWeight: 600 }}>
                                   {getScoreOutOf100(rec.score)}점
                                 </Typography>
                               </Box>
