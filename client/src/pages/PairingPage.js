@@ -67,6 +67,7 @@ function PairingPage() {
 
   const handleKoreanSearch = async () => {
     if (tabValue === 0) {
+      // 페어링 분석
       if (!koreanLiquor || !koreanIngredient) {
         setError('주류와 재료를 모두 입력해주세요.');
         return;
@@ -76,6 +77,7 @@ function PairingPage() {
         setSearching(true);
         setError(null);
         const response = await koreanPairingService.predictPairing(koreanLiquor, koreanIngredient);
+        console.log('Pairing prediction response:', response.data);
         setPairingResults(response.data);
         setActiveView('results');
         setSearching(false);
@@ -84,6 +86,7 @@ function PairingPage() {
         setSearching(false);
       }
     } else {
+      // 재료 추천
       if (!koreanLiquor) {
         setError('주류를 입력해주세요.');
         return;
@@ -93,6 +96,7 @@ function PairingPage() {
         setSearching(true);
         setError(null);
         const response = await koreanPairingService.getRecommendations(koreanLiquor, 10);
+        console.log('Recommendations response:', response.data);
         setPairingResults(response.data);
         setActiveView('results');
         setSearching(false);
@@ -117,9 +121,30 @@ function PairingPage() {
   // 점수를 0-100점으로 변환하는 함수
   const getScoreOutOf100 = (score) => {
     if (!score) return 0;
-    // score가 0-1 범위라면 100을 곱하고, 이미 큰 값이라면 그대로 사용
-    const normalizedScore = score <= 1 ? score * 100 : score;
-    return Math.round(normalizedScore);
+    // score가 0-10 범위라면 10으로 나누고, 0-1 범위라면 100을 곱함
+    let normalizedScore = score;
+    if (score > 10) {
+      normalizedScore = score / 10; // 100점 만점을 10점 만점으로
+    } else if (score <= 1) {
+      normalizedScore = score * 100; // 0-1을 0-100으로
+    } else if (score <= 10) {
+      normalizedScore = (score / 10) * 100; // 0-10을 0-100으로
+    }
+    return Math.round(Math.min(normalizedScore, 100));
+  };
+
+  // 별점을 계산하는 함수 (5점 만점)
+  const getStarRating = (score) => {
+    if (!score) return 0;
+    let normalizedScore = score;
+    if (score > 10) {
+      normalizedScore = score / 20; // 100점을 5점으로
+    } else if (score <= 1) {
+      normalizedScore = score * 5; // 0-1을 0-5로
+    } else if (score <= 10) {
+      normalizedScore = (score / 10) * 5; // 0-10을 0-5로
+    }
+    return Math.min(normalizedScore, 5);
   };
 
   if (loading) {
@@ -265,71 +290,120 @@ function PairingPage() {
 
         {/* Results */}
         {activeView === 'results' && pairingResults && (
-          <Box mt={4}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-              <Typography variant="h3" sx={{ fontWeight: 600 }}>
-                {inputMode === 'korean' && tabValue === 0 ? '페어링 분석 결과' : 
-                 inputMode === 'korean' && tabValue === 1 ? '재료 추천 결과' : '결과'}
-              </Typography>
-              <Button variant="text" onClick={handleClearSearch}>새 검색</Button>
-            </Box>
+          <Fade in={true}>
+            <Box mt={4}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                <Typography variant="h3" sx={{ fontWeight: 600 }}>
+                  {tabValue === 0 ? '페어링 분석 결과' : '재료 추천 결과'}
+                </Typography>
+                <Button variant="outlined" onClick={handleClearSearch}>새 검색</Button>
+              </Box>
 
-            <Paper elevation={2} sx={{ p: 4 }}>
-              {tabValue === 0 ? (
-                <Grid container spacing={4}>
-                  <Grid item xs={12} md={8}>
+              <Paper elevation={2} sx={{ p: 4, borderRadius: 2 }}>
+                {tabValue === 0 ? (
+                  // 페어링 분석 결과
+                  <Grid container spacing={4}>
+                    <Grid item xs={12} md={8}>
+                      <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
+                        {pairingResults.korean_input?.liquor || koreanLiquor} + {pairingResults.korean_input?.ingredient || koreanIngredient}
+                      </Typography>
+                      {pairingResults.english_names && (
+                        <Typography variant="body1" color="text.secondary" gutterBottom>
+                          영어명: {pairingResults.english_names.liquor} + {pairingResults.english_names.ingredient}
+                        </Typography>
+                      )}
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Rating value={getStarRating(pairingResults.score)} readOnly sx={{ mr: 2 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                          {getScoreOutOf100(pairingResults.score)}점 / 100점
+                        </Typography>
+                      </Box>
+                      <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
+                        {pairingResults.gpt_explanation || pairingResults.explanation || '이 조합에 대한 설명이 없습니다.'}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Box sx={{ p: 3, backgroundColor: alpha(theme.palette.primary.main, 0.1), borderRadius: 2, textAlign: 'center' }}>
+                        <Typography variant="h6" gutterBottom>페어링 점수</Typography>
+                        <Typography variant="h2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                          {getScoreOutOf100(pairingResults.score)}점
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                          {getScoreOutOf100(pairingResults.score) >= 80 ? '매우 좋음' :
+                           getScoreOutOf100(pairingResults.score) >= 60 ? '좋음' :
+                           getScoreOutOf100(pairingResults.score) >= 40 ? '보통' : '아쉬움'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                ) : (
+                  // 재료 추천 결과
+                  <Box>
                     <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
-                      {pairingResults.korean_input?.liquor} + {pairingResults.korean_input?.ingredient}
+                      {pairingResults.liquor_name || koreanLiquor} 추천 재료
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" gutterBottom>
-                      영어명: {pairingResults.english_names?.liquor} + {pairingResults.english_names?.ingredient}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                      <Rating value={pairingResults.score ? pairingResults.score * 5 : 0} readOnly sx={{ mr: 2 }} />
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {getScoreOutOf100(pairingResults.score)} / 100
-                      </Typography>
-                    </Box>
-                    <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
-                      {pairingResults.gpt_explanation || pairingResults.explanation || '이 조합에 대한 설명이 없습니다.'}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ p: 3, backgroundColor: alpha(theme.palette.primary.main, 0.1), borderRadius: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" gutterBottom>페어링 점수</Typography>
-                      <Typography variant="h2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                        {getScoreOutOf100(pairingResults.score)}점
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              ) : (
-                <Box>
-                  <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
-                    {pairingResults.korean_input} 추천 재료
-                  </Typography>
-                  <Grid container spacing={2} sx={{ mt: 2 }}>
-                    {pairingResults.recommendations?.map((rec, index) => (
-                      <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Card sx={{ p: 2 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                              {rec.ingredient || rec.name || '알 수 없음'}
-                            </Typography>
-                          </Box>
-                          <Rating value={rec.score ? rec.score * 5 : 0} readOnly size="small" />
-                          <Typography variant="body2" sx={{ mt: 1 }}>
-                            {getScoreOutOf100(rec.score)}점
-                          </Typography>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              )}
-            </Paper>
-          </Box>
+                    
+                    {/* 전체 설명 */}
+                    {pairingResults.overall_explanation && (
+                      <Paper sx={{ p: 3, mb: 4, backgroundColor: alpha(theme.palette.info.main, 0.05) }}>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                          전체 추천 설명
+                        </Typography>
+                        <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
+                          {pairingResults.overall_explanation}
+                        </Typography>
+                      </Paper>
+                    )}
+
+                    {/* 추천 재료 카드들 */}
+                    <Grid container spacing={3}>
+                      {pairingResults.recommendations?.map((rec, index) => (
+                        <Grid item xs={12} sm={6} md={4} key={index}>
+                          <Card sx={{ 
+                            p: 3, 
+                            height: '100%',
+                            transition: 'transform 0.2s, elevation 0.2s',
+                            '&:hover': {
+                              transform: 'translateY(-4px)',
+                              elevation: 8
+                            }
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                              <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />
+                              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                {rec.ingredient_name || rec.ingredient || rec.name || '알 수 없음'}
+                              </Typography>
+                            </Box>
+                            
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                              <Rating value={getStarRating(rec.score)} readOnly size="small" sx={{ mr: 1 }} />
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {getScoreOutOf100(rec.score)}점
+                              </Typography>
+                            </Box>
+
+                            {rec.explanation && (
+                              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                {rec.explanation}
+                              </Typography>
+                            )}
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+
+                    {(!pairingResults.recommendations || pairingResults.recommendations.length === 0) && (
+                      <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <Typography variant="h6" color="text.secondary">
+                          추천 결과가 없습니다.
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+              </Paper>
+            </Box>
+          </Fade>
         )}
       </Container>
     </Box>
