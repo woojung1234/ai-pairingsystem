@@ -6,18 +6,13 @@ const koreanMapper = require('../utils/koreanMapper');
 
 /**
  * Predict pairing score for a liquor and ingredient
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Object} - JSON response with pairing score and details
  */
 exports.predictPairingScore = async (req, res) => {
   try {
     const { liquorId, ingredientId } = req.body;
     
-    // 요청 내용 로깅
     console.log('Predict pairing request body:', req.body);
     
-    // Validate input
     if (!liquorId || !ingredientId) {
       return res.status(400).json({ 
         success: false, 
@@ -25,20 +20,16 @@ exports.predictPairingScore = async (req, res) => {
       });
     }
     
-    // Convert to numbers
     const liquorIdNum = parseInt(liquorId);
     const ingredientIdNum = parseInt(ingredientId);
     
-    // 변환된 ID 로깅
     console.log(`Processing pairing prediction for liquorId: ${liquorIdNum}, ingredientId: ${ingredientIdNum}`);
     
-    // Get liquor and ingredient details - getById 메소드 사용
     const [liquor, ingredient] = await Promise.all([
       Liquor.getById(liquorIdNum),
       Ingredient.getById(ingredientIdNum)
     ]);
     
-    // 조회 결과 로깅
     console.log('Liquor found:', liquor ? 'Yes' : 'No');
     console.log('Ingredient found:', ingredient ? 'Yes' : 'No');
     
@@ -49,12 +40,10 @@ exports.predictPairingScore = async (req, res) => {
       });
     }
     
-    // Get score from AI model
     console.log('Calling AI model to get pairing score...');
     const score = await getPairingScore(liquorIdNum, ingredientIdNum);
     console.log('Pairing score result:', score);
     
-    // 간단한 응답 구조로 변경
     return res.json({
       success: true,
       data: {
@@ -79,8 +68,6 @@ exports.predictPairingScore = async (req, res) => {
 
 /**
  * Predict pairing score with Korean input
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
  */
 exports.predictPairingScoreKorean = async (req, res) => {
   try {
@@ -88,7 +75,6 @@ exports.predictPairingScoreKorean = async (req, res) => {
     
     console.log('Korean pairing request:', { liquor, ingredient });
     
-    // Validate input
     if (!liquor || !ingredient) {
       return res.status(400).json({ 
         success: false, 
@@ -113,35 +99,38 @@ exports.predictPairingScoreKorean = async (req, res) => {
       ingredient: mappingResult.ingredientNodeId
     });
     
-    console.log(`Calling AI server for liquorId=${mappingResult.liquorNodeId}, ingredientId=${mappingResult.ingredientNodeId}`);
-    
-    // Get score from AI model using node_ids
+    // Get score from AI model using node_ids - SINGLE CALL
     const aiResponse = await getPairingScore(mappingResult.liquorNodeId, mappingResult.ingredientNodeId);
     console.log('AI server response:', aiResponse);
     
     // AI 서버 응답 구조 확인 및 처리
-    let score, explanation, gptExplanation;
+    let score, explanation, gptExplanation, normalizedScore;
     
     if (typeof aiResponse === 'object' && aiResponse.score !== undefined) {
-      // AI 서버가 객체로 응답하는 경우
+      // AI 서버가 완전한 객체로 응답하는 경우 (score, explanation, gpt_explanation)
       score = aiResponse.score;
       explanation = aiResponse.explanation;
       gptExplanation = aiResponse.gpt_explanation;
+      
+      // 점수 정규화 (0-1 범위를 유지)
+      normalizedScore = Math.max(0, Math.min(1, score / 5.0)); // 5점 만점을 1로 정규화
+      console.log(`Raw score: ${score}, Normalized score: ${normalizedScore.toFixed(4)}`);
+      
     } else if (typeof aiResponse === 'number') {
-      // AI 서버가 숫자만 응답하는 경우
+      // AI 서버가 숫자만 응답하는 경우 (이미 정규화된 점수)
+      normalizedScore = Math.max(0, Math.min(1, aiResponse));
       score = aiResponse;
       explanation = null;
       gptExplanation = null;
+      console.log(`Normalized score received: ${normalizedScore.toFixed(4)}`);
+      
     } else {
       console.error('Unexpected AI response format:', aiResponse);
+      normalizedScore = 0;
       score = 0;
       explanation = null;
       gptExplanation = null;
     }
-    
-    // 점수 정규화 (0-1 범위를 0-100% 범위로)
-    const normalizedScore = Math.max(0, Math.min(1, score / 5.0)); // 5점 만점을 1로 정규화
-    console.log(`Raw score: ${score}, Normalized score: ${normalizedScore.toFixed(4)}`);
     
     // Get liquor and ingredient details using getByNodeId
     const [liquorDetails, ingredientDetails] = await Promise.all([
@@ -159,8 +148,8 @@ exports.predictPairingScoreKorean = async (req, res) => {
       console.warn('Could not find liquor or ingredient details in database');
     }
     
-    // fallback 설명 생성
-    const fallbackExplanation = gptExplanation || explanation || 
+    // fallback 설명 생성 - GPT 설명이 있으면 우선 사용
+    const finalExplanation = gptExplanation || explanation || 
       `${liquor}과 ${ingredient}의 조합은 ${(normalizedScore * 100).toFixed(0)}% 호환성을 보입니다. ${
         normalizedScore >= 0.8 ? "매우 훌륭한 조합으로, 맛과 향이 완벽하게 조화를 이룹니다." :
         normalizedScore >= 0.6 ? "좋은 페어링으로, 여러 풍미 요소가 잘 어울립니다." :
@@ -188,7 +177,7 @@ exports.predictPairingScoreKorean = async (req, res) => {
         score: normalizedScore,
         raw_score: score,
         percentage: Math.round(normalizedScore * 100),
-        explanation: fallbackExplanation,
+        explanation: finalExplanation,
         gpt_explanation: gptExplanation,
         compatibility_level: compatibilityLevel,
         ai_response: aiResponse // 디버깅용
@@ -213,7 +202,6 @@ exports.findBestPairingKorean = async (req, res) => {
     
     console.log('Best pairing request:', { liquor, ingredient });
     
-    // Validate input
     if (!liquor || !ingredient) {
       return res.status(400).json({ 
         success: false, 
@@ -221,9 +209,8 @@ exports.findBestPairingKorean = async (req, res) => {
       });
     }
     
-    // *** 새로운 방식: 전체 매칭 결과 가져오기 ***
-    const liquorResults = koreanMapper.searchByKorean(liquor, 'liquor'); // 모든 결과
-    const ingredientResults = koreanMapper.searchByKorean(ingredient, 'ingredient'); // 모든 결과
+    const liquorResults = koreanMapper.searchByKorean(liquor, 'liquor');
+    const ingredientResults = koreanMapper.searchByKorean(ingredient, 'ingredient');
     
     if (liquorResults.length === 0 || ingredientResults.length === 0) {
       return res.status(404).json({
@@ -240,18 +227,15 @@ exports.findBestPairingKorean = async (req, res) => {
     console.log(`Found ${liquorResults.length} liquor matches, ${ingredientResults.length} ingredient matches`);
     console.log('Will test ALL combinations for optimal pairing...');
     
-    // *** 모든 조합 테스트 ***
     let bestCombination = null;
     let bestScore = -1;
     const testedCombinations = [];
     
-    // 성능을 위해 최대 조합 수 제한 (너무 많으면 시간이 오래 걸림)
-    const maxLiquors = Math.min(20, liquorResults.length); // 최대 20개 주류
-    const maxIngredients = Math.min(20, ingredientResults.length); // 최대 20개 재료
+    const maxLiquors = Math.min(20, liquorResults.length);
+    const maxIngredients = Math.min(20, ingredientResults.length);
     
     console.log(`Testing ${maxLiquors} liquors × ${maxIngredients} ingredients = ${maxLiquors * maxIngredients} combinations`);
     
-    // 모든 조합 테스트
     for (let i = 0; i < maxLiquors; i++) {
       for (let j = 0; j < maxIngredients; j++) {
         const liquorCandidate = liquorResults[i];
@@ -280,7 +264,6 @@ exports.findBestPairingKorean = async (req, res) => {
           
         } catch (error) {
           console.error(`❌ Error testing combination ${liquorCandidate.name} + ${ingredientCandidate.name}:`, error);
-          // Continue with other combinations
         }
       }
     }
@@ -294,10 +277,10 @@ exports.findBestPairingKorean = async (req, res) => {
     
     console.log(`🏆 Final best combination: ${bestCombination.liquor.name} + ${bestCombination.ingredient.name} (score: ${bestScore.toFixed(3)})`);
     
-    // Get detailed explanation for the best combination
     let explanation;
     try {
-      explanation = await getExplanation(bestCombination.liquor.nodeId, bestCombination.ingredient.nodeId);
+      // Pass the score to avoid duplicate AI calls
+      explanation = await getExplanation(bestCombination.liquor.nodeId, bestCombination.ingredient.nodeId, bestScore);
     } catch (explanationError) {
       console.error('Error getting explanation:', explanationError);
       explanation = {
@@ -308,13 +291,11 @@ exports.findBestPairingKorean = async (req, res) => {
       };
     }
     
-    // Get liquor and ingredient details
     const [liquorDetails, ingredientDetails] = await Promise.all([
       Liquor.getByNodeId(bestCombination.liquor.nodeId),
       Ingredient.getByNodeId(bestCombination.ingredient.nodeId)
     ]);
     
-    // Sort all tested combinations by score (highest first)
     const sortedCombinations = testedCombinations
       .map(combo => ({
         liquor: combo.liquor.name,
@@ -350,7 +331,7 @@ exports.findBestPairingKorean = async (req, res) => {
           explanation: explanation.explanation || explanation.reason,
           compatibility_level: explanation.compatibility_level
         },
-        all_tested_combinations: sortedCombinations.slice(0, 20), // 상위 20개만 표시
+        all_tested_combinations: sortedCombinations.slice(0, 20),
         search_info: {
           liquor_candidates: liquorResults.length,
           ingredient_candidates: ingredientResults.length,
@@ -396,7 +377,6 @@ exports.getRecommendationsKorean = async (req, res) => {
       });
     }
     
-    // Convert Korean to node_id
     const liquorResults = koreanMapper.searchByKorean(liquor, 'liquor');
     
     if (liquorResults.length === 0) {
@@ -408,8 +388,6 @@ exports.getRecommendationsKorean = async (req, res) => {
     }
     
     const liquorNodeId = liquorResults[0].nodeId;
-    
-    // Get recommendations from AI model
     const recommendations = await getRecommendations(liquorNodeId, limit);
     
     return res.json({
@@ -530,7 +508,8 @@ exports.getPairingScoreByIds = async (req, res) => {
       }
       
       console.log('Generating explanation...');
-      const explanation = await getExplanation(liquorIdNum, ingredientIdNum);
+      // Pass the score to avoid duplicate AI calls
+      const explanation = await getExplanation(liquorIdNum, ingredientIdNum, score);
       console.log('Explanation generated');
       
       try {
@@ -593,7 +572,6 @@ exports.getRecommendationsForLiquor = async (req, res) => {
     }
     
     const liquorIdNum = parseInt(liquorId);
-    
     const liquor = await Liquor.getById(liquorIdNum);
     
     if (!liquor) {
@@ -601,7 +579,6 @@ exports.getRecommendationsForLiquor = async (req, res) => {
     }
     
     const recommendations = await getRecommendations(liquorIdNum, limit);
-    
     const ingredientIds = recommendations.map(r => r.ingredient_id);
     
     const ingredients = [];
@@ -669,7 +646,6 @@ exports.getExplanationForPairing = async (req, res) => {
 exports.getTopPairings = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit || 10);
-    
     const topPairings = await Pairing.getTopPairings(limit);
     
     return res.json({
