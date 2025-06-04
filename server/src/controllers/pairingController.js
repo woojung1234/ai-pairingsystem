@@ -4,6 +4,27 @@ const Liquor = require('../models/Liquor');
 const Ingredient = require('../models/Ingredient');
 const koreanMapper = require('../utils/koreanMapper');
 
+// 점수 정규화를 위한 범위 설정 (실제 데이터에서 확인된 값)
+const SCORE_RANGE = {
+  min: -5.0,  // 실제 데이터에서 나오는 최소값
+  max: 6.0    // 실제 데이터에서 나오는 최대값
+};
+
+/**
+ * AI 서버 점수를 0-100 범위로 정규화
+ * @param {Number} rawScore - AI 서버에서 받은 원본 점수
+ * @returns {Number} 0-100 범위로 정규화된 점수
+ */
+function normalizeScoreTo100(rawScore) {
+  if (typeof rawScore !== 'number') return 0;
+  
+  // 최소값을 0으로, 최대값을 100으로 선형 변환
+  const normalized = ((rawScore - SCORE_RANGE.min) / (SCORE_RANGE.max - SCORE_RANGE.min)) * 100;
+  
+  // 0-100 범위로 제한
+  return Math.max(0, Math.min(100, Math.round(normalized)));
+}
+
 /**
  * Predict pairing score for a liquor and ingredient
  */
@@ -104,33 +125,33 @@ exports.predictPairingScoreKorean = async (req, res) => {
     console.log('AI server response:', aiResponse);
     
     // AI 서버 응답 구조 확인 및 처리
-    let score, explanation, gptExplanation, normalizedScore;
+    let rawScore, explanation, gptExplanation;
     
     if (typeof aiResponse === 'object' && aiResponse.score !== undefined) {
       // AI 서버가 완전한 객체로 응답하는 경우 (score, explanation, gpt_explanation)
-      score = aiResponse.score;
+      rawScore = aiResponse.score;
       explanation = aiResponse.explanation;
       gptExplanation = aiResponse.gpt_explanation;
       
-      // 점수 정규화 (0-1 범위를 유지)
-      normalizedScore = Math.max(0, Math.min(1, score / 5.0)); // 5점 만점을 1로 정규화
-      console.log(`Raw score: ${score}, Normalized score: ${normalizedScore.toFixed(4)}`);
+      console.log(`Raw score from AI: ${rawScore}`);
       
     } else if (typeof aiResponse === 'number') {
-      // AI 서버가 숫자만 응답하는 경우 (이미 정규화된 점수)
-      normalizedScore = Math.max(0, Math.min(1, aiResponse));
-      score = aiResponse;
+      // AI 서버가 숫자만 응답하는 경우
+      rawScore = aiResponse;
       explanation = null;
       gptExplanation = null;
-      console.log(`Normalized score received: ${normalizedScore.toFixed(4)}`);
+      console.log(`Raw score from AI: ${rawScore}`);
       
     } else {
       console.error('Unexpected AI response format:', aiResponse);
-      normalizedScore = 0;
-      score = 0;
+      rawScore = 0;
       explanation = null;
       gptExplanation = null;
     }
+    
+    // 점수를 0-100 범위로 정규화
+    const normalizedScore = normalizeScoreTo100(rawScore);
+    console.log(`Raw score: ${rawScore}, Normalized to 100-scale: ${normalizedScore}`);
     
     // Get liquor and ingredient details using getByNodeId
     const [liquorDetails, ingredientDetails] = await Promise.all([
@@ -150,17 +171,17 @@ exports.predictPairingScoreKorean = async (req, res) => {
     
     // fallback 설명 생성 - GPT 설명이 있으면 우선 사용
     const finalExplanation = gptExplanation || explanation || 
-      `${liquor}과 ${ingredient}의 조합은 ${(normalizedScore * 100).toFixed(0)}% 호환성을 보입니다. ${
-        normalizedScore >= 0.8 ? "매우 훌륭한 조합으로, 맛과 향이 완벽하게 조화를 이룹니다." :
-        normalizedScore >= 0.6 ? "좋은 페어링으로, 여러 풍미 요소가 잘 어울립니다." :
-        normalizedScore >= 0.4 ? "무난한 조합이지만 특별함은 부족합니다." :
+      `${liquor}과 ${ingredient}의 조합은 ${normalizedScore}점입니다. ${
+        normalizedScore >= 80 ? "매우 훌륭한 조합으로, 맛과 향이 완벽하게 조화를 이룹니다." :
+        normalizedScore >= 60 ? "좋은 페어링으로, 여러 풍미 요소가 잘 어울립니다." :
+        normalizedScore >= 40 ? "무난한 조합이지만 특별함은 부족합니다." :
         "이 조합은 그다지 잘 어울리지 않습니다."
       }`;
     
     // 호환성 레벨 결정
-    const compatibilityLevel = normalizedScore >= 0.8 ? "강력 추천 조합" : 
-                              normalizedScore >= 0.6 ? "추천 조합" : 
-                              normalizedScore >= 0.4 ? "무난한 조합" : "실험적인 조합";
+    const compatibilityLevel = normalizedScore >= 80 ? "강력 추천 조합" : 
+                              normalizedScore >= 60 ? "추천 조합" : 
+                              normalizedScore >= 40 ? "무난한 조합" : "실험적인 조합";
     
     return res.json({
       success: true,
@@ -175,8 +196,8 @@ exports.predictPairingScoreKorean = async (req, res) => {
           ingredient: mappingResult.ingredientNodeId
         },
         score: normalizedScore,
-        raw_score: score,
-        percentage: Math.round(normalizedScore * 100),
+        raw_score: rawScore,
+        score_range: SCORE_RANGE,
         explanation: finalExplanation,
         gpt_explanation: gptExplanation,
         compatibility_level: compatibilityLevel,
@@ -194,8 +215,89 @@ exports.predictPairingScoreKorean = async (req, res) => {
 };
 
 /**
- * Find the best pairing combination for Korean liquor and ingredient input
+ * Get score statistics for calibrating normalization range
  */
+exports.getScoreStatistics = async (req, res) => {
+  try {
+    const sampleSize = 20; // 샘플 점수들
+    const scores = [];
+    
+    console.log('Collecting score statistics for calibration...');
+    
+    // 몇 가지 샘플 페어링의 점수를 수집
+    const samplePairs = [
+      { liquor: 75, ingredient: 361 },   // ale + beef
+      { liquor: 423, ingredient: 361 },  // beer + beef  
+      { liquor: 75, ingredient: 100 },   // ale + random ingredient
+      { liquor: 524, ingredient: 22 },   // 다른 조합들...
+      { liquor: 75, ingredient: 200 },
+      { liquor: 75, ingredient: 300 },
+      { liquor: 423, ingredient: 100 },
+      { liquor: 423, ingredient: 200 },
+      { liquor: 524, ingredient: 100 },
+      { liquor: 524, ingredient: 200 },
+      { liquor: 100, ingredient: 361 },
+      { liquor: 200, ingredient: 361 },
+      { liquor: 300, ingredient: 361 },
+      { liquor: 400, ingredient: 361 },
+      { liquor: 500, ingredient: 361 },
+      { liquor: 75, ingredient: 400 },
+      { liquor: 75, ingredient: 500 },
+      { liquor: 423, ingredient: 300 },
+      { liquor: 423, ingredient: 400 },
+      { liquor: 524, ingredient: 300 }
+    ];
+    
+    for (const pair of samplePairs) {
+      try {
+        const response = await getPairingScore(pair.liquor, pair.ingredient);
+        const score = typeof response === 'object' ? response.score : response;
+        scores.push(score);
+        console.log(`Score for ${pair.liquor}-${pair.ingredient}: ${score}`);
+      } catch (error) {
+        console.error(`Error getting score for ${pair.liquor}-${pair.ingredient}:`, error);
+      }
+    }
+    
+    if (scores.length === 0) {
+      return res.status(500).json({
+        success: false,
+        error: 'No scores collected'
+      });
+    }
+    
+    const minScore = Math.min(...scores);
+    const maxScore = Math.max(...scores);
+    const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    
+    return res.json({
+      success: true,
+      data: {
+        sample_scores: scores,
+        statistics: {
+          min: minScore,
+          max: maxScore,
+          average: avgScore,
+          count: scores.length
+        },
+        current_range: SCORE_RANGE,
+        recommended_range: {
+          min: Math.floor(minScore - 0.5),
+          max: Math.ceil(maxScore + 0.5)
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error getting score statistics:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to collect score statistics'
+    });
+  }
+};
+
+// 나머지 함수들 계속...
 exports.findBestPairingKorean = async (req, res) => {
   try {
     const { liquor, ingredient } = req.body;
@@ -225,16 +327,13 @@ exports.findBestPairingKorean = async (req, res) => {
     }
     
     console.log(`Found ${liquorResults.length} liquor matches, ${ingredientResults.length} ingredient matches`);
-    console.log('Will test ALL combinations for optimal pairing...');
     
     let bestCombination = null;
-    let bestScore = -1;
+    let bestScore = -Infinity;
     const testedCombinations = [];
     
     const maxLiquors = Math.min(20, liquorResults.length);
     const maxIngredients = Math.min(20, ingredientResults.length);
-    
-    console.log(`Testing ${maxLiquors} liquors × ${maxIngredients} ingredients = ${maxLiquors * maxIngredients} combinations`);
     
     for (let i = 0; i < maxLiquors; i++) {
       for (let j = 0; j < maxIngredients; j++) {
@@ -242,28 +341,26 @@ exports.findBestPairingKorean = async (req, res) => {
         const ingredientCandidate = ingredientResults[j];
         
         try {
-          console.log(`Testing combination ${i * maxIngredients + j + 1}/${maxLiquors * maxIngredients}: ${liquorCandidate.name} + ${ingredientCandidate.name}`);
-          
-          const score = await getPairingScore(liquorCandidate.nodeId, ingredientCandidate.nodeId);
+          const aiResponse = await getPairingScore(liquorCandidate.nodeId, ingredientCandidate.nodeId);
+          const rawScore = typeof aiResponse === 'object' ? aiResponse.score : aiResponse;
+          const normalizedScore = normalizeScoreTo100(rawScore);
           
           const combination = {
             liquor: liquorCandidate,
             ingredient: ingredientCandidate,
-            score: score
+            score: normalizedScore,
+            raw_score: rawScore
           };
           
           testedCombinations.push(combination);
           
-          if (score > bestScore) {
-            bestScore = score;
+          if (normalizedScore > bestScore) {
+            bestScore = normalizedScore;
             bestCombination = combination;
-            console.log(`🎯 New best combination found! Score: ${score.toFixed(3)} - ${liquorCandidate.name} + ${ingredientCandidate.name}`);
-          } else {
-            console.log(`Score: ${score.toFixed(3)} (current best: ${bestScore.toFixed(3)})`);
           }
           
         } catch (error) {
-          console.error(`❌ Error testing combination ${liquorCandidate.name} + ${ingredientCandidate.name}:`, error);
+          console.error(`Error testing combination ${liquorCandidate.name} + ${ingredientCandidate.name}:`, error);
         }
       }
     }
@@ -275,34 +372,24 @@ exports.findBestPairingKorean = async (req, res) => {
       });
     }
     
-    console.log(`🏆 Final best combination: ${bestCombination.liquor.name} + ${bestCombination.ingredient.name} (score: ${bestScore.toFixed(3)})`);
-    
     let explanation;
     try {
-      // Pass the score to avoid duplicate AI calls
-      explanation = await getExplanation(bestCombination.liquor.nodeId, bestCombination.ingredient.nodeId, bestScore);
+      explanation = await getExplanation(bestCombination.liquor.nodeId, bestCombination.ingredient.nodeId, bestCombination.score / 100);
     } catch (explanationError) {
-      console.error('Error getting explanation:', explanationError);
       explanation = {
-        explanation: `${liquor}과 ${ingredient}의 최적 조합인 ${bestCombination.liquor.name}과 ${bestCombination.ingredient.name}은 ${bestScore.toFixed(2)} 점수를 받았습니다.`,
-        compatibility_level: bestScore >= 0.8 ? "강력 추천 조합" : 
-                            bestScore >= 0.6 ? "추천 조합" : 
-                            bestScore >= 0.4 ? "무난한 조합" : "실험적인 조합"
+        explanation: `${liquor}과 ${ingredient}의 최적 조합인 ${bestCombination.liquor.name}과 ${bestCombination.ingredient.name}은 ${bestScore}점을 받았습니다.`,
+        compatibility_level: bestScore >= 80 ? "강력 추천 조합" : 
+                            bestScore >= 60 ? "추천 조합" : 
+                            bestScore >= 40 ? "무난한 조합" : "실험적인 조합"
       };
     }
-    
-    const [liquorDetails, ingredientDetails] = await Promise.all([
-      Liquor.getByNodeId(bestCombination.liquor.nodeId),
-      Ingredient.getByNodeId(bestCombination.ingredient.nodeId)
-    ]);
     
     const sortedCombinations = testedCombinations
       .map(combo => ({
         liquor: combo.liquor.name,
         ingredient: combo.ingredient.name,
         score: combo.score,
-        liquor_priority: combo.liquor.priority,
-        ingredient_priority: combo.ingredient.priority
+        raw_score: combo.raw_score
       }))
       .sort((a, b) => b.score - a.score);
     
@@ -311,45 +398,13 @@ exports.findBestPairingKorean = async (req, res) => {
       data: {
         korean_input: { liquor, ingredient },
         best_combination: {
-          liquor: {
-            korean: bestCombination.liquor.korean,
-            english: bestCombination.liquor.name,
-            node_id: bestCombination.liquor.nodeId,
-            match_type: bestCombination.liquor.matchType,
-            priority: bestCombination.liquor.priority,
-            details: liquorDetails
-          },
-          ingredient: {
-            korean: bestCombination.ingredient.korean,
-            english: bestCombination.ingredient.name,
-            node_id: bestCombination.ingredient.nodeId,
-            match_type: bestCombination.ingredient.matchType,
-            priority: bestCombination.ingredient.priority,
-            details: ingredientDetails
-          },
           score: bestScore,
+          raw_score: bestCombination.raw_score,
           explanation: explanation.explanation || explanation.reason,
           compatibility_level: explanation.compatibility_level
         },
         all_tested_combinations: sortedCombinations.slice(0, 20),
-        search_info: {
-          liquor_candidates: liquorResults.length,
-          ingredient_candidates: ingredientResults.length,
-          combinations_tested: testedCombinations.length,
-          total_possible_combinations: liquorResults.length * ingredientResults.length,
-          search_strategy: "comprehensive_ai_scoring"
-        },
-        performance_stats: {
-          best_score: bestScore,
-          worst_score: Math.min(...testedCombinations.map(c => c.score)),
-          average_score: testedCombinations.reduce((sum, c) => sum + c.score, 0) / testedCombinations.length,
-          score_distribution: {
-            excellent: testedCombinations.filter(c => c.score >= 0.8).length,
-            good: testedCombinations.filter(c => c.score >= 0.6 && c.score < 0.8).length,
-            fair: testedCombinations.filter(c => c.score >= 0.4 && c.score < 0.6).length,
-            poor: testedCombinations.filter(c => c.score < 0.4).length
-          }
-        }
+        score_range: SCORE_RANGE
       }
     });
     
@@ -362,9 +417,6 @@ exports.findBestPairingKorean = async (req, res) => {
   }
 };
 
-/**
- * Get recommendations with Korean input
- */
 exports.getRecommendationsKorean = async (req, res) => {
   try {
     const { liquor } = req.body;
@@ -390,13 +442,19 @@ exports.getRecommendationsKorean = async (req, res) => {
     const liquorNodeId = liquorResults[0].nodeId;
     const recommendations = await getRecommendations(liquorNodeId, limit);
     
+    const normalizedRecommendations = recommendations.map(rec => ({
+      ...rec,
+      score: normalizeScoreTo100(rec.score),
+      raw_score: rec.score
+    }));
+    
     return res.json({
       success: true,
       data: {
         korean_input: liquor,
         english_name: liquorResults[0].name,
         liquor_node_id: liquorNodeId,
-        recommendations
+        recommendations: normalizedRecommendations
       }
     });
     
@@ -409,9 +467,6 @@ exports.getRecommendationsKorean = async (req, res) => {
   }
 };
 
-/**
- * Search liquors and ingredients by Korean text
- */
 exports.searchByKorean = async (req, res) => {
   try {
     const { query, type = 'both' } = req.query;
@@ -443,14 +498,9 @@ exports.searchByKorean = async (req, res) => {
   }
 };
 
-/**
- * Get pairing score for a liquor and ingredient
- */
 exports.getPairingScoreByIds = async (req, res) => {
   try {
     const { liquorId, ingredientId } = req.params;
-    
-    console.log(`GET /api/pairing/score/${liquorId}/${ingredientId}`);
     
     if (!liquorId || !ingredientId) {
       return res.status(400).json({ success: false, error: 'Please provide liquor and ingredient IDs' });
@@ -459,109 +509,24 @@ exports.getPairingScoreByIds = async (req, res) => {
     const liquorIdNum = parseInt(liquorId);
     const ingredientIdNum = parseInt(ingredientId);
     
-    console.log(`Looking for pairing with liquorId: ${liquorIdNum}, ingredientId: ${ingredientIdNum}`);
+    const aiResponse = await getPairingScore(liquorIdNum, ingredientIdNum);
+    const rawScore = typeof aiResponse === 'object' ? aiResponse.score : aiResponse;
+    const normalizedScore = normalizeScoreTo100(rawScore);
     
-    try {
-      let existingPairing = await Pairing.getByLiquorAndIngredient(liquorIdNum, ingredientIdNum);
-      
-      console.log('Existing pairing:', existingPairing ? 'Found' : 'Not found');
-      
-      if (existingPairing) {
-        const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(existingPairing.reason);
-        
-        if (isKorean) {
-          return res.json({
-            success: true,
-            data: {
-              score: existingPairing.score,
-              reason: existingPairing.reason,
-              liquor_id: existingPairing.liquor_id,
-              ingredient_id: existingPairing.ingredient_id
-            }
-          });
-        }
-        
-        console.log('기존 설명이 영어로 되어 있어 한국어로 새로 생성합니다.');
+    return res.json({
+      success: true,
+      data: {
+        score: normalizedScore,
+        raw_score: rawScore
       }
-    } catch (error) {
-      console.error('Error finding existing pairing:', error);
-    }
-    
-    console.log('Requesting score from AI model...');
-    const score = await getPairingScore(liquorIdNum, ingredientIdNum);
-    console.log(`AI model score: ${score}`);
-    
-    try {
-      console.log('Fetching liquor details...');
-      const liquor = await Liquor.getById(liquorIdNum);
-      console.log('Liquor found:', liquor ? 'Yes' : 'No');
-      
-      console.log('Fetching ingredient details...');
-      const ingredient = await Ingredient.getById(ingredientIdNum);
-      console.log('Ingredient found:', ingredient ? 'Yes' : 'No');
-      
-      if (!liquor || !ingredient) {
-        return res.status(404).json({ 
-          success: false, 
-          error: `${!liquor ? 'Liquor' : 'Ingredient'} not found` 
-        });
-      }
-      
-      console.log('Generating explanation...');
-      // Pass the score to avoid duplicate AI calls
-      const explanation = await getExplanation(liquorIdNum, ingredientIdNum, score);
-      console.log('Explanation generated');
-      
-      try {
-        console.log('Creating new pairing record...');
-        const newPairing = await Pairing.create({
-          liquorId: liquor.id,           
-          ingredientId: ingredient.id,   
-          score,
-          reason: explanation.reason || explanation.explanation
-        });
-        console.log('New pairing created with ID:', newPairing);
-      } catch (error) {
-        console.error('Error creating new pairing:', error);
-      }
-      
-      return res.json({
-        success: true,
-        data: {
-          score,
-          reason: explanation.explanation,
-          liquor: {
-            id: liquor.id,
-            name: liquor.name
-          },
-          ingredient: {
-            id: ingredient.id,
-            name: ingredient.name
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Error fetching liquor/ingredient details:', error);
-      
-      return res.json({
-        success: true,
-        data: {
-          score,
-          message: "Pairing score calculated, but details couldn't be fetched"
-        }
-      });
-    }
+    });
     
   } catch (error) {
     console.error('Error in pairing score controller:', error);
-    console.error(error.stack);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
-/**
- * Get recommended ingredients for a liquor
- */
 exports.getRecommendationsForLiquor = async (req, res) => {
   try {
     const { liquorId } = req.params;
@@ -572,49 +537,27 @@ exports.getRecommendationsForLiquor = async (req, res) => {
     }
     
     const liquorIdNum = parseInt(liquorId);
-    const liquor = await Liquor.getById(liquorIdNum);
-    
-    if (!liquor) {
-      return res.status(404).json({ success: false, error: 'Liquor not found' });
-    }
-    
     const recommendations = await getRecommendations(liquorIdNum, limit);
-    const ingredientIds = recommendations.map(r => r.ingredient_id);
     
-    const ingredients = [];
-    for (const id of ingredientIds) {
-      const ingredient = await Ingredient.getById(id);
-      if (ingredient) {
-        ingredients.push(ingredient);
-      }
-    }
-    
-    const result = recommendations.map(rec => {
-      const ingredient = ingredients.find(i => i.node_id === rec.ingredient_id);
-      return {
-        score: rec.score,
-        ingredient: ingredient || { node_id: rec.ingredient_id, name: 'Unknown' }
-      };
-    });
+    const result = recommendations.map(rec => ({
+      score: normalizeScoreTo100(rec.score),
+      raw_score: rec.score,
+      ingredient_id: rec.ingredient_id
+    }));
     
     return res.json({
       success: true,
       data: {
-        liquor,
         recommendations: result
       }
     });
     
   } catch (error) {
     console.error('Error in pairing recommendations controller:', error);
-    console.error(error.stack);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
-/**
- * Get explanation for a pairing
- */
 exports.getExplanationForPairing = async (req, res) => {
   try {
     const { liquorId, ingredientId } = req.params;
@@ -635,14 +578,10 @@ exports.getExplanationForPairing = async (req, res) => {
     
   } catch (error) {
     console.error('Error in pairing explanation controller:', error);
-    console.error(error.stack);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
-/**
- * Get top pairings by user ratings
- */
 exports.getTopPairings = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit || 10);
@@ -655,14 +594,10 @@ exports.getTopPairings = async (req, res) => {
     
   } catch (error) {
     console.error('Error in top pairings controller:', error);
-    console.error(error.stack);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
-/**
- * Rate a pairing
- */
 exports.ratePairing = async (req, res) => {
   try {
     const { pairingId } = req.params;
@@ -692,7 +627,6 @@ exports.ratePairing = async (req, res) => {
     
   } catch (error) {
     console.error('Error in rate pairing controller:', error);
-    console.error(error.stack);
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
