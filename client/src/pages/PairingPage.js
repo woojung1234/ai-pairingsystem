@@ -21,6 +21,42 @@ function TabPanel({ children, value, index }) {
   );
 }
 
+// 영어 재료명을 한글로 번역하는 함수
+const translateIngredientName = (englishName) => {
+  const translations = {
+    'white_pepper': '화이트 페퍼',
+    'pork_shoulder': '돼지 어깨살',
+    'mussel': '홍합',
+    'golden_brown_sugar': '황설탕',
+    'spanish_onion': '스페인 양파',
+    'dark_soy_sauce': '진간장',
+    'lard': '라드',
+    'pork_tenderloin': '돼지 안심',
+    'lemon': '레몬',
+    'salt_&_freshly_ground_black_pepper': '소금과 후추',
+    'rotisserie_cooked_chicken': '로티세리 치킨',
+    'grain_cereal': '곡물 시리얼',
+    'verjus': '베르쥬',
+    'coconut_meat': '코코넛',
+    'unsalted_chicken_stock': '무염 치킨 스톡',
+    'lemon_balm_leaf': '레몬밤',
+    'lemon_peel_strip': '레몬 껍질',
+    'granulated_yeast': '효모',
+    'turkey_breast_half': '칠면조 가슴살',
+    'stone_ground_whole_wheat_flour': '통밀가루',
+    'wine': '와인',
+    'scotch': '스카치 위스키',
+    'bourbon': '버번 위스키',
+    'rye_whiskey': '라이 위스키',
+    'irish_whiskey': '아이리시 위스키',
+    'scotch_whisky': '스카치 위스키',
+    'bourbon_whiskey': '버번 위스키',
+    'jack_daniels_whiskey': '잭 다니엘 위스키'
+  };
+
+  return translations[englishName] || englishName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
 function PairingPage() {
   const theme = useTheme();
   const location = useLocation();
@@ -124,7 +160,7 @@ function PairingPage() {
     // score가 0-10 범위라면 10으로 나누고, 0-1 범위라면 100을 곱함
     let normalizedScore = score;
     if (score > 10) {
-      normalizedScore = score / 10; // 100점 만점을 10점 만점으로
+      normalizedScore = (score / 10) * 10; // 점수가 너무 크면 10점 만점으로 정규화
     } else if (score <= 1) {
       normalizedScore = score * 100; // 0-1을 0-100으로
     } else if (score <= 10) {
@@ -138,7 +174,7 @@ function PairingPage() {
     if (!score) return 0;
     let normalizedScore = score;
     if (score > 10) {
-      normalizedScore = score / 20; // 100점을 5점으로
+      normalizedScore = (score / 10) * 5; // 점수가 크면 5점 만점으로
     } else if (score <= 1) {
       normalizedScore = score * 5; // 0-1을 0-5로
     } else if (score <= 10) {
@@ -340,7 +376,7 @@ function PairingPage() {
                   // 재료 추천 결과
                   <Box>
                     <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
-                      {pairingResults.liquor_name || koreanLiquor} 추천 재료
+                      {translateIngredientName(pairingResults.liquor_name) || koreanLiquor} 추천 재료
                     </Typography>
                     
                     {/* 전체 설명 */}
@@ -371,9 +407,13 @@ function PairingPage() {
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                               <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />
                               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                {rec.ingredient_name || rec.ingredient || rec.name || '알 수 없음'}
+                                {translateIngredientName(rec.ingredient_name || rec.ingredient || rec.name || '알 수 없음')}
                               </Typography>
                             </Box>
+                            
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                              영어명: {rec.ingredient_name || rec.ingredient || rec.name || '알 수 없음'}
+                            </Typography>
                             
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                               <Rating value={getStarRating(rec.score)} readOnly size="small" sx={{ mr: 1 }} />
