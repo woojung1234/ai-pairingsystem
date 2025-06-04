@@ -23,6 +23,11 @@ function TabPanel({ children, value, index }) {
 
 // 영어 재료명을 한글로 번역하는 함수
 const translateIngredientName = (englishName) => {
+  // null, undefined, 빈 문자열 체크
+  if (!englishName || typeof englishName !== 'string') {
+    return '알 수 없음';
+  }
+
   const translations = {
     'white_pepper': '화이트 페퍼',
     'pork_shoulder': '돼지 어깨살',
@@ -54,6 +59,7 @@ const translateIngredientName = (englishName) => {
     'jack_daniels_whiskey': '잭 다니엘 위스키'
   };
 
+  // 번역이 있으면 반환, 없으면 영어명을 보기 좋게 변환
   return translations[englishName] || englishName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
@@ -156,7 +162,7 @@ function PairingPage() {
 
   // 점수를 0-100점으로 변환하는 함수
   const getScoreOutOf100 = (score) => {
-    if (!score) return 0;
+    if (!score || isNaN(score)) return 0;
     // score가 0-10 범위라면 10으로 나누고, 0-1 범위라면 100을 곱함
     let normalizedScore = score;
     if (score > 10) {
@@ -171,7 +177,7 @@ function PairingPage() {
 
   // 별점을 계산하는 함수 (5점 만점)
   const getStarRating = (score) => {
-    if (!score) return 0;
+    if (!score || isNaN(score)) return 0;
     let normalizedScore = score;
     if (score > 10) {
       normalizedScore = (score / 10) * 5; // 점수가 크면 5점 만점으로
@@ -181,6 +187,12 @@ function PairingPage() {
       normalizedScore = (score / 10) * 5; // 0-10을 0-5로
     }
     return Math.min(normalizedScore, 5);
+  };
+
+  // 안전한 재료명 추출 함수
+  const getIngredientName = (rec) => {
+    const name = rec?.ingredient_name || rec?.ingredient || rec?.name;
+    return name || '알 수 없음';
   };
 
   if (loading) {
@@ -393,43 +405,46 @@ function PairingPage() {
 
                     {/* 추천 재료 카드들 */}
                     <Grid container spacing={3}>
-                      {pairingResults.recommendations?.map((rec, index) => (
-                        <Grid item xs={12} sm={6} md={4} key={index}>
-                          <Card sx={{ 
-                            p: 3, 
-                            height: '100%',
-                            transition: 'transform 0.2s, elevation 0.2s',
-                            '&:hover': {
-                              transform: 'translateY(-4px)',
-                              elevation: 8
-                            }
-                          }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                              <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />
-                              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                {translateIngredientName(rec.ingredient_name || rec.ingredient || rec.name || '알 수 없음')}
+                      {pairingResults.recommendations?.map((rec, index) => {
+                        const ingredientName = getIngredientName(rec);
+                        return (
+                          <Grid item xs={12} sm={6} md={4} key={index}>
+                            <Card sx={{ 
+                              p: 3, 
+                              height: '100%',
+                              transition: 'transform 0.2s, elevation 0.2s',
+                              '&:hover': {
+                                transform: 'translateY(-4px)',
+                                elevation: 8
+                              }
+                            }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                  {translateIngredientName(ingredientName)}
+                                </Typography>
+                              </Box>
+                              
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                영어명: {ingredientName}
                               </Typography>
-                            </Box>
-                            
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                              영어명: {rec.ingredient_name || rec.ingredient || rec.name || '알 수 없음'}
-                            </Typography>
-                            
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                              <Rating value={getStarRating(rec.score)} readOnly size="small" sx={{ mr: 1 }} />
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {getScoreOutOf100(rec.score)}점
-                              </Typography>
-                            </Box>
+                              
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Rating value={getStarRating(rec.score)} readOnly size="small" sx={{ mr: 1 }} />
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {getScoreOutOf100(rec.score)}점
+                                </Typography>
+                              </Box>
 
-                            {rec.explanation && (
-                              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                                {rec.explanation}
-                              </Typography>
-                            )}
-                          </Card>
-                        </Grid>
-                      ))}
+                              {rec.explanation && (
+                                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                  {rec.explanation}
+                                </Typography>
+                              )}
+                            </Card>
+                          </Grid>
+                        );
+                      })}
                     </Grid>
 
                     {(!pairingResults.recommendations || pairingResults.recommendations.length === 0) && (
