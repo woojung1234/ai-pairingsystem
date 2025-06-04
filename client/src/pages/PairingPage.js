@@ -114,6 +114,14 @@ function PairingPage() {
     navigate('/pairing');
   };
 
+  // 점수를 0-100점으로 변환하는 함수
+  const getScoreOutOf100 = (score) => {
+    if (!score) return 0;
+    // score가 0-1 범위라면 100을 곱하고, 이미 큰 값이라면 그대로 사용
+    const normalizedScore = score <= 1 ? score * 100 : score;
+    return Math.round(normalizedScore);
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -279,18 +287,18 @@ function PairingPage() {
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Rating value={pairingResults.score ? pairingResults.score * 5 : 0} readOnly sx={{ mr: 2 }} />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {pairingResults.score ? (pairingResults.score * 5).toFixed(1) : 'N/A'} / 5.0
+                        {getScoreOutOf100(pairingResults.score)} / 100
                       </Typography>
                     </Box>
                     <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
-                      {pairingResults.explanation || '이 조합에 대한 설명이 없습니다.'}
+                      {pairingResults.gpt_explanation || pairingResults.explanation || '이 조합에 대한 설명이 없습니다.'}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={4}>
                     <Box sx={{ p: 3, backgroundColor: alpha(theme.palette.primary.main, 0.1), borderRadius: 2, textAlign: 'center' }}>
                       <Typography variant="h6" gutterBottom>페어링 점수</Typography>
                       <Typography variant="h2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                        {pairingResults.score ? (pairingResults.score * 100).toFixed(0) : '??'}%
+                        {getScoreOutOf100(pairingResults.score)}점
                       </Typography>
                     </Box>
                   </Grid>
@@ -311,6 +319,9 @@ function PairingPage() {
                             </Typography>
                           </Box>
                           <Rating value={rec.score ? rec.score * 5 : 0} readOnly size="small" />
+                          <Typography variant="body2" sx={{ mt: 1 }}>
+                            {getScoreOutOf100(rec.score)}점
+                          </Typography>
                         </Card>
                       </Grid>
                     ))}
