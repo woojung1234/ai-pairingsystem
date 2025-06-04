@@ -59,7 +59,7 @@ class PairingResponse(BaseModel):
 
 class RecommendationRequest(BaseModel):
     liquor_id: int
-    limit: int = 10
+    limit: int = 3  # 기본값을 3으로 변경
     use_gpt: bool = True
 
 class RecommendationItem(BaseModel):
@@ -281,8 +281,9 @@ async def recommend_ingredients(request: RecommendationRequest):
                 ingredient_tensor
             ).numpy()
         
-        # Get top N ingredients
-        top_indices = np.argsort(scores)[-request.limit:][::-1]
+        # Get top N ingredients - 최대 3개로 제한
+        top_limit = min(request.limit, 3)  # 요청된 개수와 3 중 작은 값 사용
+        top_indices = np.argsort(scores)[-top_limit:][::-1]
         
         # Prepare response
         recommendations = []
@@ -293,7 +294,7 @@ async def recommend_ingredients(request: RecommendationRequest):
             
             # Generate individual explanation if GPT is enabled
             explanation = None
-            if request.use_gpt and os.getenv("OPENAI_API_KEY") and len(recommendations) < 3:  # Only for top 3
+            if request.use_gpt and os.getenv("OPENAI_API_KEY"):  # 모든 항목에 대해 설명 생성
                 explanation = await generate_gpt_explanation(
                     liquor_names.get(request.liquor_id, f"Liquor {request.liquor_id}"),
                     ingredient_name,
