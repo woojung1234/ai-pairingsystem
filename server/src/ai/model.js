@@ -29,7 +29,7 @@ function applySigmoid(score) {
  * Get pairing score prediction for a liquor and ingredient
  * @param {Number} liquorId - The ID of the liquor
  * @param {Number} ingredientId - The ID of the ingredient
- * @returns {Promise<Number>} - The pairing score (0-1)
+ * @returns {Promise<Object|Number>} - The pairing score and explanation or just score
  */
 async function getPairingScore(liquorId, ingredientId) {
   try {
@@ -55,8 +55,13 @@ async function getPairingScore(liquorId, ingredientId) {
     const data = await response.json();
     console.log('AI server response:', data);
     
-    // Apply sigmoid normalization to convert raw score to 0-1 range
-    const rawScore = data.score;
+    // AI 서버가 이미 완전한 응답을 보내주는 경우 그대로 반환
+    if (data.score !== undefined && data.explanation !== undefined) {
+      return data; // 전체 객체 반환 (score, explanation, gpt_explanation 포함)
+    }
+    
+    // 숫자만 반환하는 경우 sigmoid 적용
+    const rawScore = typeof data === 'number' ? data : data.score;
     const normalizedScore = applySigmoid(rawScore);
     
     console.log(`Raw score: ${rawScore}, Normalized score: ${normalizedScore.toFixed(4)}`);
@@ -119,22 +124,31 @@ async function getRecommendations(liquorId, limit = 10) {
  * Get explanation for a pairing recommendation using OpenAI API
  * @param {Number} liquorId - The ID of the liquor
  * @param {Number} ingredientId - The ID of the ingredient
+ * @param {Number} score - Optional pre-calculated score to avoid duplicate AI calls
  * @returns {Promise<Object>} - Explanation data including text and possibly shared compounds
  */
-async function getExplanation(liquorId, ingredientId) {
+async function getExplanation(liquorId, ingredientId, score = null) {
   try {
     // Get liquor and ingredient details from database using node_id
     const liquor = await Liquor.getByNodeId(liquorId);
     const ingredient = await Ingredient.getByNodeId(ingredientId);
 
-    // Get the pairing score from AI server
-    const score = await getPairingScore(liquorId, ingredientId);
+    // Use provided score or get from AI server (avoid duplicate calls)
+    let pairingScore;
+    if (score !== null) {
+      pairingScore = score;
+      console.log(`Using provided score: ${pairingScore}`);
+    } else {
+      console.log('No score provided, fetching from AI server...');
+      const aiResponse = await getPairingScore(liquorId, ingredientId);
+      pairingScore = typeof aiResponse === 'object' ? aiResponse.score : aiResponse;
+    }
     
     // Calculate level of compatibility
     let compatibilityLevel;
-    if (score >= 0.8) compatibilityLevel = "강력 추천 조합";
-    else if (score >= 0.6) compatibilityLevel = "추천 조합";
-    else if (score >= 0.4) compatibilityLevel = "무난한 조합";
+    if (pairingScore >= 0.8) compatibilityLevel = "강력 추천 조합";
+    else if (pairingScore >= 0.6) compatibilityLevel = "추천 조합";
+    else if (pairingScore >= 0.4) compatibilityLevel = "무난한 조합";
     else compatibilityLevel = "실험적인 조합";
 
     // Use names from database if available, otherwise use fallback names
@@ -164,7 +178,7 @@ async function getExplanation(liquorId, ingredientId) {
     let explanation = await generateExplanationWithAI(
       liquorName,
       ingredientName, 
-      score,
+      pairingScore,
       compatibilityLevel,
       [], // liquor.flavor_profile || []
       [], // ingredient.flavor_profile || []
@@ -174,7 +188,7 @@ async function getExplanation(liquorId, ingredientId) {
     return {
       explanation,
       reason: explanation, // 호환성을 위해 explanation 필드를 reason 필드에도 복사
-      score,
+      score: pairingScore,
       compatibility_level: compatibilityLevel,
       shared_compounds: sharedCompounds,
       confidence: 0.85,
