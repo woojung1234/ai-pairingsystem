@@ -229,7 +229,7 @@ exports.getScoreStatistics = async (req, res) => {
       { liquor: 75, ingredient: 361 },   // ale + beef
       { liquor: 423, ingredient: 361 },  // beer + beef  
       { liquor: 75, ingredient: 100 },   // ale + random ingredient
-      { liquor: 524, ingredient: 22 },   // 다른 조합들...
+      { liquor: 524, ingredient: 22 },   // 다른 조합들..
       { liquor: 75, ingredient: 200 },
       { liquor: 75, ingredient: 300 },
       { liquor: 423, ingredient: 100 },
@@ -420,7 +420,7 @@ exports.findBestPairingKorean = async (req, res) => {
 exports.getRecommendationsKorean = async (req, res) => {
   try {
     const { liquor } = req.body;
-    const limit = parseInt(req.body.limit || 10);
+    const limit = Math.min(parseInt(req.body.limit || 3), 3); // 최대 3개로 제한
     
     if (!liquor) {
       return res.status(400).json({ 
@@ -440,21 +440,47 @@ exports.getRecommendationsKorean = async (req, res) => {
     }
     
     const liquorNodeId = liquorResults[0].nodeId;
-    const recommendations = await getRecommendations(liquorNodeId, limit);
     
-    const normalizedRecommendations = recommendations.map(rec => ({
-      ...rec,
-      score: normalizeScoreTo100(rec.score),
-      raw_score: rec.score
-    }));
+    console.log(`Calling AI server for recommendations: liquorId=${liquorNodeId}, limit=${limit}`);
+    const recommendations = await getRecommendations(liquorNodeId, limit);
+    console.log('AI server recommendations:', recommendations);
+    
+    // AI 서버 응답 처리
+    let finalRecommendations = [];
+    let overallExplanation = null;
+    
+    if (recommendations && typeof recommendations === 'object') {
+      // AI 서버가 객체로 응답하는 경우
+      if (recommendations.recommendations && Array.isArray(recommendations.recommendations)) {
+        finalRecommendations = recommendations.recommendations.map(rec => ({
+          ingredient_id: rec.ingredient_id,
+          ingredient_name: rec.ingredient_name,
+          score: normalizeScoreTo100(rec.score),
+          raw_score: rec.score,
+          explanation: rec.explanation
+        }));
+        overallExplanation = recommendations.overall_explanation;
+      } else if (Array.isArray(recommendations)) {
+        // 배열 형태로 오는 경우
+        finalRecommendations = recommendations.map(rec => ({
+          ingredient_id: rec.ingredient_id,
+          ingredient_name: rec.ingredient_name,
+          score: normalizeScoreTo100(rec.score),
+          raw_score: rec.score,
+          explanation: rec.explanation
+        }));
+      }
+    }
     
     return res.json({
       success: true,
       data: {
         korean_input: liquor,
+        liquor_name: recommendations.liquor_name || liquorResults[0].name,
         english_name: liquorResults[0].name,
         liquor_node_id: liquorNodeId,
-        recommendations: normalizedRecommendations
+        recommendations: finalRecommendations,
+        overall_explanation: overallExplanation
       }
     });
     
@@ -530,7 +556,7 @@ exports.getPairingScoreByIds = async (req, res) => {
 exports.getRecommendationsForLiquor = async (req, res) => {
   try {
     const { liquorId } = req.params;
-    const limit = parseInt(req.query.limit || 10);
+    const limit = Math.min(parseInt(req.query.limit || 3), 3); // 최대 3개로 제한
     
     if (!liquorId) {
       return res.status(400).json({ success: false, error: 'Please provide a liquor ID' });
@@ -539,11 +565,23 @@ exports.getRecommendationsForLiquor = async (req, res) => {
     const liquorIdNum = parseInt(liquorId);
     const recommendations = await getRecommendations(liquorIdNum, limit);
     
-    const result = recommendations.map(rec => ({
-      score: normalizeScoreTo100(rec.score),
-      raw_score: rec.score,
-      ingredient_id: rec.ingredient_id
-    }));
+    let result = [];
+    
+    if (recommendations && typeof recommendations === 'object') {
+      if (recommendations.recommendations && Array.isArray(recommendations.recommendations)) {
+        result = recommendations.recommendations.map(rec => ({
+          score: normalizeScoreTo100(rec.score),
+          raw_score: rec.score,
+          ingredient_id: rec.ingredient_id
+        }));
+      } else if (Array.isArray(recommendations)) {
+        result = recommendations.map(rec => ({
+          score: normalizeScoreTo100(rec.score),
+          raw_score: rec.score,
+          ingredient_id: rec.ingredient_id
+        }));
+      }
+    }
     
     return res.json({
       success: true,
