@@ -38,6 +38,13 @@ router.post('/korean/recommend', pairingController.getRecommendationsKorean);
 router.get('/korean/search', pairingController.searchByKorean);
 
 /**
+ * @route   GET /api/pairing/score-statistics
+ * @desc    Get score statistics for calibrating normalization range
+ * @access  Public
+ */
+router.get('/score-statistics', pairingController.getScoreStatistics);
+
+/**
  * @route   GET /api/pairing/score/:liquorId/:ingredientId
  * @desc    Get pairing score for a liquor and ingredient
  * @access  Public
