@@ -21,45 +21,31 @@ function TabPanel({ children, value, index }) {
   );
 }
 
-// 영어 재료명을 한글로 번역하는 함수
+// 영어 재료명을 한글로 번역하는 함수 - 대폭 확장
 const translateIngredientName = (englishName) => {
-  // null, undefined, 빈 문자열 체크
   if (!englishName || typeof englishName !== 'string') {
     return '알 수 없음';
   }
 
   const translations = {
-    'white_pepper': '화이트 페퍼',
-    'pork_shoulder': '돼지 어깨살',
-    'mussel': '홍합',
-    'golden_brown_sugar': '황설탕',
-    'spanish_onion': '스페인 양파',
-    'dark_soy_sauce': '진간장',
-    'lard': '라드',
-    'pork_tenderloin': '돼지 안심',
-    'lemon': '레몬',
-    'salt_&_freshly_ground_black_pepper': '소금과 후추',
-    'rotisserie_cooked_chicken': '로티세리 치킨',
-    'grain_cereal': '곡물 시리얼',
-    'verjus': '베르쥬',
-    'coconut_meat': '코코넛',
-    'unsalted_chicken_stock': '무염 치킨 스톡',
-    'lemon_balm_leaf': '레몬밤',
-    'lemon_peel_strip': '레몬 껍질',
-    'granulated_yeast': '효모',
-    'turkey_breast_half': '칠면조 가슴살',
-    'stone_ground_whole_wheat_flour': '통밀가루',
-    'wine': '와인',
-    'scotch': '스카치 위스키',
-    'bourbon': '버번 위스키',
-    'rye_whiskey': '라이 위스키',
-    'irish_whiskey': '아이리시 위스키',
-    'scotch_whisky': '스카치 위스키',
-    'bourbon_whiskey': '버번 위스키',
-    'jack_daniels_whiskey': '잭 다니엘 위스키'
+    'wine': '와인', 'white_pepper': '화이트 페퍼', 'pork_shoulder': '돼지 어깨살',
+    'mussel': '홍합', 'golden_brown_sugar': '황설탕', 'spanish_onion': '스페인 양파',
+    'dark_soy_sauce': '진간장', 'lard': '라드', 'pork_tenderloin': '돼지 안심',
+    'lemon': '레몬', 'salt_&_freshly_ground_black_pepper': '소금과 후추',
+    'rotisserie_cooked_chicken': '로티세리 치킨', 'grain_cereal': '곡물 시리얼',
+    'verjus': '베르쥬', 'coconut_meat': '코코넛', 'unsalted_chicken_stock': '무염 치킨 스톡',
+    'lemon_balm_leaf': '레몬밤', 'lemon_peel_strip': '레몬 껍질', 'granulated_yeast': '효모',
+    'turkey_breast_half': '칠면조 가슴살', 'stone_ground_whole_wheat_flour': '통밀가루',
+    'scotch': '스카치 위스키', 'bourbon': '버번 위스키', 'rye_whiskey': '라이 위스키',
+    'irish_whiskey': '아이리시 위스키', 'scotch_whisky': '스카치 위스키',
+    'bourbon_whiskey': '버번 위스키', 'jack_daniels_whiskey': '잭 다니엘 위스키',
+    'cheese': '치즈', 'chicken': '닭고기', 'beef': '소고기', 'chocolate': '초콜릿',
+    'coffee': '커피', 'apple': '사과', 'banana': '바나나', 'tomato': '토마토',
+    'onion': '양파', 'garlic': '마늘', 'basil': '바질', 'olive_oil': '올리브 오일',
+    'salt': '소금', 'pepper': '후추', 'butter': '버터', 'cream': '크림',
+    'milk': '우유', 'egg': '계란', 'bread': '빵', 'rice': '쌀'
   };
 
-  // 번역이 있으면 반환, 없으면 영어명을 보기 좋게 변환
   return translations[englishName] || englishName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
@@ -109,7 +95,6 @@ function PairingPage() {
 
   const handleKoreanSearch = async () => {
     if (tabValue === 0) {
-      // 페어링 분석
       if (!koreanLiquor || !koreanIngredient) {
         setError('주류와 재료를 모두 입력해주세요.');
         return;
@@ -128,7 +113,6 @@ function PairingPage() {
         setSearching(false);
       }
     } else {
-      // 재료 추천
       if (!koreanLiquor) {
         setError('주류를 입력해주세요.');
         return;
@@ -137,7 +121,7 @@ function PairingPage() {
       try {
         setSearching(true);
         setError(null);
-        const response = await koreanPairingService.getRecommendations(koreanLiquor, 10);
+        const response = await koreanPairingService.getRecommendations(koreanLiquor, 3);
         console.log('Recommendations response:', response.data);
         setPairingResults(response.data);
         setActiveView('results');
@@ -160,36 +144,32 @@ function PairingPage() {
     navigate('/pairing');
   };
 
-  // 점수를 0-100점으로 변환하는 함수
   const getScoreOutOf100 = (score) => {
     if (!score || isNaN(score)) return 0;
-    // score가 0-10 범위라면 10으로 나누고, 0-1 범위라면 100을 곱함
     let normalizedScore = score;
     if (score > 10) {
-      normalizedScore = (score / 10) * 10; // 점수가 너무 크면 10점 만점으로 정규화
+      normalizedScore = (score / 10) * 10;
     } else if (score <= 1) {
-      normalizedScore = score * 100; // 0-1을 0-100으로
+      normalizedScore = score * 100;
     } else if (score <= 10) {
-      normalizedScore = (score / 10) * 100; // 0-10을 0-100으로
+      normalizedScore = (score / 10) * 100;
     }
     return Math.round(Math.min(normalizedScore, 100));
   };
 
-  // 별점을 계산하는 함수 (5점 만점)
   const getStarRating = (score) => {
     if (!score || isNaN(score)) return 0;
     let normalizedScore = score;
     if (score > 10) {
-      normalizedScore = (score / 10) * 5; // 점수가 크면 5점 만점으로
+      normalizedScore = (score / 10) * 5;
     } else if (score <= 1) {
-      normalizedScore = score * 5; // 0-1을 0-5로
+      normalizedScore = score * 5;
     } else if (score <= 10) {
-      normalizedScore = (score / 10) * 5; // 0-10을 0-5로
+      normalizedScore = (score / 10) * 5;
     }
     return Math.min(normalizedScore, 5);
   };
 
-  // 안전한 재료명 추출 함수
   const getIngredientName = (rec) => {
     const name = rec?.ingredient_name || rec?.ingredient || rec?.name;
     return name || '알 수 없음';
@@ -205,7 +185,6 @@ function PairingPage() {
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ 
         py: 12, 
         backgroundColor: alpha(theme.palette.primary.main, 0.05),
@@ -223,7 +202,6 @@ function PairingPage() {
         </Container>
       </Box>
 
-      {/* Search */}
       <Container maxWidth="lg" sx={{ my: 8 }}>
         <Paper elevation={3} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2 }}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
@@ -336,7 +314,6 @@ function PairingPage() {
           {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
         </Paper>
 
-        {/* Results */}
         {activeView === 'results' && pairingResults && (
           <Fade in={true}>
             <Box mt={4}>
@@ -349,7 +326,6 @@ function PairingPage() {
 
               <Paper elevation={2} sx={{ p: 4, borderRadius: 2 }}>
                 {tabValue === 0 ? (
-                  // 페어링 분석 결과
                   <Grid container spacing={4}>
                     <Grid item xs={12} md={8}>
                       <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
@@ -385,13 +361,11 @@ function PairingPage() {
                     </Grid>
                   </Grid>
                 ) : (
-                  // 재료 추천 결과
                   <Box>
                     <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
                       {translateIngredientName(pairingResults.liquor_name) || koreanLiquor} 추천 재료
                     </Typography>
                     
-                    {/* 전체 설명 */}
                     {pairingResults.overall_explanation && (
                       <Paper sx={{ p: 3, mb: 4, backgroundColor: alpha(theme.palette.info.main, 0.05) }}>
                         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
@@ -403,7 +377,6 @@ function PairingPage() {
                       </Paper>
                     )}
 
-                    {/* 추천 재료 카드들 */}
                     <Grid container spacing={3}>
                       {pairingResults.recommendations?.map((rec, index) => {
                         const ingredientName = getIngredientName(rec);
