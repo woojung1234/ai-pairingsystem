@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -32,7 +32,7 @@ app.add_middleware(
 )
 
 # Initialize OpenAI client
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Initialize model and data globals
 model = None
@@ -94,7 +94,7 @@ async def generate_gpt_explanation(liquor_name: str, ingredient_name: str, score
 200자 이내로 간결하고 전문적으로 설명해주세요.
 """
 
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 전문적인 소믈리에이자 음식 페어링 전문가입니다."},
@@ -127,7 +127,7 @@ async def generate_recommendation_explanation(liquor_name: str, recommendations:
 3. 전반적인 페어링 철학이나 원리
 """
 
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 전문적인 소믈리에이자 음식 페어링 전문가입니다."},
@@ -244,7 +244,7 @@ async def predict_pairing(request: PairingRequest):
         simple_explanation = generate_simple_explanation(liquor_name, ingredient_name, score)
         gpt_explanation = None
         
-        if request.use_gpt and openai.api_key:
+        if request.use_gpt and os.getenv("OPENAI_API_KEY"):
             gpt_explanation = await generate_gpt_explanation(liquor_name, ingredient_name, score)
         
         return PairingResponse(
@@ -293,7 +293,7 @@ async def recommend_ingredients(request: RecommendationRequest):
             
             # Generate individual explanation if GPT is enabled
             explanation = None
-            if request.use_gpt and openai.api_key and len(recommendations) < 3:  # Only for top 3
+            if request.use_gpt and os.getenv("OPENAI_API_KEY") and len(recommendations) < 3:  # Only for top 3
                 explanation = await generate_gpt_explanation(
                     liquor_names.get(request.liquor_id, f"Liquor {request.liquor_id}"),
                     ingredient_name,
@@ -313,7 +313,7 @@ async def recommend_ingredients(request: RecommendationRequest):
         
         # Generate overall explanation
         overall_explanation = None
-        if request.use_gpt and openai.api_key:
+        if request.use_gpt and os.getenv("OPENAI_API_KEY"):
             overall_explanation = await generate_recommendation_explanation(liquor_name, recommendations)
         
         return RecommendationResponse(
