@@ -1,397 +1,263 @@
-/**
- * AI Model Integration for FlavorDiffusion
- * This file serves as an interface between the AI server and our Express API
- */
-
 const fetch = require('node-fetch');
-const OpenAI = require('openai');
-const Liquor = require('../models/Liquor');
-const Ingredient = require('../models/Ingredient');
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// AI Server configuration
 const AI_SERVER_URL = process.env.AI_SERVER_URL || 'http://localhost:8000';
 
 /**
- * Apply sigmoid normalization to convert any real number to 0-1 range
- * @param {Number} score - Raw score from AI model
- * @returns {Number} - Normalized score (0-1)
+ * 점수만 가져오기 (GPT 호출 없이)
+ * @param {number} liquorId 
+ * @param {number} ingredientId 
+ * @returns {Promise<number>} 점수만 반환
  */
-function applySigmoid(score) {
-  return 1 / (1 + Math.exp(-score));
+async function getPairingScoreOnly(liquorId, ingredientId) {
+  console.log(`🎯 Getting score only for liquorId=${liquorId}, ingredientId=${ingredientId}`);
+  
+  try {
+    const response = await fetch(`${AI_SERVER_URL}/score-only`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        liquor_id: parseInt(liquorId),
+        ingredient_id: parseInt(ingredientId)
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI server responded with ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(`📊 Score received: ${data.score}`);
+    return data.score;
+  } catch (error) {
+    console.error('❌ Error calling AI server for score:', error);
+    throw error;
+  }
 }
 
 /**
- * Get pairing score prediction for a liquor and ingredient
- * @param {Number} liquorId - The ID of the liquor
- * @param {Number} ingredientId - The ID of the ingredient
- * @returns {Promise<Object|Number>} - The pairing score and explanation or just score
+ * 설명만 가져오기 (최종 선택된 조합에만 사용)
+ * @param {number} liquorId 
+ * @param {number} ingredientId 
+ * @param {number} score - 이미 계산된 점수 (선택적)
+ * @returns {Promise<object>} 설명 객체
+ */
+async function getExplanationOnly(liquorId, ingredientId, score = null) {
+  console.log(`🤖 Getting explanation only for liquorId=${liquorId}, ingredientId=${ingredientId}`);
+  
+  try {
+    const response = await fetch(`${AI_SERVER_URL}/explanation-only`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        liquor_id: parseInt(liquorId),
+        ingredient_id: parseInt(ingredientId),
+        score: score
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI server responded with ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(`💬 Explanation received`);
+    return {
+      explanation: data.explanation,
+      gpt_explanation: data.gpt_explanation,
+      reason: data.gpt_explanation || data.explanation
+    };
+  } catch (error) {
+    console.error('❌ Error calling AI server for explanation:', error);
+    throw error;
+  }
+}
+
+/**
+ * 기존 방식 (점수 + 설명 한번에) - 호환성을 위해 유지
+ * @param {number} liquorId 
+ * @param {number} ingredientId 
+ * @returns {Promise<object>}
  */
 async function getPairingScore(liquorId, ingredientId) {
+  console.log(`Calling AI server for liquorId=${liquorId}, ingredientId=${ingredientId}`);
+  
   try {
-    console.log(`Calling AI server for liquorId=${liquorId}, ingredientId=${ingredientId}`);
-    
     const response = await fetch(`${AI_SERVER_URL}/predict`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        liquor_id: liquorId,
-        ingredient_id: ingredientId
-      })
+        liquor_id: parseInt(liquorId),
+        ingredient_id: parseInt(ingredientId),
+        use_gpt: false  // 기존 API에서는 GPT 비활성화
+      }),
     });
 
     if (!response.ok) {
-      console.error(`AI server error: ${response.status} ${response.statusText}`);
-      // Fallback to algorithm-based score
-      return getFallbackScore(liquorId, ingredientId);
+      throw new Error(`AI server responded with ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('AI server response:', data);
-    
-    // AI 서버가 이미 완전한 응답을 보내주는 경우 그대로 반환
-    if (data.score !== undefined && data.explanation !== undefined) {
-      return data; // 전체 객체 반환 (score, explanation, gpt_explanation 포함)
-    }
-    
-    // 숫자만 반환하는 경우 sigmoid 적용
-    const rawScore = typeof data === 'number' ? data : data.score;
-    const normalizedScore = applySigmoid(rawScore);
-    
-    console.log(`Raw score: ${rawScore}, Normalized score: ${normalizedScore.toFixed(4)}`);
-    
-    return normalizedScore;
-    
+    console.log(`AI server response:`, data);
+    return data.score;  // 점수만 반환하도록 변경
   } catch (error) {
     console.error('Error calling AI server:', error);
-    // Fallback to algorithm-based score
-    return getFallbackScore(liquorId, ingredientId);
+    throw error;
   }
 }
 
 /**
- * Get multiple pairing recommendations for a liquor
- * @param {Number} liquorId - The ID of the liquor
- * @param {Number} limit - Maximum number of recommendations to return
- * @returns {Promise<Array>} - Array of recommended ingredients with scores
+ * Get pairing recommendations for a liquor
+ * @param {number} liquorId 
+ * @param {number} limit 
+ * @returns {Promise<object>}
  */
-async function getRecommendations(liquorId, limit = 10) {
+async function getRecommendations(liquorId, limit = 3) {
+  console.log(`📞 Getting recommendations for liquorId=${liquorId}, limit=${limit}`);
+  
   try {
-    console.log(`Calling AI server for recommendations: liquorId=${liquorId}, limit=${limit}`);
-    
     const response = await fetch(`${AI_SERVER_URL}/recommend`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        liquor_id: liquorId,
-        limit: limit
-      })
+        liquor_id: parseInt(liquorId),
+        limit: Math.min(parseInt(limit), 3),  // 최대 3개로 제한
+        use_gpt: true  // 전체 설명만 사용
+      }),
     });
 
     if (!response.ok) {
-      console.error(`AI server error: ${response.status} ${response.statusText}`);
-      // Fallback to mock recommendations
-      return getMockRecommendations(liquorId, limit);
+      throw new Error(`AI server responded with ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('AI server recommendations:', data);
-    
-    // Transform response to match expected format and apply sigmoid normalization
-    const recommendations = data.recommendations.map(item => ({
-      ingredient_id: item.ingredient_id,
-      score: applySigmoid(item.score)
-    }));
-    
-    return recommendations;
-    
+    console.log(`🤖 Recommendations received:`, data);
+    return data;
   } catch (error) {
-    console.error('Error calling AI server for recommendations:', error);
-    // Fallback to mock recommendations
-    return getMockRecommendations(liquorId, limit);
-  }
-}
-
-/**
- * Get explanation for a pairing recommendation using OpenAI API
- * @param {Number} liquorId - The ID of the liquor
- * @param {Number} ingredientId - The ID of the ingredient
- * @param {Number} score - Optional pre-calculated score to avoid duplicate AI calls
- * @returns {Promise<Object>} - Explanation data including text and possibly shared compounds
- */
-async function getExplanation(liquorId, ingredientId, score = null) {
-  try {
-    // Get liquor and ingredient details from database using node_id
-    const liquor = await Liquor.getByNodeId(liquorId);
-    const ingredient = await Ingredient.getByNodeId(ingredientId);
-
-    // Use provided score or get from AI server (avoid duplicate calls)
-    let pairingScore;
-    if (score !== null) {
-      pairingScore = score;
-      console.log(`Using provided score: ${pairingScore}`);
-    } else {
-      console.log('No score provided, fetching from AI server...');
-      const aiResponse = await getPairingScore(liquorId, ingredientId);
-      pairingScore = typeof aiResponse === 'object' ? aiResponse.score : aiResponse;
-    }
-    
-    // Calculate level of compatibility
-    let compatibilityLevel;
-    if (pairingScore >= 0.8) compatibilityLevel = "강력 추천 조합";
-    else if (pairingScore >= 0.6) compatibilityLevel = "추천 조합";
-    else if (pairingScore >= 0.4) compatibilityLevel = "무난한 조합";
-    else compatibilityLevel = "실험적인 조합";
-
-    // Use names from database if available, otherwise use fallback names
-    let liquorName, ingredientName;
-    
-    if (liquor && ingredient) {
-      liquorName = liquor.name;
-      ingredientName = ingredient.name;
-    } else {
-      // Fallback: try to get names from Korean mapper or use generic names
-      console.log('Using fallback names since database lookup failed');
-      liquorName = liquor?.name || `주류 ${liquorId}`;
-      ingredientName = ingredient?.name || `재료 ${ingredientId}`;
-      
-      // Try to get better names from the AI server response or korean mapping
-      if (liquorId === 524) liquorName = "와인";
-      if (ingredientId === 22) ingredientName = "고기";
-    }
-
-    // Create a shared compounds list (would be from the model in production)
-    const sharedCompounds = getSharedCompounds(
-      { name: liquorName }, 
-      { name: ingredientName }
-    );
-
-    // Generate explanation using OpenAI
-    let explanation = await generateExplanationWithAI(
-      liquorName,
-      ingredientName, 
-      pairingScore,
-      compatibilityLevel,
-      [], // liquor.flavor_profile || []
-      [], // ingredient.flavor_profile || []
-      sharedCompounds
-    );
-
-    return {
-      explanation,
-      reason: explanation, // 호환성을 위해 explanation 필드를 reason 필드에도 복사
-      score: pairingScore,
-      compatibility_level: compatibilityLevel,
-      shared_compounds: sharedCompounds,
-      confidence: 0.85,
-      factors: [
-        { name: "flavor profile similarity", weight: 0.6 },
-        { name: "shared compounds", weight: 0.3 },
-        { name: "historical pairing success", weight: 0.1 }
-      ]
-    };
-  } catch (error) {
-    console.error('Error in getExplanation:', error);
+    console.error('❌ Error getting recommendations:', error);
     throw error;
   }
 }
 
 /**
- * Fallback algorithm-based score generation
- * @param {Number} liquorId - The ID of the liquor
- * @param {Number} ingredientId - The ID of the ingredient
- * @returns {Number} - Fallback score
+ * Get explanation for a pairing (기존 호환성)
+ * @param {number} liquorId 
+ * @param {number} ingredientId 
+ * @param {number} score 
+ * @returns {Promise<object>}
  */
-function getFallbackScore(liquorId, ingredientId) {
-  console.log('Using fallback score algorithm');
-  
-  // Algorithm-based consistent score generation
-  const base_a = liquorId * 0.01;
-  const base_b = ingredientId * 0.01;
-  
-  // Generate cosine similarity-like pattern
-  const angle = (base_a * 7.5 + base_b * 12.3) % (2 * Math.PI);
-  const raw_score = (Math.cos(angle) + 1) / 2; // 0-1 range
-  
-  // Scale to 0.2-0.95 range (avoid extreme scores)
-  const score = 0.2 + raw_score * 0.75;
-  
-  // Round to 2 decimal places
-  return Math.round(score * 100) / 100;
+async function getExplanation(liquorId, ingredientId, score = null) {
+  // 새로운 explanation-only 엔드포인트 사용
+  return await getExplanationOnly(liquorId, ingredientId, score);
 }
 
 /**
- * Generate mock recommendations for fallback
- * @param {Number} liquorId - The ID of the liquor
- * @param {Number} limit - Number of recommendations
- * @returns {Array} - Mock recommendations
+ * Simple test function to check AI server connection
+ * @returns {Promise<boolean>}
  */
-function getMockRecommendations(liquorId, limit) {
-  console.log('Using mock recommendations');
-  
-  const recommendations = [];
-  for (let i = 0; i < limit; i++) {
-    const ingredientId = (liquorId * 13 + i * 7) % 6000 + 1; // Generate pseudo-random ingredient IDs
-    const score = getFallbackScore(liquorId, ingredientId);
-    
-    recommendations.push({
-      ingredient_id: ingredientId,
-      score: score
-    });
-  }
-  
-  // Sort by score descending
-  return recommendations.sort((a, b) => b.score - a.score);
-}
-
-/**
- * Generate explanation using OpenAI API
- * @param {String} liquorName - Name of the liquor
- * @param {String} ingredientName - Name of the ingredient
- * @param {Number} score - Pairing score (0-1)
- * @param {String} compatibilityLevel - Text description of compatibility level
- * @param {Array} liquorFlavors - Array of flavor notes for the liquor
- * @param {Array} ingredientFlavors - Array of flavor notes for the ingredient
- * @param {Array} sharedCompounds - Array of shared flavor compounds
- * @returns {Promise<String>} - Generated explanation
- */
-async function generateExplanationWithAI(
-  liquorName, 
-  ingredientName, 
-  score,
-  compatibilityLevel,
-  liquorFlavors = [],
-  ingredientFlavors = [],
-  sharedCompounds = []
-) {
+async function testConnection() {
   try {
-    // Format the prompt with information about the pairing
-    const prompt = `
-당신은 전문 소믈리에이자 음식 페어링 전문가입니다. ${liquorName}과(와) ${ingredientName}의 페어링을 분석했습니다.
-FlavorDiffusion 모델에서 나온 페어링 점수는 1.00점 만점에 ${score.toFixed(2)}점으로, 이는 "${compatibilityLevel}"입니다.
-
-주류 풍미 프로필: ${liquorFlavors.length > 0 ? liquorFlavors.join(', ') : '명시되지 않음'}
-재료 풍미 프로필: ${ingredientFlavors.length > 0 ? ingredientFlavors.join(', ') : '명시되지 않음'}
-${sharedCompounds.length > 0 ? `공유 풍미 화합물: ${sharedCompounds.join(', ')}` : ''}
-
-이 페어링에 대한 설명을 3-4문장으로 한국어로 제공해주세요. 점수에 따라 다음과 같이 설명해주세요:
-- 높은 점수(0.8 이상): 왜 이 조합이 탁월한지, 어떤 풍미가 특히 잘 어울리는지 설명
-- 좋은 점수(0.6-0.8): 이 조합의 장점과 활용 방법에 대해 설명
-- 보통 점수(0.4-0.6): 이 조합이 어떤 상황에서 적절한지, 장단점 균형있게 설명
-- 낮은 점수(0.4 미만): 왜 이 조합이 일반적으로 권장되지 않는지 솔직하게 설명하되, 혹시 있다면 어떤 특별한 상황에서 시도해볼 수 있을지 제안
-
-다음 사항에 초점을 맞추세요:
-1. 두 재료의 풍미가 어떻게 상호작용하는지 
-2. 중요한 풍미 화합물이나 특성
-3. 이 조합으로 어떤 맛 경험을 할 수 있는지
-4. 활용 가능한 요리나 상황 제안 (적절한 경우)
-
-전문적이지만 일반인도 이해할 수 있는 쉬운 언어로 설명해주세요. 글머리 기호는 사용하지 말고 자연스러운 문장으로 작성해주세요.
-반드시 한국어로 응답해주세요.
-`;
-
-    console.log('Sending OpenAI API request...');
-
-    // Call the OpenAI API
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "당신은 음식과 음료 페어링의 과학적 원리를 이해하기 쉽게 설명하는 지식이 풍부한 소믈리에이자 음식 페어링 전문가입니다. 모든 응답은 한국어로 제공합니다."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      max_tokens: 250,
-      temperature: 0.7,
-    });
-
-    // Extract and return the explanation
-    const explanation = response.choices[0].message.content.trim();
-    console.log('Generated explanation:', explanation);
-    return explanation;
+    const response = await fetch(`${AI_SERVER_URL}/health`);
+    return response.ok;
   } catch (error) {
-    console.error('Error generating explanation with AI:', error);
-    // Fallback explanation
-    return `${liquorName}과 ${ingredientName}의 조합은 ${score.toFixed(2)} 점수를 받았습니다. ${compatibilityLevel}으로 분류되는 이 조합은 ${score >= 0.6 ? "추천할 만한" : score >= 0.3 ? "무난한" : "실험적인"} 페어링입니다. ${score < 0.3 ? "일반적으로는 잘 어울리지 않지만, 특별한 요리법이나 조리 방식으로 새로운 맛의 경험을 만들어볼 수 있습니다." : ""}`;
+    console.error('Error testing AI server connection:', error);
+    return false;
   }
 }
 
 /**
- * Generate a list of shared flavor compounds between a liquor and ingredient
- * @param {Object} liquor - Liquor object
- * @param {Object} ingredient - Ingredient object
- * @returns {Array} - Array of shared compounds
+ * Get list of available liquors
+ * @returns {Promise<Array>}
  */
-function getSharedCompounds(liquor, ingredient) {
-  // 실제로는 데이터베이스에서 공유 화합물을 가져와야 하지만,
-  // 현재는 간단한 로직으로 몇 가지 공통 화합물 생성
-  const commonCompounds = {
-    wine: {
-      cheese: ['Lactic acid', 'Tartaric acid', 'Diacetyl', 'Butyric acid'],
-      meat: ['Tannins', 'Iron compounds', 'Umami compounds'],
-      beef: ['Tannins', 'Iron compounds', 'Protein breakdown products'],
-      pork: ['Tannins', 'Fat-soluble compounds'],
-      chicken: ['Light tannins', 'Citric acid'],
-      grape: ['Anthocyanins', 'Tannins', 'Malic acid'],
-      fruit: ['Ethyl acetate', 'Isoamyl acetate', 'Hexyl acetate'],
-    },
-    gin: {
-      lemon: ['Limonene', 'Pinene', 'Citral'],
-      orange: ['Limonene', 'Linalool', 'Citral'],
-      grapefruit: ['Limonene', 'Myrcene', 'Nootkatone'],
-      lime: ['Limonene', 'Citral', 'Pinene'],
-      cucumber: ['Linalool', 'Cis-3-Hexenol', 'Caryophyllene'],
-      cheese: ['Linalool', 'Ethyl butyrate', 'Diacetyl'],
-    },
-    vodka: {
-      lemon: ['Citral', 'Limonene'],
-      orange: ['Limonene', 'Citral'],
-      cucumber: ['Cis-3-Hexenol', 'Cis-3-Hexenal'],
-      cheese: ['Ethyl butyrate', 'Diacetyl'],
-    },
-    whiskey: {
-      vanilla: ['Vanillin', '4-Hydroxy-3-methoxybenzaldehyde', 'Ethyl vanillin'],
-      caramel: ['Maltol', 'Furaneol', 'Cyclotene'],
-      oak: ['Whiskey lactone', 'Eugenol', 'Guaiacol'],
-      cheese: ['Vanillin', 'Diacetyl', 'Lactone'],
-      meat: ['Smoky compounds', 'Vanillin', 'Caramel compounds'],
+async function getLiquors() {
+  try {
+    const response = await fetch(`${AI_SERVER_URL}/liquors`);
+    if (!response.ok) {
+      throw new Error(`AI server responded with ${response.status}`);
     }
-  };
-  
-  const liquorType = liquor.name.toLowerCase();
-  const ingredientType = ingredient.name.toLowerCase();
-  
-  // 일치하는 쌍이 있는지 확인
-  for (const [knownLiquor, pairs] of Object.entries(commonCompounds)) {
-    if (liquorType.includes(knownLiquor) || liquorType.includes('와인')) {
-      for (const [knownIngredient, compounds] of Object.entries(pairs)) {
-        if (ingredientType.includes(knownIngredient) || 
-            (ingredientType.includes('고기') && knownIngredient === 'meat') ||
-            (ingredientType.includes('치즈') && knownIngredient === 'cheese')) {
-          return compounds;
-        }
-      }
-    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting liquors:', error);
+    throw error;
   }
+}
+
+/**
+ * Get list of available ingredients
+ * @returns {Promise<Array>}
+ */
+async function getIngredients() {
+  try {
+    const response = await fetch(`${AI_SERVER_URL}/ingredients`);
+    if (!response.ok) {
+      throw new Error(`AI server responded with ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting ingredients:', error);
+    throw error;
+  }
+}
+
+/**
+ * Batch score calculation for multiple combinations (토큰 최적화)
+ * @param {Array} combinations - [{ liquorId, ingredientId }, ...]
+ * @returns {Promise<Array>} - [{ liquorId, ingredientId, score }, ...]
+ */
+async function getBatchScores(combinations) {
+  console.log(`🔢 Getting batch scores for ${combinations.length} combinations`);
   
-  // 기본 화합물 목록 (일치하는 것이 없을 때)
-  return ['Organic acids', 'Flavor esters', 'Aromatic compounds'].slice(0, Math.floor(Math.random() * 3) + 1);
+  const results = [];
+  
+  // 병렬 처리로 성능 향상
+  const promises = combinations.map(async (combo) => {
+    try {
+      const score = await getPairingScoreOnly(combo.liquorId, combo.ingredientId);
+      return {
+        liquorId: combo.liquorId,
+        ingredientId: combo.ingredientId,
+        score: score,
+        success: true
+      };
+    } catch (error) {
+      console.error(`❌ Error getting score for ${combo.liquorId}-${combo.ingredientId}:`, error);
+      return {
+        liquorId: combo.liquorId,
+        ingredientId: combo.ingredientId,
+        score: null,
+        success: false,
+        error: error.message
+      };
+    }
+  });
+
+  const batchResults = await Promise.allSettled(promises);
+  
+  batchResults.forEach(result => {
+    if (result.status === 'fulfilled') {
+      results.push(result.value);
+    }
+  });
+
+  console.log(`✅ Batch scoring complete: ${results.filter(r => r.success).length}/${combinations.length} successful`);
+  return results;
 }
 
 module.exports = {
-  getPairingScore,
+  getPairingScore,           // 기존 호환성 (점수만 반환하도록 수정)
+  getPairingScoreOnly,       // 새로운 점수 전용 함수
+  getExplanationOnly,        // 새로운 설명 전용 함수
   getRecommendations,
-  getExplanation
+  getExplanation,           // 기존 호환성
+  testConnection,
+  getLiquors,
+  getIngredients,
+  getBatchScores            // 배치 점수 계산
 };
