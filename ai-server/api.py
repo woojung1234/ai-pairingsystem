@@ -52,6 +52,22 @@ class PairingRequest(BaseModel):
     ingredient_id: int
     use_gpt: bool = True
 
+class ScoreOnlyRequest(BaseModel):
+    liquor_id: int
+    ingredient_id: int
+
+class ScoreOnlyResponse(BaseModel):
+    score: float
+
+class ExplanationRequest(BaseModel):
+    liquor_id: int
+    ingredient_id: int
+    score: Optional[float] = None
+
+class ExplanationResponse(BaseModel):
+    explanation: str
+    gpt_explanation: Optional[str] = None
+
 class PairingResponse(BaseModel):
     score: float
     explanation: Optional[str] = None
@@ -216,8 +232,77 @@ async def health_check():
         raise HTTPException(status_code=503, detail="Model not loaded")
     return {"status": "healthy"}
 
+@app.post("/score-only", response_model=ScoreOnlyResponse)
+async def get_score_only(request: ScoreOnlyRequest):
+    """점수만 계산하는 엔드포인트 (GPT 호출 없음)"""
+    try:
+        # Check if IDs exist
+        if request.liquor_id not in lid_to_idx:
+            raise HTTPException(status_code=404, detail=f"Liquor ID {request.liquor_id} not found")
+        if request.ingredient_id not in iid_to_idx:
+            raise HTTPException(status_code=404, detail=f"Ingredient ID {request.ingredient_id} not found")
+        
+        # Map IDs to indices
+        liquor_idx = lid_to_idx[request.liquor_id]
+        ingredient_idx = iid_to_idx[request.ingredient_id]
+        
+        # Get prediction
+        with torch.no_grad():
+            score = model(
+                torch.tensor([liquor_idx]), 
+                torch.tensor([ingredient_idx])
+            ).item()
+        
+        return ScoreOnlyResponse(score=score)
+    
+    except Exception as e:
+        print(f"Error in score prediction: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/explanation-only", response_model=ExplanationResponse)
+async def get_explanation_only(request: ExplanationRequest):
+    """설명만 생성하는 엔드포인트"""
+    try:
+        # Check if IDs exist
+        if request.liquor_id not in lid_to_idx:
+            raise HTTPException(status_code=404, detail=f"Liquor ID {request.liquor_id} not found")
+        if request.ingredient_id not in iid_to_idx:
+            raise HTTPException(status_code=404, detail=f"Ingredient ID {request.ingredient_id} not found")
+        
+        # Get names
+        liquor_name = liquor_names.get(request.liquor_id, f"Liquor {request.liquor_id}")
+        ingredient_name = ingredient_names.get(request.ingredient_id, f"Ingredient {request.ingredient_id}")
+        
+        # Use provided score or calculate it
+        score = request.score
+        if score is None:
+            liquor_idx = lid_to_idx[request.liquor_id]
+            ingredient_idx = iid_to_idx[request.ingredient_id]
+            with torch.no_grad():
+                score = model(
+                    torch.tensor([liquor_idx]), 
+                    torch.tensor([ingredient_idx])
+                ).item()
+        
+        # Generate explanations
+        simple_explanation = generate_simple_explanation(liquor_name, ingredient_name, score)
+        gpt_explanation = None
+        
+        if os.getenv("OPENAI_API_KEY"):
+            gpt_explanation = await generate_gpt_explanation(liquor_name, ingredient_name, score)
+        
+        return ExplanationResponse(
+            explanation=simple_explanation,
+            gpt_explanation=gpt_explanation
+        )
+    
+    except Exception as e:
+        print(f"Error in explanation generation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/predict", response_model=PairingResponse)
 async def predict_pairing(request: PairingRequest):
+    """기존 방식 (점수 + 설명 한번에)"""
     try:
         # Check if IDs exist
         if request.liquor_id not in lid_to_idx:
@@ -292,27 +377,19 @@ async def recommend_ingredients(request: RecommendationRequest):
             ingredient_id = idx_to_iid[ingredient_idx]
             ingredient_name = ingredient_names.get(ingredient_id, f"Ingredient {ingredient_id}")
             
-            # Generate individual explanation if GPT is enabled
-            explanation = None
-            if request.use_gpt and os.getenv("OPENAI_API_KEY"):  # 모든 항목에 대해 설명 생성
-                explanation = await generate_gpt_explanation(
-                    liquor_names.get(request.liquor_id, f"Liquor {request.liquor_id}"),
-                    ingredient_name,
-                    float(scores[idx])
-                )
-            
+            # 개별 설명은 생성하지 않음 (토큰 절약)
             recommendations.append(
                 RecommendationItem(
                     ingredient_id=ingredient_id,
                     ingredient_name=ingredient_name,
                     score=float(scores[idx]),
-                    explanation=explanation
+                    explanation=None  # 개별 설명 제거
                 )
             )
         
         liquor_name = liquor_names.get(request.liquor_id, f"Liquor {request.liquor_id}")
         
-        # Generate overall explanation
+        # Generate overall explanation only
         overall_explanation = None
         if request.use_gpt and os.getenv("OPENAI_API_KEY"):
             overall_explanation = await generate_recommendation_explanation(liquor_name, recommendations)
