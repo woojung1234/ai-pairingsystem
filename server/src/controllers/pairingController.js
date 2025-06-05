@@ -1,4 +1,4 @@
-const { getPairingScore, getRecommendations, getExplanation } = require('../ai/model');
+const { getPairingScore, getPairingScoreOnly, getExplanationOnly, getRecommendations, getExplanation } = require('../ai/model');
 const Pairing = require('../models/Pairing');
 const Liquor = require('../models/Liquor');
 const Ingredient = require('../models/Ingredient');
@@ -26,7 +26,7 @@ function normalizeScoreTo100(rawScore) {
 }
 
 /**
- * 최고 페어링 찾기 - 모든 조합을 테스트해서 최고 점수 조합 반환 (GPT 설명 없이)
+ * 최고 페어링 찾기 - 점수만 계산하고 GPT 설명은 나중에 (토큰 최적화)
  * @param {String} koreanLiquor - 한글 주류명
  * @param {String} koreanIngredient - 한글 재료명
  * @returns {Object} 최고 점수 조합 정보
@@ -54,7 +54,7 @@ const findBestPairing = async (koreanLiquor, koreanIngredient) => {
   
   console.log(`🧪 Testing ${maxLiquors} x ${maxIngredients} = ${maxLiquors * maxIngredients} combinations`);
   
-  // 모든 조합 테스트 (GPT 설명 없이 점수만)
+  // 모든 조합을 점수만 계산 (GPT 설명 없이)
   for (let i = 0; i < maxLiquors; i++) {
     for (let j = 0; j < maxIngredients; j++) {
       const liquor = liquorResults[i];
@@ -63,25 +63,24 @@ const findBestPairing = async (koreanLiquor, koreanIngredient) => {
       try {
         console.log(`🔬 Testing: ${liquor.name} (${liquor.nodeId}) + ${ingredient.name} (${ingredient.nodeId})`);
         
-        // AI 서버에서 페어링 점수만 가져오기 (설명 없이)
-        const rawScore = await getPairingScore(liquor.nodeId, ingredient.nodeId);
-        const scoreValue = typeof rawScore === 'object' ? rawScore.score : rawScore;
-        const normalizedScore = normalizeScoreTo100(scoreValue);
+        // 점수만 가져오기 (GPT 호출 없음)
+        const rawScore = await getPairingScoreOnly(liquor.nodeId, ingredient.nodeId);
+        const normalizedScore = normalizeScoreTo100(rawScore);
         
         const combination = {
           liquor,
           ingredient,
-          rawScore: scoreValue,
+          rawScore,
           normalizedScore
         };
         
         testedCombinations.push(combination);
         
-        console.log(`📊 Score: ${scoreValue} (normalized: ${normalizedScore})`);
+        console.log(`📊 Score: ${rawScore} (normalized: ${normalizedScore})`);
         
         // 최고 점수 업데이트
-        if (scoreValue > bestScore) {
-          bestScore = scoreValue;
+        if (rawScore > bestScore) {
+          bestScore = rawScore;
           bestCombination = combination;
           console.log(`🏆 New best combination: ${liquor.name} + ${ingredient.name} = ${normalizedScore} points`);
         }
@@ -103,7 +102,7 @@ const findBestPairing = async (koreanLiquor, koreanIngredient) => {
 };
 
 /**
- * 최종 선택된 조합에 대해서만 GPT 설명 추가
+ * 최종 선택된 조합에 대해서만 GPT 설명 추가 (토큰 절약)
  * @param {Object} bestCombination - 최고 점수 조합
  * @param {String} koreanLiquor - 한글 주류명
  * @param {String} koreanIngredient - 한글 재료명
@@ -114,20 +113,18 @@ const addGPTExplanationToBest = async (bestCombination, koreanLiquor, koreanIngr
   
   try {
     // 최종 선택된 조합에만 GPT 설명 요청
-    const explanation = await getExplanation(
+    const explanation = await getExplanationOnly(
       bestCombination.liquor.nodeId, 
       bestCombination.ingredient.nodeId, 
-      bestCombination.normalizedScore / 100
+      bestCombination.rawScore
     );
     
     return {
       ...bestCombination,
-      gptExplanation: explanation.explanation || explanation.reason || explanation,
-      compatibilityLevel: explanation.compatibility_level || (
-        bestCombination.normalizedScore >= 80 ? "강력 추천 조합" : 
-        bestCombination.normalizedScore >= 60 ? "추천 조합" : 
-        bestCombination.normalizedScore >= 40 ? "무난한 조합" : "실험적인 조합"
-      )
+      gptExplanation: explanation.gpt_explanation || explanation.explanation,
+      compatibilityLevel: bestCombination.normalizedScore >= 80 ? "강력 추천 조합" : 
+                         bestCombination.normalizedScore >= 60 ? "추천 조합" : 
+                         bestCombination.normalizedScore >= 40 ? "무난한 조합" : "실험적인 조합"
     };
   } catch (error) {
     console.error('❌ Error getting GPT explanation:', error);
@@ -150,7 +147,7 @@ const addGPTExplanationToBest = async (bestCombination, koreanLiquor, koreanIngr
   }
 };
 
-// 나머지 export 함수들...
+// Export 함수들...
 exports.predictPairingScore = async (req, res) => {
   try {
     const { liquorId, ingredientId } = req.body;
@@ -195,7 +192,7 @@ exports.predictPairingScore = async (req, res) => {
 };
 
 /**
- * 한글 입력으로 최고 페어링 찾기 - 메인 API (토큰 절약 버전)
+ * 한글 입력으로 최고 페어링 찾기 - 토큰 최적화 버전
  */
 exports.predictPairingScoreKorean = async (req, res) => {
   try {
@@ -210,7 +207,7 @@ exports.predictPairingScoreKorean = async (req, res) => {
       });
     }
     
-    // 1단계: 최고 페어링 찾기 (GPT 설명 없이)
+    // 1단계: 최고 페어링 찾기 (점수만 계산, GPT 설명 없음)
     const pairingResult = await findBestPairing(liquor, ingredient);
     
     if (!pairingResult || !pairingResult.bestCombination) {
@@ -259,7 +256,8 @@ exports.predictPairingScoreKorean = async (req, res) => {
           tested_combinations: testedCombinations.length,
           total_combinations: testedCombinations.length,
           best_score: bestWithExplanation.normalizedScore,
-          gpt_calls_made: 1 // 토큰 사용량 추적
+          gpt_calls_made: 1, // 오직 1번만 GPT 호출
+          token_optimization: "Only best combination uses GPT explanation"
         },
         all_tested_combinations: testedCombinations.map(combo => ({
           liquor: combo.liquor.name,
@@ -298,8 +296,7 @@ exports.getScoreStatistics = async (req, res) => {
     
     for (const pair of samplePairs) {
       try {
-        const response = await getPairingScore(pair.liquor, pair.ingredient);
-        const score = typeof response === 'object' ? response.score : response;
+        const score = await getPairingScoreOnly(pair.liquor, pair.ingredient);
         scores.push(score);
       } catch (error) {
         console.error(`Error getting score for ${pair.liquor}-${pair.ingredient}:`, error);
@@ -344,7 +341,7 @@ exports.findBestPairingKorean = async (req, res) => {
       });
     }
     
-    // 1단계: 최고 페어링 찾기 (GPT 설명 없이)
+    // 1단계: 최고 페어링 찾기 (점수만 계산)
     const pairingResult = await findBestPairing(liquor, ingredient);
     
     if (!pairingResult || !pairingResult.bestCombination) {
@@ -434,7 +431,7 @@ exports.getRecommendationsKorean = async (req, res) => {
           ingredient_name: rec.ingredient_name,
           score: normalizeScoreTo100(rec.score),
           raw_score: rec.score
-          // 개별 설명은 제거하고 전체 설명만 유지
+          // 개별 설명은 제거 (토큰 절약)
         }));
         overallExplanation = recommendations.overall_explanation;
       } else if (Array.isArray(recommendations)) {
@@ -510,8 +507,7 @@ exports.getPairingScoreByIds = async (req, res) => {
     const liquorIdNum = parseInt(liquorId);
     const ingredientIdNum = parseInt(ingredientId);
     
-    const aiResponse = await getPairingScore(liquorIdNum, ingredientIdNum);
-    const rawScore = typeof aiResponse === 'object' ? aiResponse.score : aiResponse;
+    const rawScore = await getPairingScoreOnly(liquorIdNum, ingredientIdNum);
     const normalizedScore = normalizeScoreTo100(rawScore);
     
     return res.json({
