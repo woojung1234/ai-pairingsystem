@@ -26,7 +26,7 @@ function normalizeScoreTo100(rawScore) {
 }
 
 /**
- * 최고 페어링 찾기 - 모든 조합을 테스트해서 최고 점수 조합 반환
+ * 최고 페어링 찾기 - 모든 조합을 테스트해서 최고 점수 조합 반환 (GPT 설명 없이)
  * @param {String} koreanLiquor - 한글 주류명
  * @param {String} koreanIngredient - 한글 재료명
  * @returns {Object} 최고 점수 조합 정보
@@ -54,7 +54,7 @@ const findBestPairing = async (koreanLiquor, koreanIngredient) => {
   
   console.log(`🧪 Testing ${maxLiquors} x ${maxIngredients} = ${maxLiquors * maxIngredients} combinations`);
   
-  // 모든 조합 테스트
+  // 모든 조합 테스트 (GPT 설명 없이 점수만)
   for (let i = 0; i < maxLiquors; i++) {
     for (let j = 0; j < maxIngredients; j++) {
       const liquor = liquorResults[i];
@@ -63,26 +63,25 @@ const findBestPairing = async (koreanLiquor, koreanIngredient) => {
       try {
         console.log(`🔬 Testing: ${liquor.name} (${liquor.nodeId}) + ${ingredient.name} (${ingredient.nodeId})`);
         
-        // AI 서버에서 페어링 점수 가져오기
-        const aiResponse = await getPairingScore(liquor.nodeId, ingredient.nodeId);
-        const rawScore = typeof aiResponse === 'object' ? aiResponse.score : aiResponse;
-        const normalizedScore = normalizeScoreTo100(rawScore);
+        // AI 서버에서 페어링 점수만 가져오기 (설명 없이)
+        const rawScore = await getPairingScore(liquor.nodeId, ingredient.nodeId);
+        const scoreValue = typeof rawScore === 'object' ? rawScore.score : rawScore;
+        const normalizedScore = normalizeScoreTo100(scoreValue);
         
         const combination = {
           liquor,
           ingredient,
-          rawScore,
-          normalizedScore,
-          aiResponse
+          rawScore: scoreValue,
+          normalizedScore
         };
         
         testedCombinations.push(combination);
         
-        console.log(`📊 Score: ${rawScore} (normalized: ${normalizedScore})`);
+        console.log(`📊 Score: ${scoreValue} (normalized: ${normalizedScore})`);
         
         // 최고 점수 업데이트
-        if (rawScore > bestScore) {
-          bestScore = rawScore;
+        if (scoreValue > bestScore) {
+          bestScore = scoreValue;
           bestCombination = combination;
           console.log(`🏆 New best combination: ${liquor.name} + ${ingredient.name} = ${normalizedScore} points`);
         }
@@ -101,6 +100,54 @@ const findBestPairing = async (koreanLiquor, koreanIngredient) => {
     bestCombination,
     testedCombinations: testedCombinations.sort((a, b) => b.rawScore - a.rawScore).slice(0, 10) // Top 10
   };
+};
+
+/**
+ * 최종 선택된 조합에 대해서만 GPT 설명 추가
+ * @param {Object} bestCombination - 최고 점수 조합
+ * @param {String} koreanLiquor - 한글 주류명
+ * @param {String} koreanIngredient - 한글 재료명
+ * @returns {Object} GPT 설명이 포함된 조합 정보
+ */
+const addGPTExplanationToBest = async (bestCombination, koreanLiquor, koreanIngredient) => {
+  console.log(`🤖 Getting GPT explanation for best combination only...`);
+  
+  try {
+    // 최종 선택된 조합에만 GPT 설명 요청
+    const explanation = await getExplanation(
+      bestCombination.liquor.nodeId, 
+      bestCombination.ingredient.nodeId, 
+      bestCombination.normalizedScore / 100
+    );
+    
+    return {
+      ...bestCombination,
+      gptExplanation: explanation.explanation || explanation.reason || explanation,
+      compatibilityLevel: explanation.compatibility_level || (
+        bestCombination.normalizedScore >= 80 ? "강력 추천 조합" : 
+        bestCombination.normalizedScore >= 60 ? "추천 조합" : 
+        bestCombination.normalizedScore >= 40 ? "무난한 조합" : "실험적인 조합"
+      )
+    };
+  } catch (error) {
+    console.error('❌ Error getting GPT explanation:', error);
+    
+    // GPT 설명 실패시 fallback 설명 생성
+    const fallbackExplanation = `${koreanLiquor}과 ${koreanIngredient}의 최적 조합은 ${bestCombination.liquor.name}과 ${bestCombination.ingredient.name}입니다. 이 조합은 ${bestCombination.normalizedScore}점을 받았습니다. ${
+      bestCombination.normalizedScore >= 80 ? "매우 훌륭한 조합으로, 맛과 향이 완벽하게 조화를 이룹니다." :
+      bestCombination.normalizedScore >= 60 ? "좋은 페어링으로, 여러 풍미 요소가 잘 어울립니다." :
+      bestCombination.normalizedScore >= 40 ? "무난한 조합이지만 특별함은 부족합니다." :
+      "이 조합은 그다지 잘 어울리지 않습니다."
+    }`;
+    
+    return {
+      ...bestCombination,
+      gptExplanation: fallbackExplanation,
+      compatibilityLevel: bestCombination.normalizedScore >= 80 ? "강력 추천 조합" : 
+                         bestCombination.normalizedScore >= 60 ? "추천 조합" : 
+                         bestCombination.normalizedScore >= 40 ? "무난한 조합" : "실험적인 조합"
+    };
+  }
 };
 
 // 나머지 export 함수들...
@@ -148,7 +195,7 @@ exports.predictPairingScore = async (req, res) => {
 };
 
 /**
- * 한글 입력으로 최고 페어링 찾기 - 메인 API
+ * 한글 입력으로 최고 페어링 찾기 - 메인 API (토큰 절약 버전)
  */
 exports.predictPairingScoreKorean = async (req, res) => {
   try {
@@ -163,7 +210,7 @@ exports.predictPairingScoreKorean = async (req, res) => {
       });
     }
     
-    // 최고 페어링 찾기
+    // 1단계: 최고 페어링 찾기 (GPT 설명 없이)
     const pairingResult = await findBestPairing(liquor, ingredient);
     
     if (!pairingResult || !pairingResult.bestCombination) {
@@ -175,64 +222,51 @@ exports.predictPairingScoreKorean = async (req, res) => {
     }
     
     const { bestCombination, testedCombinations } = pairingResult;
-    const { liquor: bestLiquor, ingredient: bestIngredient, rawScore, normalizedScore, aiResponse } = bestCombination;
     
-    // GPT 설명 추출
-    let explanation, gptExplanation;
+    // 2단계: 최종 선택된 조합에만 GPT 설명 추가
+    const bestWithExplanation = await addGPTExplanationToBest(bestCombination, liquor, ingredient);
     
-    if (typeof aiResponse === 'object' && aiResponse.gpt_explanation) {
-      gptExplanation = aiResponse.gpt_explanation;
-      explanation = aiResponse.explanation;
-    }
-    
-    // fallback 설명 생성
-    const finalExplanation = gptExplanation || explanation || 
-      `${liquor}과 ${ingredient}의 최적 조합은 ${bestLiquor.name}과 ${bestIngredient.name}입니다. 이 조합은 ${normalizedScore}점을 받았습니다. ${
-        normalizedScore >= 80 ? "매우 훌륭한 조합으로, 맛과 향이 완벽하게 조화를 이룹니다." :
-        normalizedScore >= 60 ? "좋은 페어링으로, 여러 풍미 요소가 잘 어울립니다." :
-        normalizedScore >= 40 ? "무난한 조합이지만 특별함은 부족합니다." :
-        "이 조합은 그다지 잘 어울리지 않습니다."
-      }`;
-    
-    // 호환성 레벨 결정
-    const compatibilityLevel = normalizedScore >= 80 ? "강력 추천 조합" : 
-                              normalizedScore >= 60 ? "추천 조합" : 
-                              normalizedScore >= 40 ? "무난한 조합" : "실험적인 조합";
+    console.log('✨ Best combination with explanation:', {
+      liquor: bestWithExplanation.liquor.name,
+      ingredient: bestWithExplanation.ingredient.name,
+      score: bestWithExplanation.normalizedScore
+    });
     
     return res.json({
       success: true,
       data: {
         korean_input: { liquor, ingredient },
         best_pairing: {
-          liquor: bestLiquor.name,
-          ingredient: bestIngredient.name,
+          liquor: bestWithExplanation.liquor.name,
+          ingredient: bestWithExplanation.ingredient.name,
           liquor_korean: liquor,
           ingredient_korean: ingredient
         },
         english_names: {
-          liquor: bestLiquor.name,
-          ingredient: bestIngredient.name
+          liquor: bestWithExplanation.liquor.name,
+          ingredient: bestWithExplanation.ingredient.name
         },
         node_ids: {
-          liquor: bestLiquor.nodeId,
-          ingredient: bestIngredient.nodeId
+          liquor: bestWithExplanation.liquor.nodeId,
+          ingredient: bestWithExplanation.ingredient.nodeId
         },
-        score: normalizedScore,
-        raw_score: rawScore,
+        score: bestWithExplanation.normalizedScore,
+        raw_score: bestWithExplanation.rawScore,
         score_range: SCORE_RANGE,
-        explanation: finalExplanation,
-        gpt_explanation: gptExplanation,
-        compatibility_level: compatibilityLevel,
+        explanation: bestWithExplanation.gptExplanation,
+        compatibility_level: bestWithExplanation.compatibilityLevel,
         search_summary: {
           tested_combinations: testedCombinations.length,
           total_combinations: testedCombinations.length,
-          best_score: normalizedScore
+          best_score: bestWithExplanation.normalizedScore,
+          gpt_calls_made: 1 // 토큰 사용량 추적
         },
         all_tested_combinations: testedCombinations.map(combo => ({
           liquor: combo.liquor.name,
           ingredient: combo.ingredient.name,
           score: combo.normalizedScore,
           raw_score: combo.rawScore
+          // GPT 설명은 최고 조합에만 포함
         })).slice(0, 10) // Top 10만 반환
       }
     });
@@ -310,6 +344,7 @@ exports.findBestPairingKorean = async (req, res) => {
       });
     }
     
+    // 1단계: 최고 페어링 찾기 (GPT 설명 없이)
     const pairingResult = await findBestPairing(liquor, ingredient);
     
     if (!pairingResult || !pairingResult.bestCombination) {
@@ -322,21 +357,8 @@ exports.findBestPairingKorean = async (req, res) => {
     
     const { bestCombination, testedCombinations } = pairingResult;
     
-    let explanation;
-    try {
-      explanation = await getExplanation(
-        bestCombination.liquor.nodeId, 
-        bestCombination.ingredient.nodeId, 
-        bestCombination.normalizedScore / 100
-      );
-    } catch (explanationError) {
-      explanation = {
-        explanation: `${liquor}과 ${ingredient}의 최적 조합인 ${bestCombination.liquor.name}과 ${bestCombination.ingredient.name}은 ${bestCombination.normalizedScore}점을 받았습니다.`,
-        compatibility_level: bestCombination.normalizedScore >= 80 ? "강력 추천 조합" : 
-                            bestCombination.normalizedScore >= 60 ? "추천 조합" : 
-                            bestCombination.normalizedScore >= 40 ? "무난한 조합" : "실험적인 조합"
-      };
-    }
+    // 2단계: 최종 선택된 조합에만 GPT 설명 추가
+    const bestWithExplanation = await addGPTExplanationToBest(bestCombination, liquor, ingredient);
     
     const sortedCombinations = testedCombinations
       .map(combo => ({
@@ -352,15 +374,19 @@ exports.findBestPairingKorean = async (req, res) => {
       data: {
         korean_input: { liquor, ingredient },
         best_combination: {
-          liquor: bestCombination.liquor.name,
-          ingredient: bestCombination.ingredient.name,
-          score: bestCombination.normalizedScore,
-          raw_score: bestCombination.rawScore,
-          explanation: explanation.explanation || explanation.reason,
-          compatibility_level: explanation.compatibility_level
+          liquor: bestWithExplanation.liquor.name,
+          ingredient: bestWithExplanation.ingredient.name,
+          score: bestWithExplanation.normalizedScore,
+          raw_score: bestWithExplanation.rawScore,
+          explanation: bestWithExplanation.gptExplanation,
+          compatibility_level: bestWithExplanation.compatibilityLevel
         },
         all_tested_combinations: sortedCombinations,
-        score_range: SCORE_RANGE
+        score_range: SCORE_RANGE,
+        token_usage: {
+          gpt_calls_made: 1,
+          explanation: "GPT explanation requested only for best combination"
+        }
       }
     });
     
@@ -407,8 +433,8 @@ exports.getRecommendationsKorean = async (req, res) => {
           ingredient_id: rec.ingredient_id,
           ingredient_name: rec.ingredient_name,
           score: normalizeScoreTo100(rec.score),
-          raw_score: rec.score,
-          explanation: rec.explanation
+          raw_score: rec.score
+          // 개별 설명은 제거하고 전체 설명만 유지
         }));
         overallExplanation = recommendations.overall_explanation;
       } else if (Array.isArray(recommendations)) {
@@ -416,8 +442,7 @@ exports.getRecommendationsKorean = async (req, res) => {
           ingredient_id: rec.ingredient_id,
           ingredient_name: rec.ingredient_name,
           score: normalizeScoreTo100(rec.score),
-          raw_score: rec.score,
-          explanation: rec.explanation
+          raw_score: rec.score
         }));
       }
     }
@@ -430,7 +455,11 @@ exports.getRecommendationsKorean = async (req, res) => {
         english_name: liquorResults[0].name,
         liquor_node_id: liquorNodeId,
         recommendations: finalRecommendations,
-        overall_explanation: overallExplanation
+        overall_explanation: overallExplanation, // 전체 설명만 포함
+        token_usage: {
+          gpt_calls_made: overallExplanation ? 1 : 0,
+          explanation: "GPT explanation only for overall recommendations"
+        }
       }
     });
     
