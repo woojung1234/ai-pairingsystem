@@ -31,6 +31,13 @@ router.post('/korean/best', pairingController.findBestPairingKorean);
 router.post('/korean/recommend', pairingController.getRecommendationsKorean);
 
 /**
+ * @route   POST /api/pairing/korean/ingredient-to-liquor
+ * @desc    🆕 Get liquor recommendations for Korean ingredient input
+ * @access  Public
+ */
+router.post('/korean/ingredient-to-liquor', pairingController.getLiquorRecommendationsForIngredient);
+
+/**
  * @route   GET /api/pairing/korean/search
  * @desc    Search liquors and ingredients by Korean text
  * @access  Public
