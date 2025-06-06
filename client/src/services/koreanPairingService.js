@@ -58,6 +58,33 @@ class KoreanPairingService {
     }
   }
 
+  async getLiquorRecommendations(koreanIngredient, limit = 10) {
+    try {
+      // 재료 기반 술 추천 API 호출
+      const response = await fetch(`${this.baseURL}/pairing/korean/recommend-liquors`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ingredient: koreanIngredient,
+          limit
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || '술 추천 요청 실패');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Korean liquor recommendations error:', error);
+      throw error;
+    }
+  }
+
   async searchItems(query, type = 'both') {
     try {
       // /api를 제거하여 중복 방지
