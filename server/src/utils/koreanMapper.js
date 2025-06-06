@@ -336,6 +336,36 @@ class KoreanToNodeIdMapper {
     return patterns.some(pattern => dbName.includes(pattern));
   }
 
+  // 🆕 새로 추가된 메서드: 모든 주류 반환
+  getAllLiquors() {
+    const liquors = [];
+    for (const [name, nodeId] of this.liquorMap.entries()) {
+      liquors.push({
+        nodeId,
+        name,
+        type: 'liquor'
+      });
+    }
+    
+    // nodeId 순으로 정렬
+    return liquors.sort((a, b) => a.nodeId - b.nodeId);
+  }
+
+  // 🆕 새로 추가된 메서드: 모든 재료 반환
+  getAllIngredients() {
+    const ingredients = [];
+    for (const [name, nodeId] of this.ingredientMap.entries()) {
+      ingredients.push({
+        nodeId,
+        name,
+        type: 'ingredient'
+      });
+    }
+    
+    // nodeId 순으로 정렬
+    return ingredients.sort((a, b) => a.nodeId - b.nodeId);
+  }
+
   searchByKorean(koreanText, type = 'both') {
     const results = [];
     
