@@ -111,6 +111,53 @@ const addGPTExplanationToBest = async (bestCombination, koreanLiquor, koreanIngr
   }
 };
 
+/**
+ * 재료에 어울리는 주류 추천 함수
+ */
+const findBestLiquorsForIngredient = async (koreanIngredient, limit = 5) => {
+  console.log(`🔍 Finding best liquors for ingredient "${koreanIngredient}"`);
+  
+  const ingredientResults = koreanMapper.searchByKorean(koreanIngredient, 'ingredient');
+  
+  if (ingredientResults.length === 0) {
+    return null;
+  }
+  
+  const targetIngredient = ingredientResults[0];
+  const allLiquors = koreanMapper.getAllLiquors(); // 모든 주류 가져오기
+  
+  const scoredLiquors = [];
+  const maxLiquorsToTest = Math.min(50, allLiquors.length); // 테스트할 주류 수 제한
+  
+  for (let i = 0; i < maxLiquorsToTest; i++) {
+    const liquor = allLiquors[i];
+    
+    try {
+      const rawScore = await getPairingScoreOnly(liquor.nodeId, targetIngredient.nodeId);
+      const normalizedScore = normalizeScoreTo100(rawScore);
+      
+      scoredLiquors.push({
+        liquor,
+        rawScore,
+        normalizedScore
+      });
+      
+    } catch (error) {
+      console.error(`❌ Error testing liquor ${liquor.name} with ${targetIngredient.name}:`, error);
+    }
+  }
+  
+  // 점수순으로 정렬하고 상위 결과만 반환
+  const sortedLiquors = scoredLiquors
+    .sort((a, b) => b.rawScore - a.rawScore)
+    .slice(0, limit);
+  
+  return {
+    ingredient: targetIngredient,
+    recommendations: sortedLiquors
+  };
+};
+
 exports.predictPairingScore = async (req, res) => {
   try {
     const { liquorId, ingredientId } = req.body;
@@ -406,6 +453,120 @@ exports.getRecommendationsKorean = async (req, res) => {
     
   } catch (error) {
     console.error('❌ Error in Korean recommendations:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: '서버 오류가 발생했습니다' 
+    });
+  }
+};
+
+// 🆕 새로 추가된 함수: 한글 재료 입력으로 주류 추천
+exports.getLiquorRecommendationsKorean = async (req, res) => {
+  try {
+    const { ingredient } = req.body;
+    const limit = Math.min(parseInt(req.body.limit || 5), 10);
+    
+    if (!ingredient) {
+      return res.status(400).json({ 
+        success: false, 
+        error: '한글 재료명을 입력해주세요' 
+      });
+    }
+    
+    const result = await findBestLiquorsForIngredient(ingredient, limit);
+    
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        error: '매칭되는 재료를 찾을 수 없습니다',
+        korean_input: ingredient
+      });
+    }
+    
+    const recommendations = result.recommendations.map(rec => ({
+      liquor_id: rec.liquor.nodeId,
+      liquor_name: rec.liquor.name,
+      score: rec.normalizedScore,
+      raw_score: rec.rawScore
+    }));
+    
+    return res.json({
+      success: true,
+      data: {
+        korean_input: ingredient,
+        ingredient_name: result.ingredient.name,
+        english_name: result.ingredient.name,
+        ingredient_node_id: result.ingredient.nodeId,
+        recommendations,
+        token_usage: {
+          gpt_calls_made: 0,
+          explanation: "Liquor recommendations without GPT explanation"
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in Korean liquor recommendations:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: '서버 오류가 발생했습니다' 
+    });
+  }
+};
+
+// 🆕 새로 추가된 함수: 재료 기반 주류 추천 (대체 엔드포인트)
+exports.getLiquorRecommendationsForIngredient = async (req, res) => {
+  try {
+    const { ingredient } = req.body;
+    const limit = Math.min(parseInt(req.body.limit || 5), 10);
+    
+    if (!ingredient) {
+      return res.status(400).json({ 
+        success: false, 
+        error: '재료명을 입력해주세요' 
+      });
+    }
+    
+    const result = await findBestLiquorsForIngredient(ingredient, limit);
+    
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        error: '매칭되는 재료를 찾을 수 없습니다',
+        input: ingredient
+      });
+    }
+    
+    const recommendations = result.recommendations.map(rec => ({
+      liquor: {
+        id: rec.liquor.nodeId,
+        name: rec.liquor.name
+      },
+      score: rec.normalizedScore,
+      raw_score: rec.rawScore,
+      compatibility_level: rec.normalizedScore >= 80 ? "강력 추천" : 
+                          rec.normalizedScore >= 60 ? "추천" : 
+                          rec.normalizedScore >= 40 ? "무난함" : "실험적"
+    }));
+    
+    return res.json({
+      success: true,
+      data: {
+        input: ingredient,
+        ingredient: {
+          id: result.ingredient.nodeId,
+          name: result.ingredient.name
+        },
+        liquor_recommendations: recommendations,
+        summary: {
+          total_tested: recommendations.length,
+          best_score: recommendations[0]?.score || 0
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in ingredient-to-liquor recommendations:', error);
     return res.status(500).json({ 
       success: false, 
       error: '서버 오류가 발생했습니다' 
