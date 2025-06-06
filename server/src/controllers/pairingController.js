@@ -110,3 +110,73 @@ const addGPTExplanationToBest = async (bestCombination, koreanLiquor, koreanIngr
     };
   }
 };
+
+// Export 함수들...
+exports.predictPairingScore = async (req, res) => {
+  try {
+    const { liquorId, ingredientId } = req.body;
+    
+    if (!liquorId || !ingredientId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Please provide both liquorId and ingredientId in the request body' 
+      });
+    }
+    
+    const liquorIdNum = parseInt(liquorId);
+    const ingredientIdNum = parseInt(ingredientId);
+    
+    const [liquor, ingredient] = await Promise.all([
+      Liquor.getById(liquorIdNum),
+      Ingredient.getById(ingredientIdNum)
+    ]);
+    
+    if (!liquor || !ingredient) {
+      return res.status(404).json({ 
+        success: false, 
+        error: `${!liquor ? 'Liquor' : 'Ingredient'} not found with the provided ID` 
+      });
+    }
+    
+    const score = await getPairingScore(liquorIdNum, ingredientIdNum);
+    
+    return res.json({
+      success: true,
+      data: {
+        score,
+        liquor: { id: liquor.id, name: liquor.name },
+        ingredient: { id: ingredient.id, name: ingredient.name }
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in predictPairingScore controller:', error);
+    return res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
+exports.ratePairing = async (req, res) => {
+  try {
+    const { pairingId } = req.params;
+    const { rating } = req.body;
+    
+    if (!pairingId) {
+      return res.status(400).json({ success: false, error: 'Please provide a pairing ID' });
+    }
+    
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ success: false, error: 'Rating must be between 1 and 5' });
+    }
+    
+    const updatedPairing = await Pairing.updateRating(pairingId, rating);
+    
+    return res.json({
+      success: true,
+      data: updatedPairing
+    });
+    
+  } catch (error) {
+    console.error('Error in rate pairing controller:', error);
+    return res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
