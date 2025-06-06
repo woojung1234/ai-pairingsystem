@@ -147,6 +147,113 @@ async function getRecommendations(liquorId, limit = 3) {
 }
 
 /**
+ * 재료에 어울리는 술 추천 (새로운 기능)
+ * @param {number} ingredientId 
+ * @param {number} limit 
+ * @returns {Promise<object>}
+ */
+async function getLiquorRecommendations(ingredientId, limit = 3) {
+  console.log(`🍷 Getting liquor recommendations for ingredientId=${ingredientId}, limit=${limit}`);
+  
+  try {
+    // AI 서버에 재료 기반 추천 요청
+    const response = await fetch(`${AI_SERVER_URL}/recommend-liquors`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ingredient_id: parseInt(ingredientId),
+        limit: Math.min(parseInt(limit), 3),
+        use_gpt: true
+      }),
+    });
+
+    if (!response.ok) {
+      // AI 서버에 해당 엔드포인트가 없다면 수동으로 계산
+      return await calculateLiquorRecommendationsManually(ingredientId, limit);
+    }
+
+    const data = await response.json();
+    console.log(`🍷 Liquor recommendations received:`, data);
+    return data;
+  } catch (error) {
+    console.error('❌ Error getting liquor recommendations, trying manual calculation:', error);
+    // 실패시 수동 계산으로 fallback
+    return await calculateLiquorRecommendationsManually(ingredientId, limit);
+  }
+}
+
+/**
+ * 수동으로 재료에 어울리는 술 추천 계산
+ * @param {number} ingredientId 
+ * @param {number} limit 
+ * @returns {Promise<object>}
+ */
+async function calculateLiquorRecommendationsManually(ingredientId, limit = 3) {
+  console.log(`🔄 Manually calculating liquor recommendations for ingredientId=${ingredientId}`);
+  
+  try {
+    // 모든 주류 목록 가져오기
+    const liquorsResponse = await fetch(`${AI_SERVER_URL}/liquors`);
+    if (!liquorsResponse.ok) {
+      throw new Error('Failed to get liquors list');
+    }
+    const liquors = await liquorsResponse.json();
+    
+    console.log(`📋 Testing ${liquors.length} liquors for ingredient ${ingredientId}`);
+    
+    // 모든 주류에 대해 점수 계산
+    const scorePromises = liquors.map(async (liquor) => {
+      try {
+        const score = await getPairingScoreOnly(liquor.id, ingredientId);
+        return {
+          liquor_id: liquor.id,
+          liquor_name: liquor.name,
+          score: score,
+          success: true
+        };
+      } catch (error) {
+        console.error(`Error calculating score for liquor ${liquor.id}:`, error);
+        return {
+          liquor_id: liquor.id,
+          liquor_name: liquor.name,
+          score: -999,
+          success: false
+        };
+      }
+    });
+
+    const results = await Promise.allSettled(scorePromises);
+    
+    // 성공한 결과만 필터링하고 점수순으로 정렬
+    const validResults = results
+      .filter(result => result.status === 'fulfilled' && result.value.success)
+      .map(result => result.value)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
+
+    // 재료 정보 가져오기
+    const ingredientsResponse = await fetch(`${AI_SERVER_URL}/ingredients`);
+    const ingredients = await ingredientsResponse.json();
+    const ingredient = ingredients.find(ing => ing.id === ingredientId);
+    const ingredientName = ingredient ? ingredient.name : `Ingredient ${ingredientId}`;
+
+    return {
+      ingredient_id: ingredientId,
+      ingredient_name: ingredientName,
+      recommendations: validResults,
+      manual_calculation: true,
+      total_tested: liquors.length
+    };
+
+  } catch (error) {
+    console.error('❌ Error in manual liquor recommendation calculation:', error);
+    throw error;
+  }
+}
+
+/**
  * Get explanation for a pairing (기존 호환성)
  * @param {number} liquorId 
  * @param {number} ingredientId 
@@ -254,7 +361,8 @@ module.exports = {
   getPairingScore,           // 기존 호환성 (점수만 반환하도록 수정)
   getPairingScoreOnly,       // 새로운 점수 전용 함수
   getExplanationOnly,        // 새로운 설명 전용 함수
-  getRecommendations,
+  getRecommendations,        // 주류 → 재료 추천
+  getLiquorRecommendations,  // 재료 → 주류 추천 (새로운 기능)
   getExplanation,           // 기존 호환성
   testConnection,
   getLiquors,
