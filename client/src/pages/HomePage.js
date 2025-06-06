@@ -84,6 +84,16 @@ function HomePage() {
     }
   };
 
+  // 재료 추천 페이지로 이동
+  const handleIngredientRecommendation = () => {
+    navigate('/pairing?mode=ingredient-recommendation');
+  };
+
+  // 술 추천 페이지로 이동
+  const handleLiquorRecommendation = () => {
+    navigate('/pairing?mode=liquor-recommendation');
+  };
+
   // 슬라이더 설정
   const sliderSettings = {
     dots: false,
@@ -153,20 +163,84 @@ function HomePage() {
     maxWidth: '800px',
     margin: '0 auto'
   }}>
-    <h2 className="banner-title">마음에 딱 맞는 궁합이에요!</h2>
+    <h2 className="banner-title">완벽한 페어링 찾기</h2>
     
     <div className="banner-description">
-      당신이 좋아하는 술과 음식의 완벽한 조합을 찾아보세요.<br />
-      어떤 조합이 당신의 미각을 놀라게 할지 궁금하지 않으신가요?
+      좋아하는 주류나 음식을 입력하면 AI가 최적의 페어링을 추천해드립니다.
     </div>
     
-    <button 
-      className="explore-button"
-      onClick={handlePairingExplore}
-    >
-      <ExploreIcon className="explore-icon" />
-      완벽한 페어링 찾기
-    </button>
+    {/* 추천 버튼 그룹 */}
+    <div style={{ 
+      display: 'flex', 
+      gap: '15px', 
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+      marginTop: '30px'
+    }}>
+      <button 
+        className="explore-button"
+        onClick={handlePairingExplore}
+        style={{ 
+          backgroundColor: '#B71C1C',
+          border: 'none',
+          borderRadius: '25px',
+          padding: '12px 24px',
+          color: 'white',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '16px',
+          transition: 'all 0.3s ease'
+        }}
+      >
+        <ExploreIcon className="explore-icon" />
+        페어링 찾기
+      </button>
+      
+      <button 
+        className="explore-button"
+        onClick={handleIngredientRecommendation}
+        style={{ 
+          backgroundColor: '#C62828',
+          border: 'none',
+          borderRadius: '25px',
+          padding: '12px 24px',
+          color: 'white',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '16px',
+          transition: 'all 0.3s ease'
+        }}
+      >
+        🍽️ 재료 추천
+      </button>
+      
+      <button 
+        className="explore-button"
+        onClick={handleLiquorRecommendation}
+        style={{ 
+          backgroundColor: '#D32F2F',
+          border: 'none',
+          borderRadius: '25px',
+          padding: '12px 24px',
+          color: 'white',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '16px',
+          transition: 'all 0.3s ease'
+        }}
+      >
+        🍷 술 추천
+      </button>
+    </div>
   </div>
 </section>
       
