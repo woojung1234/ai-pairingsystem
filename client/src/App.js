@@ -10,11 +10,6 @@ import Footer from './components/Footer';
 // Pages
 import HomePage from './pages/HomePage';
 import PairingPage from './pages/PairingPage';
-import LiquorPage from './pages/LiquorPage';
-import LiquorDetailPage from './pages/LiquorDetailPage';
-import IngredientPage from './pages/IngredientPage';
-import IngredientDetailPage from './pages/IngredientDetailPage';
-import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -429,11 +424,6 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/pairing" element={<PairingPage />} />
-            <Route path="/liquors" element={<LiquorPage />} />
-            <Route path="/liquors/:id" element={<LiquorDetailPage />} />
-            <Route path="/ingredients" element={<IngredientPage />} />
-            <Route path="/ingredients/:id" element={<IngredientDetailPage />} />
-            <Route path="/about" element={<AboutPage />} />
             <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="*" element={<NotFoundPage />} />
