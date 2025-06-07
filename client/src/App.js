@@ -14,7 +14,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 
-// 와인 페어링 차트 스타일 테마
+// 모던한 와인 페어링 테마
 const theme = createTheme({
   palette: {
     primary: {
@@ -37,7 +37,7 @@ const theme = createTheme({
       paper: '#FEFCF7', // 더 밝은 카드 배경
     },
     text: {
-      primary: '#3E2723', // 어두운 갈색 텍스트
+      primary: '#2C2C2C', // 더 진한 회색
       secondary: '#5D4037',
     },
     divider: 'rgba(139, 69, 19, 0.2)', // 갈색 계열 구분선
@@ -50,95 +50,102 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+    fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
     h1: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
-      fontWeight: 700,
-      fontSize: '3.75rem',
-      letterSpacing: '0.02em',
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontWeight: 800,
+      fontSize: '3.5rem',
+      letterSpacing: '-0.02em',
       lineHeight: 1.1,
-      color: '#3E2723',
+      color: '#2C2C2C',
     },
     h2: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
-      fontWeight: 600,
-      fontSize: '3rem',
-      letterSpacing: '0.02em',
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontWeight: 700,
+      fontSize: '2.75rem',
+      letterSpacing: '-0.01em',
       lineHeight: 1.2,
-      color: '#3E2723',
+      color: '#2C2C2C',
     },
     h3: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
-      fontWeight: 600,
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontWeight: 700,
       fontSize: '2.25rem',
-      letterSpacing: '0.02em',
-      color: '#3E2723',
+      letterSpacing: '-0.01em',
+      color: '#2C2C2C',
     },
     h4: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
-      fontWeight: 500,
-      fontSize: '1.8rem',
-      color: '#3E2723',
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontWeight: 600,
+      fontSize: '1.75rem',
+      letterSpacing: '-0.005em',
+      color: '#2C2C2C',
     },
     h5: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
-      fontWeight: 500,
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontWeight: 600,
       fontSize: '1.4rem',
-      color: '#3E2723',
+      letterSpacing: '-0.005em',
+      color: '#2C2C2C',
     },
     h6: {
-      fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
-      fontWeight: 500,
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontWeight: 600,
       fontSize: '1.15rem',
-      color: '#3E2723',
+      letterSpacing: '-0.005em',
+      color: '#2C2C2C',
     },
     body1: {
-      fontFamily: "'Cormorant Garamond', 'Noto Sans KR', sans-serif",
-      fontSize: '1.1rem',
-      lineHeight: 1.7,
-      color: '#3E2723',
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontSize: '1rem',
+      lineHeight: 1.6,
+      color: '#2C2C2C',
+      fontWeight: 400,
     },
     body2: {
-      fontFamily: "'Cormorant Garamond', 'Noto Sans KR', sans-serif",
-      fontSize: '0.95rem',
-      lineHeight: 1.7,
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontSize: '0.9rem',
+      lineHeight: 1.6,
       color: '#5D4037',
+      fontWeight: 400,
     },
     subtitle1: {
-      fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
-      fontSize: '1.25rem',
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontSize: '1.1rem',
       fontWeight: 500,
-      letterSpacing: '0.02em',
+      letterSpacing: '-0.005em',
       color: '#5D4037',
     },
     subtitle2: {
-      fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
-      fontSize: '1.1rem',
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      fontSize: '1rem',
       fontWeight: 500,
-      letterSpacing: '0.02em',
+      letterSpacing: '-0.005em',
       color: '#5D4037',
     },
     button: {
-      fontFamily: "'Cormorant Garamond', 'Noto Sans KR', sans-serif",
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
       textTransform: 'none',
-      fontWeight: 500,
-      letterSpacing: '0.05em',
+      fontWeight: 600,
+      letterSpacing: '-0.005em',
     },
     overline: {
-      letterSpacing: '0.2em',
+      fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+      letterSpacing: '0.08em',
       textTransform: 'uppercase',
-      fontSize: '0.85rem',
+      fontSize: '0.75rem',
+      fontWeight: 600,
       color: '#8B4513',
     },
   },
   shape: {
-    borderRadius: 12, // 더 둥근 모서리
+    borderRadius: 16, // 더 둥근 모서리
   },
   components: {
     MuiCssBaseline: {
       styleOverrides: {
         '@global': {
-          '@import': "url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&family=Noto+Serif+KR:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500&display=swap')",
+          '@import': "url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap')",
         },
         'html, body': {
           scrollBehavior: 'smooth',
@@ -151,7 +158,8 @@ const theme = createTheme({
             radial-gradient(circle at 40% 40%, rgba(251, 248, 241, 0.6) 0%, transparent 50%)
           `,
           minHeight: '100vh',
-          color: '#3E2723',
+          color: '#2C2C2C',
+          fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
         },
         '&::-webkit-scrollbar': {
           width: '8px',
@@ -171,26 +179,26 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 25, // 둥근 버튼
-          padding: '0.85rem 2.5rem',
-          transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+          borderRadius: 12,
+          padding: '0.75rem 2rem',
+          transition: 'all 0.2s ease-in-out',
           fontWeight: 600,
-          position: 'relative',
-          overflow: 'hidden',
+          fontSize: '0.95rem',
           textTransform: 'none',
+          letterSpacing: '-0.005em',
         },
         contained: {
-          boxShadow: '0 4px 16px rgba(139, 69, 19, 0.2)',
+          boxShadow: '0 2px 8px rgba(139, 69, 19, 0.15)',
           '&:hover': {
-            boxShadow: '0 6px 20px rgba(139, 69, 19, 0.3)',
-            transform: 'translateY(-2px)',
+            boxShadow: '0 4px 16px rgba(139, 69, 19, 0.25)',
+            transform: 'translateY(-1px)',
           },
         },
         outlined: {
-          borderWidth: '2px',
+          borderWidth: '1.5px',
           '&:hover': {
-            borderWidth: '2px',
-            backgroundColor: 'rgba(139, 69, 19, 0.05)',
+            borderWidth: '1.5px',
+            backgroundColor: 'rgba(139, 69, 19, 0.04)',
           },
         },
         containedPrimary: {
@@ -214,9 +222,9 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          boxShadow: '0 2px 10px rgba(139, 69, 19, 0.1)',
+          boxShadow: '0 1px 3px rgba(139, 69, 19, 0.08)',
           borderBottom: 'none',
-          backdropFilter: 'blur(10px)',
+          backdropFilter: 'blur(12px)',
           backgroundColor: 'rgba(254, 252, 247, 0.95)',
         },
       },
@@ -225,16 +233,15 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: '#FEFCF7',
-          backgroundImage: 'linear-gradient(145deg, #FEFCF7 0%, #FAF7F0 100%)',
-          borderRadius: 16,
-          border: '1px solid rgba(139, 69, 19, 0.1)',
+          borderRadius: 20,
+          border: '1px solid rgba(139, 69, 19, 0.08)',
           overflow: 'hidden',
-          transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-          boxShadow: '0 4px 20px rgba(139, 69, 19, 0.08)',
+          transition: 'all 0.3s ease-in-out',
+          boxShadow: '0 2px 12px rgba(139, 69, 19, 0.06)',
           '&:hover': {
-            transform: 'translateY(-8px) scale(1.02)',
-            boxShadow: '0 15px 40px rgba(139, 69, 19, 0.15)',
-            borderColor: 'rgba(139, 69, 19, 0.2)',
+            transform: 'translateY(-4px)',
+            boxShadow: '0 8px 25px rgba(139, 69, 19, 0.12)',
+            borderColor: 'rgba(139, 69, 19, 0.15)',
           },
         },
       },
@@ -242,7 +249,7 @@ const theme = createTheme({
     MuiCardContent: {
       styleOverrides: {
         root: {
-          padding: '2rem',
+          padding: '1.5rem',
         },
       },
     },
@@ -250,23 +257,22 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: '#FEFCF7',
-          backgroundImage: 'none',
-          borderRadius: 12,
+          borderRadius: 16,
         },
         elevation1: {
-          boxShadow: '0 2px 14px rgba(139, 69, 19, 0.08)',
+          boxShadow: '0 1px 3px rgba(139, 69, 19, 0.08)',
         },
         elevation4: {
-          boxShadow: '0 8px 24px rgba(139, 69, 19, 0.12)',
+          boxShadow: '0 4px 12px rgba(139, 69, 19, 0.10)',
         },
       },
     },
     MuiDivider: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(139, 69, 19, 0.15)',
+          backgroundColor: 'rgba(139, 69, 19, 0.12)',
           '&::before, &::after': {
-            borderColor: 'rgba(139, 69, 19, 0.15)',
+            borderColor: 'rgba(139, 69, 19, 0.12)',
           },
         },
       },
@@ -276,24 +282,12 @@ const theme = createTheme({
         root: {
           color: '#8B4513',
           textDecoration: 'none',
-          position: 'relative',
-          transition: 'all 0.3s ease',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: -2,
-            left: 0,
-            width: 0,
-            height: '2px',
-            backgroundColor: '#8B4513',
-            transition: 'width 0.3s ease',
-          },
+          fontWeight: 500,
+          transition: 'all 0.2s ease',
           '&:hover': {
             color: '#A0522D',
-            textDecoration: 'none',
-            '&::after': {
-              width: '100%',
-            },
+            textDecoration: 'underline',
+            textUnderlineOffset: '3px',
           },
         },
       },
@@ -304,12 +298,13 @@ const theme = createTheme({
           '& .MuiOutlinedInput-root': {
             backgroundColor: '#FEFCF7',
             borderRadius: 12,
+            fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
             '& fieldset': {
-              borderColor: 'rgba(139, 69, 19, 0.2)',
-              transition: 'border-color 0.3s ease',
+              borderColor: 'rgba(139, 69, 19, 0.15)',
+              transition: 'border-color 0.2s ease',
             },
             '&:hover fieldset': {
-              borderColor: 'rgba(139, 69, 19, 0.4)',
+              borderColor: 'rgba(139, 69, 19, 0.3)',
             },
             '&.Mui-focused fieldset': {
               borderColor: '#8B4513',
@@ -317,7 +312,8 @@ const theme = createTheme({
             },
           },
           '& .MuiInputLabel-root': {
-            color: 'rgba(62, 39, 35, 0.7)',
+            color: 'rgba(44, 44, 44, 0.7)',
+            fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
             '&.Mui-focused': {
               color: '#8B4513',
             },
@@ -328,16 +324,17 @@ const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 20,
+          borderRadius: 12,
           fontWeight: 500,
           fontSize: '0.85rem',
+          fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
         },
         filled: {
-          backgroundColor: 'rgba(139, 69, 19, 0.1)',
+          backgroundColor: 'rgba(139, 69, 19, 0.08)',
           color: '#8B4513',
         },
         outlined: {
-          borderColor: 'rgba(139, 69, 19, 0.3)',
+          borderColor: 'rgba(139, 69, 19, 0.2)',
           color: '#8B4513',
         },
       },
@@ -356,7 +353,8 @@ const theme = createTheme({
             color: '#5D4037',
             fontWeight: 500,
             textTransform: 'none',
-            fontSize: '1.1rem',
+            fontSize: '1rem',
+            fontFamily: "'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
           },
           '& .MuiTab-root.Mui-selected': {
             color: '#8B4513',
@@ -365,6 +363,7 @@ const theme = createTheme({
           '& .MuiTabs-indicator': {
             backgroundColor: '#8B4513',
             height: 3,
+            borderRadius: '2px 2px 0 0',
           },
         },
       },
