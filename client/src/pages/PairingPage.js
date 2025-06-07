@@ -21,6 +21,110 @@ function TabPanel({ children, value, index }) {
   );
 }
 
+// 막대 그래프 컴포넌트
+const PairingScoreChart = ({ recommendations, title = "페어링 점수 비교", tabValue = 1 }) => {
+  const theme = useTheme();
+  
+  if (!recommendations || recommendations.length === 0) return null;
+  
+  // 점수 기준으로 정렬하고 상위 5개만 선택
+  const sortedRecommendations = [...recommendations]
+    .sort((a, b) => (getScoreOutOf100(b.score) - getScoreOutOf100(a.score)))
+    .slice(0, 5);
+  
+  const getItemName = (rec) => {
+    return rec?.ingredient_name || rec?.liquor_name || rec?.ingredient || rec?.liquor || rec?.name || '알 수 없음';
+  };
+
+  return (
+    <Paper 
+      elevation={2} 
+      sx={{ 
+        p: 3, 
+        mt: 4, 
+        borderRadius: 2,
+        background: 'linear-gradient(135deg, rgba(248, 245, 238, 0.8) 0%, rgba(245, 241, 232, 0.9) 100%)'
+      }}
+    >
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3, textAlign: 'center' }}>
+        📊 {title}
+      </Typography>
+      
+      <Box sx={{ width: '100%' }}>
+        {sortedRecommendations.map((rec, index) => {
+          const score = getScoreOutOf100(rec.score);
+          const itemName = getItemName(rec);
+          const translatedName = tabValue === 1 ? translateIngredientName(itemName) : translateLiquorName(itemName);
+          const barColor = getScoreColor(score);
+          const barWidth = score;
+          
+          return (
+            <Box key={index} sx={{ mb: 2.5 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontWeight: 700, 
+                      color: barColor,
+                      minWidth: '24px',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    #{index + 1}
+                  </Typography>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      fontWeight: 600,
+                      fontSize: '0.95rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    {translatedName}
+                  </Typography>
+                </Box>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 600,
+                    color: barColor,
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  {score}점
+                </Typography>
+              </Box>
+              
+              <Box 
+                sx={{ 
+                  width: '100%', 
+                  height: 20, 
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  position: 'relative'
+                }}
+              >
+                <Box
+                  sx={{
+                    width: `${barWidth}%`,
+                    height: '100%',
+                    background: `linear-gradient(90deg, ${barColor}, ${alpha(barColor, 0.7)})`,
+                    borderRadius: 2,
+                    transition: 'width 0.8s ease-in-out',
+                    position: 'relative'
+                  }}
+                />
+              </Box>
+            </Box>
+          );
+        })}
+      </Box>
+    </Paper>
+  );
+};
+
 // 영어 재료명을 한글로 번역하는 함수
 const translateIngredientName = (englishName) => {
   if (!englishName || typeof englishName !== 'string') {
@@ -43,7 +147,8 @@ const translateIngredientName = (englishName) => {
     'coffee': '커피', 'apple': '사과', 'banana': '바나나', 'tomato': '토마토',
     'onion': '양파', 'garlic': '마늘', 'basil': '바질', 'olive_oil': '올리브 오일',
     'salt': '소금', 'pepper': '후추', 'butter': '버터', 'cream': '크림',
-    'milk': '우유', 'egg': '계란', 'bread': '빵', 'rice': '쌀'
+    'milk': '우유', 'egg': '계란', 'bread': '빵', 'rice': '쌀',
+    'shortcrust_pastry': '쇼트크러스트 페이스트리', 'mushroom': '버섯', 'floury_potato': '감자'
   };
 
   return translations[englishName] || englishName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -70,6 +175,42 @@ const translateLiquorName = (englishName) => {
   };
 
   return translations[englishName] || englishName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
+// 점수 관련 함수들을 전역으로 이동
+const getScoreOutOf100 = (score) => {
+  if (!score || isNaN(score)) return 0;
+  return Math.round(Math.max(0, Math.min(100, score)));
+};
+
+const getStarRating = (score) => {
+  const normalizedScore = getScoreOutOf100(score);
+  if (normalizedScore >= 90) return 5;
+  if (normalizedScore >= 75) return 4;
+  if (normalizedScore >= 60) return 3;
+  if (normalizedScore >= 40) return 2;
+  if (normalizedScore >= 20) return 1;
+  return 0;
+};
+
+const getScoreDescription = (score) => {
+  const normalizedScore = getScoreOutOf100(score);
+  if (normalizedScore >= 90) return '매우 훌륭함';
+  if (normalizedScore >= 75) return '훌륭함';
+  if (normalizedScore >= 60) return '좋음';
+  if (normalizedScore >= 40) return '보통';
+  if (normalizedScore >= 20) return '아쉬움';
+  return '매우 아쉬움';
+};
+
+const getScoreColor = (score) => {
+  const normalizedScore = getScoreOutOf100(score);
+  if (normalizedScore >= 90) return '#2e7d32';
+  if (normalizedScore >= 75) return '#388e3c';
+  if (normalizedScore >= 60) return '#689f38';
+  if (normalizedScore >= 40) return '#f57c00';
+  if (normalizedScore >= 20) return '#e64a19';
+  return '#d32f2f';
 };
 
 function PairingPage() {
@@ -165,41 +306,6 @@ function PairingPage() {
     setError(null);
     setActiveView('search');
     navigate('/pairing');
-  };
-
-  const getScoreOutOf100 = (score) => {
-    if (!score || isNaN(score)) return 0;
-    return Math.round(Math.max(0, Math.min(100, score)));
-  };
-
-  const getStarRating = (score) => {
-    const normalizedScore = getScoreOutOf100(score);
-    if (normalizedScore >= 90) return 5;
-    if (normalizedScore >= 75) return 4;
-    if (normalizedScore >= 60) return 3;
-    if (normalizedScore >= 40) return 2;
-    if (normalizedScore >= 20) return 1;
-    return 0;
-  };
-
-  const getScoreDescription = (score) => {
-    const normalizedScore = getScoreOutOf100(score);
-    if (normalizedScore >= 90) return '매우 훌륭함';
-    if (normalizedScore >= 75) return '훌륭함';
-    if (normalizedScore >= 60) return '좋음';
-    if (normalizedScore >= 40) return '보통';
-    if (normalizedScore >= 20) return '아쉬움';
-    return '매우 아쉬움';
-  };
-
-  const getScoreColor = (score) => {
-    const normalizedScore = getScoreOutOf100(score);
-    if (normalizedScore >= 90) return '#2e7d32';
-    if (normalizedScore >= 75) return '#388e3c';
-    if (normalizedScore >= 60) return '#689f38';
-    if (normalizedScore >= 40) return '#f57c00';
-    if (normalizedScore >= 20) return '#e64a19';
-    return '#d32f2f';
   };
 
   const getIngredientName = (rec) => {
@@ -524,6 +630,15 @@ function PairingPage() {
                       })}
                     </Grid>
 
+                    {/* 막대 그래프 추가 */}
+                    {pairingResults.recommendations && pairingResults.recommendations.length > 0 && (
+                      <PairingScoreChart 
+                        recommendations={pairingResults.recommendations} 
+                        title="재료별 페어링 점수 비교"
+                        tabValue={1}
+                      />
+                    )}
+
                     {(!pairingResults.recommendations || pairingResults.recommendations.length === 0) && (
                       <Box sx={{ textAlign: 'center', py: 4 }}>
                         <Typography variant="h6" color="text.secondary">추천 결과가 없습니다.</Typography>
@@ -603,6 +718,15 @@ function PairingPage() {
                         );
                       })}
                     </Grid>
+
+                    {/* 막대 그래프 추가 */}
+                    {pairingResults.recommendations && pairingResults.recommendations.length > 0 && (
+                      <PairingScoreChart 
+                        recommendations={pairingResults.recommendations} 
+                        title="주류별 페어링 점수 비교"
+                        tabValue={2}
+                      />
+                    )}
 
                     {(!pairingResults.recommendations || pairingResults.recommendations.length === 0) && (
                       <Box sx={{ textAlign: 'center', py: 4 }}>
