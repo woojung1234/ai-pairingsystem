@@ -1,23 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Container,
+  Typography,
+  Box,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Button,
+  Paper,
+  IconButton,
+} from '@mui/material';
+import { 
+  LocalBar as LocalBarIcon,
+  Restaurant as RestaurantIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  TrendingUp as TrendingUpIcon,
+  ArrowForward as ArrowForwardIcon,
+  Wine as WineIcon,
+  Fastfood as FastfoodIcon,
+} from '@mui/icons-material';
 import axios from 'axios';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import ExploreIcon from '@mui/icons-material/Explore';
-import '../styles/styles.css';
 
 function HomePage() {
   const navigate = useNavigate();
   const [liquors, setLiquors] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // 슬라이더 참조 생성
-  const liquorSliderRef = useRef(null);
-  const foodSliderRef = useRef(null);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -39,8 +49,8 @@ function HomePage() {
           ? ingredientsResponse.data 
           : (ingredientsResponse.data.data || []);
         
-        setLiquors(liquorsData);
-        setIngredients(ingredientsData);
+        setLiquors(liquorsData.slice(0, 8)); // 상위 8개만
+        setIngredients(ingredientsData.slice(0, 8)); // 상위 8개만
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -54,6 +64,8 @@ function HomePage() {
           { id: 4, name: "진", type: "진", imageUrl: "/images/gin.jpg" },
           { id: 5, name: "보드카", type: "보드카", imageUrl: "/images/vodka.jpg" },
           { id: 6, name: "소주", type: "소주", imageUrl: "/images/soju.jpg" },
+          { id: 7, name: "사케", type: "사케", imageUrl: "/images/sake.jpg" },
+          { id: 8, name: "맥주", type: "맥주", imageUrl: "/images/beer.jpg" },
         ]);
         
         setIngredients([
@@ -63,6 +75,8 @@ function HomePage() {
           { id: 4, name: "디저트", category: "디저트", imageUrl: "/images/dessert.jpg" },
           { id: 5, name: "파스타", category: "면류", imageUrl: "/images/pasta.jpg" },
           { id: 6, name: "샐러드", category: "채소", imageUrl: "/images/salad.jpg" },
+          { id: 7, name: "과일", category: "과일", imageUrl: "/images/fruit.jpg" },
+          { id: 8, name: "견과류", category: "견과류", imageUrl: "/images/nuts.jpg" },
         ]);
       }
     };
@@ -78,258 +92,347 @@ function HomePage() {
   // 카테고리 카드 클릭 핸들러
   const handleCategoryClick = (item, type) => {
     if (type === 'liquor') {
-      navigate(`/pairing?liquorId=${item.id}`);
+      navigate(`/liquors/${item.id}`);
     } else {
-      navigate(`/pairing?ingredientId=${item.id}`);
+      navigate(`/ingredients/${item.id}`);
     }
   };
 
-  // 재료 추천 페이지로 이동
-  const handleIngredientRecommendation = () => {
-    navigate('/pairing?mode=ingredient-recommendation');
-  };
-
-  // 술 추천 페이지로 이동
-  const handleLiquorRecommendation = () => {
-    navigate('/pairing?mode=liquor-recommendation');
-  };
-
-  // 슬라이더 설정
-  const sliderSettings = {
-    dots: false,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    responsive: [
-      {
-        breakpoint: 992,
-        settings: {
-          slidesToShow: 3,
-        }
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 2,
-        }
-      },
-      {
-        breakpoint: 576,
-        settings: {
-          slidesToShow: 1,
-        }
-      }
-    ]
-  };
-
   return (
-    <div>
-      {/* 페어링 배너 - wine-glass.png를 배경으로 설정 */}
-      <section className="pairing-banner" style={{
-  position: 'relative',
-  overflow: 'hidden',
-  width: '100vw', // 뷰포트 너비의 100%로 확장
-  marginLeft: 'calc(-50vw + 50%)', // 화면 중앙에서 양쪽으로 확장
-  backgroundImage: 'url(/images/wine-bg.jpg)', // 배경 이미지 추가
-  backgroundSize: 'contain',
-  opacity: 1.0,
-  backgroundPosition: 'center',
-  boxShadow: 'inset 0 0 0 2000px rgba(0, 0, 0, 0.7)' // 어두운 오버레이
-}}>
-  {/* 와인잔 이미지는 그대로 중앙에 유지 */}
-  <div style={{
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundImage: 'url(/images/wine-glass.png)',
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'center center',
-    backgroundSize: 'contain',
-    opacity: 0.5,
-    filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.15)) contrast(1.2)',
-    zIndex: 0
-  }}></div>
-  
-  {/* 배너 콘텐츠 */}
-  <div style={{ 
-    position: 'relative', 
-    zIndex: 1,
-    padding: '0 20px',
-    maxWidth: '800px',
-    margin: '0 auto'
-  }}>
-    <h2 className="banner-title">완벽한 페어링 찾기</h2>
-    
-    <div className="banner-description">
-      좋아하는 주류나 음식을 입력하면 AI가 최적의 페어링을 추천해드립니다.
-    </div>
-    
-    {/* 추천 버튼 그룹 */}
-    <div style={{ 
-      display: 'flex', 
-      gap: '15px', 
-      justifyContent: 'center',
-      flexWrap: 'wrap',
-      marginTop: '30px'
-    }}>
-      <button 
-        className="explore-button"
-        onClick={handlePairingExplore}
-        style={{ 
-          backgroundColor: '#B71C1C',
-          border: 'none',
-          borderRadius: '25px',
-          padding: '12px 24px',
-          color: 'white',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '16px',
-          transition: 'all 0.3s ease'
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Hero Section - 와인 페어링 차트 스타일 */}
+      <Paper 
+        elevation={0}
+        sx={{ 
+          mb: 6,
+          py: 8,
+          px: 4,
+          borderRadius: 4,
+          background: `
+            linear-gradient(135deg, 
+              rgba(245, 241, 232, 0.9) 0%, 
+              rgba(248, 245, 238, 0.95) 50%, 
+              rgba(251, 248, 241, 0.9) 100%
+            ),
+            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%23D4AF37" opacity="0.1"/><circle cx="80" cy="40" r="1.5" fill="%238B4513" opacity="0.1"/><circle cx="40" cy="70" r="1" fill="%23228B22" opacity="0.1"/><circle cx="70" cy="80" r="2.5" fill="%23B8860B" opacity="0.1"/></svg>')
+          `,
+          backgroundSize: '100px 100px',
+          border: '2px solid rgba(139, 69, 19, 0.1)',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(139, 69, 19, 0.02) 10px, rgba(139, 69, 19, 0.02) 20px)',
+            pointerEvents: 'none',
+          }
         }}
       >
-        <ExploreIcon className="explore-icon" />
-        페어링 찾기
-      </button>
-      
-      <button 
-        className="explore-button"
-        onClick={handleIngredientRecommendation}
-        style={{ 
-          backgroundColor: '#C62828',
-          border: 'none',
-          borderRadius: '25px',
-          padding: '12px 24px',
-          color: 'white',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '16px',
-          transition: 'all 0.3s ease'
-        }}
-      >
-        🍽️ 재료 추천
-      </button>
-      
-      <button 
-        className="explore-button"
-        onClick={handleLiquorRecommendation}
-        style={{ 
-          backgroundColor: '#D32F2F',
-          border: 'none',
-          borderRadius: '25px',
-          padding: '12px 24px',
-          color: 'white',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '16px',
-          transition: 'all 0.3s ease'
-        }}
-      >
-        🍷 술 추천
-      </button>
-    </div>
-  </div>
-</section>
-      
-      {/* 주류 카테고리 슬라이더 */}
-      <section className="category-slider">
-        {/* 제목 */}
-        <h3 className="category-title">주류 카테고리</h3>
+        <Box textAlign="center" position="relative" zIndex={1}>
+          {/* 제목에 아이콘들 추가 */}
+          <Box display="flex" justifyContent="center" alignItems="center" gap={2} mb={2}>
+            <WineIcon sx={{ fontSize: 40, color: '#8B4513' }} />
+            <Typography 
+              variant="h2" 
+              component="h1" 
+              sx={{ 
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #654321 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: '2px 2px 4px rgba(139, 69, 19, 0.1)',
+              }}
+            >
+              AI 와인 & 푸드 페어링
+            </Typography>
+            <FastfoodIcon sx={{ fontSize: 40, color: '#228B22' }} />
+          </Box>
+          
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              mb: 4,
+              color: '#5D4037',
+              maxWidth: '600px',
+              mx: 'auto',
+              lineHeight: 1.6,
+              fontWeight: 400,
+            }}
+          >
+            완벽한 조화를 이루는 주류와 음식의 궁합을 AI가 찾아드립니다
+          </Typography>
+
+          {/* 버튼 그룹 - 와인 테마 색상 */}
+          <Box display="flex" gap={3} justifyContent="center" flexWrap="wrap">
+            <Button
+              variant="contained"
+              size="large"
+              onClick={handlePairingExplore}
+              startIcon={<AutoAwesomeIcon />}
+              sx={{
+                fontSize: '1.1rem',
+                py: 1.5,
+                px: 4,
+                background: 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #A0522D 0%, #8B4513 100%)',
+                  transform: 'translateY(-2px)',
+                },
+              }}
+            >
+              페어링 찾기
+            </Button>
+            
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => navigate('/liquors')}
+              startIcon={<LocalBarIcon />}
+              sx={{
+                fontSize: '1.1rem',
+                py: 1.5,
+                px: 4,
+                borderColor: '#228B22',
+                color: '#228B22',
+                '&:hover': {
+                  borderColor: '#32CD32',
+                  backgroundColor: 'rgba(34, 139, 34, 0.05)',
+                },
+              }}
+            >
+              주류 탐색
+            </Button>
+            
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => navigate('/ingredients')}
+              startIcon={<RestaurantIcon />}
+              sx={{
+                fontSize: '1.1rem',
+                py: 1.5,
+                px: 4,
+                borderColor: '#B8860B',
+                color: '#B8860B',
+                '&:hover': {
+                  borderColor: '#DAA520',
+                  backgroundColor: 'rgba(184, 134, 11, 0.05)',
+                },
+              }}
+            >
+              음식 탐색
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* 주류 카테고리 섹션 */}
+      <Box mb={6}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 600,
+              color: '#3E2723',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
+            <LocalBarIcon sx={{ color: '#8B4513' }} />
+            인기 주류
+          </Typography>
+          <Button
+            endIcon={<ArrowForwardIcon />}
+            onClick={() => navigate('/liquors')}
+            sx={{ color: '#8B4513' }}
+          >
+            전체 보기
+          </Button>
+        </Box>
         
-        {/* 슬라이더 및 화살표 */}
-        <div style={{ position: 'relative', padding: '0 45px' }}>
-          {/* 왼쪽 화살표 */}
-          <div 
-            className="slider-arrow left"
-            onClick={() => liquorSliderRef.current?.slickPrev()}
+        <Grid container spacing={3}>
+          {liquors.map((liquor) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={liquor.id}>
+              <Card 
+                sx={{ 
+                  cursor: 'pointer',
+                  height: '100%',
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    background: 'linear-gradient(90deg, #8B4513, #A0522D, #654321)',
+                    borderRadius: '16px 16px 0 0',
+                  }
+                }}
+                onClick={() => handleCategoryClick(liquor, 'liquor')}
+              >
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={liquor.imageUrl || 'https://via.placeholder.com/300x200?text=Wine'}
+                  alt={liquor.name}
+                  sx={{ 
+                    objectFit: 'cover',
+                    filter: 'sepia(10%) saturate(110%)',
+                  }}
+                />
+                <CardContent sx={{ pb: 2 }}>
+                  <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
+                    {liquor.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {liquor.type}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* 음식 카테고리 섹션 */}
+      <Box mb={6}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 600,
+              color: '#3E2723',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
           >
-            <ArrowBackIosNewIcon className="slider-arrow-icon" fontSize="small" />
-          </div>
-          
-          {/* 슬라이더 */}
-          <Slider ref={liquorSliderRef} {...sliderSettings}>
-            {liquors.map((liquor) => (
-              <div key={liquor.id}>
-                <div 
-                  className="category-card"
-                  onClick={() => handleCategoryClick(liquor, 'liquor')}
-                  style={{ margin: '0 8px' }}
-                >
-                  <img src={liquor.imageUrl} alt={liquor.name} />
-                  <div className="category-name">
-                    <span>{liquor.name}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </Slider>
-          
-          {/* 오른쪽 화살표 */}
-          <div 
-            className="slider-arrow right"
-            onClick={() => liquorSliderRef.current?.slickNext()}
+            <RestaurantIcon sx={{ color: '#228B22' }} />
+            인기 음식
+          </Typography>
+          <Button
+            endIcon={<ArrowForwardIcon />}
+            onClick={() => navigate('/ingredients')}
+            sx={{ color: '#228B22' }}
           >
-            <ArrowForwardIosIcon className="slider-arrow-icon" fontSize="small" />
-          </div>
-        </div>
-      </section>
-      
-      {/* 음식 카테고리 슬라이더 */}
-      <section className="category-slider">
-        {/* 제목 */}
-        <h3 className="category-title">음식 카테고리</h3>
+            전체 보기
+          </Button>
+        </Box>
         
-        {/* 슬라이더 및 화살표 */}
-        <div style={{ position: 'relative', padding: '0 45px' }}>
-          {/* 왼쪽 화살표 */}
-          <div 
-            className="slider-arrow left"
-            onClick={() => foodSliderRef.current?.slickNext()}
-          >
-            <ArrowBackIosNewIcon className="slider-arrow-icon" fontSize="small" />
-          </div>
+        <Grid container spacing={3}>
+          {ingredients.map((ingredient) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={ingredient.id}>
+              <Card 
+                sx={{ 
+                  cursor: 'pointer',
+                  height: '100%',
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    background: 'linear-gradient(90deg, #228B22, #32CD32, #006400)',
+                    borderRadius: '16px 16px 0 0',
+                  }
+                }}
+                onClick={() => handleCategoryClick(ingredient, 'ingredient')}
+              >
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={ingredient.imageUrl || 'https://via.placeholder.com/300x200?text=Food'}
+                  alt={ingredient.name}
+                  sx={{ 
+                    objectFit: 'cover',
+                    filter: 'sepia(5%) saturate(105%)',
+                  }}
+                />
+                <CardContent sx={{ pb: 2 }}>
+                  <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
+                    {ingredient.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {ingredient.category}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* 특징 섹션 - 와인 페어링 차트 스타일 */}
+      <Paper 
+        elevation={0}
+        sx={{ 
+          py: 6,
+          px: 4,
+          borderRadius: 4,
+          background: 'linear-gradient(135deg, rgba(248, 245, 238, 0.8) 0%, rgba(245, 241, 232, 0.9) 100%)',
+          border: '1px solid rgba(139, 69, 19, 0.1)',
+        }}
+      >
+        <Typography 
+          variant="h4" 
+          textAlign="center" 
+          sx={{ 
+            mb: 4,
+            fontWeight: 600,
+            color: '#3E2723',
+          }}
+        >
+          왜 AI 페어링인가요?
+        </Typography>
+        
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={4}>
+            <Box textAlign="center" sx={{ p: 3 }}>
+              <AutoAwesomeIcon sx={{ fontSize: 48, color: '#8B4513', mb: 2 }} />
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                AI 기반 분석
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                수천 가지 조합을 분석하여 과학적으로 검증된 최적의 페어링을 제안합니다
+              </Typography>
+            </Box>
+          </Grid>
           
-          {/* 슬라이더 */}
-          <Slider ref={foodSliderRef} {...sliderSettings}>
-            {ingredients.map((ingredient) => (
-              <div key={ingredient.id}>
-                <div 
-                  className="category-card"
-                  onClick={() => handleCategoryClick(ingredient, 'food')}
-                  style={{ margin: '0 8px' }}
-                >
-                  <img src={ingredient.imageUrl} alt={ingredient.name} />
-                  <div className="category-name">
-                    <span>{ingredient.name}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </Slider>
+          <Grid item xs={12} md={4}>
+            <Box textAlign="center" sx={{ p: 3 }}>
+              <TrendingUpIcon sx={{ fontSize: 48, color: '#228B22', mb: 2 }} />
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                개인 맞춤형
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                개인의 취향과 선호도를 학습하여 점점 더 정확한 추천을 제공합니다
+              </Typography>
+            </Box>
+          </Grid>
           
-          {/* 오른쪽 화살표 */}
-          <div 
-            className="slider-arrow right"
-            onClick={() => foodSliderRef.current?.slickNext()}
-          >
-            <ArrowForwardIosIcon className="slider-arrow-icon" fontSize="small" />
-          </div>
-        </div>
-      </section>
-    </div>
+          <Grid item xs={12} md={4}>
+            <Box textAlign="center" sx={{ p: 3 }}>
+              <WineIcon sx={{ fontSize: 48, color: '#B8860B', mb: 2 }} />
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                전문가 수준
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                소믈리에와 셰프들의 지식을 바탕으로 한 전문적인 페어링 정보를 제공합니다
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+    </Container>
   );
 }
 
