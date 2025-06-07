@@ -184,17 +184,28 @@ function PairingPage() {
     return Math.round(Math.min(normalizedScore, 100));
   };
 
+  // 개선된 별점 시스템: 점수 구간별 별점 매핑
   const getStarRating = (score) => {
-    if (!score || isNaN(score)) return 0;
-    let normalizedScore = score;
-    if (score > 10) {
-      normalizedScore = (score / 10) * 5;
-    } else if (score <= 1) {
-      normalizedScore = score * 5;
-    } else if (score <= 10) {
-      normalizedScore = (score / 10) * 5;
-    }
-    return Math.min(normalizedScore, 5);
+    const normalizedScore = getScoreOutOf100(score);
+    
+    if (normalizedScore >= 81) return 5;  // 81-100점: 별 5개
+    if (normalizedScore >= 61) return 4;  // 61-80점: 별 4개
+    if (normalizedScore >= 41) return 3;  // 41-60점: 별 3개
+    if (normalizedScore >= 21) return 2;  // 21-40점: 별 2개
+    if (normalizedScore >= 1) return 1;   // 1-20점: 별 1개
+    return 0;  // 0점: 별 0개
+  };
+
+  // 점수에 따른 평가 문구
+  const getScoreDescription = (score) => {
+    const normalizedScore = getScoreOutOf100(score);
+    
+    if (normalizedScore >= 81) return '매우 훌륭함';
+    if (normalizedScore >= 61) return '좋음';
+    if (normalizedScore >= 41) return '보통';
+    if (normalizedScore >= 21) return '아쉬움';
+    if (normalizedScore >= 1) return '별로';
+    return '매우 아쉬움';
   };
 
   const getIngredientName = (rec) => {
@@ -209,7 +220,6 @@ function PairingPage() {
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ 
         py: 12, 
         backgroundColor: alpha(theme.palette.primary.main, 0.05),
@@ -227,28 +237,12 @@ function PairingPage() {
         </Container>
       </Box>
 
-      {/* Search */}
       <Container maxWidth="lg" sx={{ my: 8 }}>
         <Paper elevation={3} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2 }}>
           <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-            <Tab 
-              label="페어링 분석" 
-              icon={<WineBarIcon />}
-              iconPosition="start"
-              sx={{ minHeight: 64, fontSize: '1.1rem' }}
-            />
-            <Tab 
-              label="재료 추천" 
-              icon={<RestaurantIcon />}
-              iconPosition="start"
-              sx={{ minHeight: 64, fontSize: '1.1rem' }}
-            />
-            <Tab 
-              label="술 추천" 
-              icon={<LocalBarIcon />}
-              iconPosition="start"
-              sx={{ minHeight: 64, fontSize: '1.1rem' }}
-            />
+            <Tab label="페어링 분석" icon={<WineBarIcon />} iconPosition="start" sx={{ minHeight: 64, fontSize: '1.1rem' }} />
+            <Tab label="재료 추천" icon={<RestaurantIcon />} iconPosition="start" sx={{ minHeight: 64, fontSize: '1.1rem' }} />
+            <Tab label="술 추천" icon={<LocalBarIcon />} iconPosition="start" sx={{ minHeight: 64, fontSize: '1.1rem' }} />
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
@@ -264,40 +258,24 @@ function PairingPage() {
             <Grid container spacing={3}>
               <Grid item xs={12} md={5}>
                 <TextField
-                  fullWidth
-                  label="주류"
-                  placeholder="예: 위스키, 와인, 맥주, 소주"
-                  value={koreanLiquor}
-                  onChange={(e) => setKoreanLiquor(e.target.value)}
-                  disabled={searching}
-                  InputProps={{ 
-                    startAdornment: <WineBarIcon sx={{ mr: 1, color: 'primary.main' }} />,
-                  }}
+                  fullWidth label="주류" placeholder="예: 위스키, 와인, 맥주, 소주"
+                  value={koreanLiquor} onChange={(e) => setKoreanLiquor(e.target.value)} disabled={searching}
+                  InputProps={{ startAdornment: <WineBarIcon sx={{ mr: 1, color: 'primary.main' }} /> }}
                   sx={{ '& .MuiInputBase-root': { height: 64 } }}
                 />
               </Grid>
               <Grid item xs={12} md={5}>
                 <TextField
-                  fullWidth
-                  label="재료"
-                  placeholder="예: 치즈, 초콜릿, 고기, 해산물"
-                  value={koreanIngredient}
-                  onChange={(e) => setKoreanIngredient(e.target.value)}
-                  disabled={searching}
-                  InputProps={{ 
-                    startAdornment: <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />,
-                  }}
+                  fullWidth label="재료" placeholder="예: 치즈, 초콜릿, 고기, 해산물"
+                  value={koreanIngredient} onChange={(e) => setKoreanIngredient(e.target.value)} disabled={searching}
+                  InputProps={{ startAdornment: <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} /> }}
                   sx={{ '& .MuiInputBase-root': { height: 64 } }}
                 />
               </Grid>
               <Grid item xs={12} md={2}>
                 <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  sx={{ height: 64 }}
-                  onClick={handleKoreanSearch}
-                  disabled={searching || !koreanLiquor || !koreanIngredient}
+                  variant="contained" fullWidth size="large" sx={{ height: 64 }}
+                  onClick={handleKoreanSearch} disabled={searching || !koreanLiquor || !koreanIngredient}
                   startIcon={searching ? <CircularProgress size={20} /> : <SearchIcon />}
                 >
                   {searching ? '분석 중...' : '분석하기'}
@@ -319,26 +297,16 @@ function PairingPage() {
             <Grid container spacing={3}>
               <Grid item xs={12} md={8}>
                 <TextField
-                  fullWidth
-                  label="주류"
-                  placeholder="예: 위스키, 와인, 맥주, 소주, 진, 럼"
-                  value={koreanLiquor}
-                  onChange={(e) => setKoreanLiquor(e.target.value)}
-                  disabled={searching}
-                  InputProps={{ 
-                    startAdornment: <WineBarIcon sx={{ mr: 1, color: 'primary.main' }} />,
-                  }}
+                  fullWidth label="주류" placeholder="예: 위스키, 와인, 맥주, 소주, 진, 럼"
+                  value={koreanLiquor} onChange={(e) => setKoreanLiquor(e.target.value)} disabled={searching}
+                  InputProps={{ startAdornment: <WineBarIcon sx={{ mr: 1, color: 'primary.main' }} /> }}
                   sx={{ '& .MuiInputBase-root': { height: 64 } }}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
                 <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  sx={{ height: 64 }}
-                  onClick={handleKoreanSearch}
-                  disabled={searching || !koreanLiquor}
+                  variant="contained" fullWidth size="large" sx={{ height: 64 }}
+                  onClick={handleKoreanSearch} disabled={searching || !koreanLiquor}
                   startIcon={searching ? <CircularProgress size={20} /> : <StarIcon />}
                 >
                   {searching ? '추천 중...' : '추천받기'}
@@ -360,26 +328,16 @@ function PairingPage() {
             <Grid container spacing={3}>
               <Grid item xs={12} md={8}>
                 <TextField
-                  fullWidth
-                  label="재료"
-                  placeholder="예: 치즈, 초콜릿, 스테이크, 해산물, 디저트"
-                  value={koreanIngredient}
-                  onChange={(e) => setKoreanIngredient(e.target.value)}
-                  disabled={searching}
-                  InputProps={{ 
-                    startAdornment: <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />,
-                  }}
+                  fullWidth label="재료" placeholder="예: 치즈, 초콜릿, 스테이크, 해산물, 디저트"
+                  value={koreanIngredient} onChange={(e) => setKoreanIngredient(e.target.value)} disabled={searching}
+                  InputProps={{ startAdornment: <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} /> }}
                   sx={{ '& .MuiInputBase-root': { height: 64 } }}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
                 <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  sx={{ height: 64 }}
-                  onClick={handleKoreanSearch}
-                  disabled={searching || !koreanIngredient}
+                  variant="contained" fullWidth size="large" sx={{ height: 64 }}
+                  onClick={handleKoreanSearch} disabled={searching || !koreanIngredient}
                   startIcon={searching ? <CircularProgress size={20} /> : <LocalBarIcon />}
                 >
                   {searching ? '추천 중...' : '추천받기'}
@@ -388,30 +346,21 @@ function PairingPage() {
             </Grid>
           </TabPanel>
 
-          {error && (
-            <Alert severity="error" sx={{ mt: 3 }}>
-              {error}
-            </Alert>
-          )}
+          {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
         </Paper>
 
-        {/* Results */}
         {activeView === 'results' && pairingResults && (
           <Fade in={true}>
             <Box mt={4}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                 <Typography variant="h3" sx={{ fontWeight: 600 }}>
-                  {tabValue === 0 ? '페어링 분석 결과' : 
-                   tabValue === 1 ? '재료 추천 결과' : '술 추천 결과'}
+                  {tabValue === 0 ? '페어링 분석 결과' : tabValue === 1 ? '재료 추천 결과' : '술 추천 결과'}
                 </Typography>
-                <Button variant="outlined" onClick={handleClearSearch} size="large">
-                  새 검색
-                </Button>
+                <Button variant="outlined" onClick={handleClearSearch} size="large">새 검색</Button>
               </Box>
 
               <Paper elevation={2} sx={{ p: 4, borderRadius: 2 }}>
                 {tabValue === 0 ? (
-                  // 페어링 분석 결과
                   <Grid container spacing={4}>
                     <Grid item xs={12} md={8}>
                       <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
@@ -439,15 +388,12 @@ function PairingPage() {
                           {getScoreOutOf100(pairingResults.score)}점
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                          {getScoreOutOf100(pairingResults.score) >= 80 ? '매우 좋음' :
-                           getScoreOutOf100(pairingResults.score) >= 60 ? '좋음' :
-                           getScoreOutOf100(pairingResults.score) >= 40 ? '보통' : '아쉬움'}
+                          {getScoreDescription(pairingResults.score)}
                         </Typography>
                       </Box>
                     </Grid>
                   </Grid>
                 ) : tabValue === 1 ? (
-                  // 재료 추천 결과
                   <Box>
                     <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
                       {translateIngredientName(pairingResults.liquor_name) || koreanLiquor} 추천 재료 TOP 3
@@ -455,9 +401,7 @@ function PairingPage() {
                     
                     {pairingResults.overall_explanation && (
                       <Paper sx={{ p: 3, mb: 4, backgroundColor: alpha(theme.palette.info.main, 0.05) }}>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                          💡 전체 추천 설명
-                        </Typography>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>💡 전체 추천 설명</Typography>
                         <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
                           {pairingResults.overall_explanation}
                         </Typography>
@@ -470,21 +414,12 @@ function PairingPage() {
                         return (
                           <Grid item xs={12} md={4} key={index}>
                             <Card sx={{ 
-                              p: 3, 
-                              height: '100%',
+                              p: 3, height: '100%',
                               transition: 'transform 0.2s, elevation 0.2s',
-                              '&:hover': {
-                                transform: 'translateY(-4px)',
-                                elevation: 8
-                              }
+                              '&:hover': { transform: 'translateY(-4px)', elevation: 8 }
                             }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h5" sx={{ 
-                                  fontWeight: 700, 
-                                  color: 'primary.main',
-                                  mr: 1,
-                                  minWidth: 32
-                                }}>
+                                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', mr: 1, minWidth: 32 }}>
                                   #{index + 1}
                                 </Typography>
                                 <RestaurantIcon sx={{ mr: 1, color: 'primary.main' }} />
@@ -517,14 +452,11 @@ function PairingPage() {
 
                     {(!pairingResults.recommendations || pairingResults.recommendations.length === 0) && (
                       <Box sx={{ textAlign: 'center', py: 4 }}>
-                        <Typography variant="h6" color="text.secondary">
-                          추천 결과가 없습니다.
-                        </Typography>
+                        <Typography variant="h6" color="text.secondary">추천 결과가 없습니다.</Typography>
                       </Box>
                     )}
                   </Box>
                 ) : (
-                  // 술 추천 결과
                   <Box>
                     <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
                       {translateIngredientName(pairingResults.ingredient_name) || koreanIngredient} 추천 술 TOP 3
@@ -532,9 +464,7 @@ function PairingPage() {
                     
                     {pairingResults.overall_explanation && (
                       <Paper sx={{ p: 3, mb: 4, backgroundColor: alpha(theme.palette.info.main, 0.05) }}>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                          💡 전체 추천 설명
-                        </Typography>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>💡 전체 추천 설명</Typography>
                         <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
                           {pairingResults.overall_explanation}
                         </Typography>
@@ -547,21 +477,12 @@ function PairingPage() {
                         return (
                           <Grid item xs={12} md={4} key={index}>
                             <Card sx={{ 
-                              p: 3, 
-                              height: '100%',
+                              p: 3, height: '100%',
                               transition: 'transform 0.2s, elevation 0.2s',
-                              '&:hover': {
-                                transform: 'translateY(-4px)',
-                                elevation: 8
-                              }
+                              '&:hover': { transform: 'translateY(-4px)', elevation: 8 }
                             }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h5" sx={{ 
-                                  fontWeight: 700, 
-                                  color: 'primary.main',
-                                  mr: 1,
-                                  minWidth: 32
-                                }}>
+                                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', mr: 1, minWidth: 32 }}>
                                   #{index + 1}
                                 </Typography>
                                 <LocalBarIcon sx={{ mr: 1, color: 'primary.main' }} />
@@ -594,9 +515,7 @@ function PairingPage() {
 
                     {(!pairingResults.recommendations || pairingResults.recommendations.length === 0) && (
                       <Box sx={{ textAlign: 'center', py: 4 }}>
-                        <Typography variant="h6" color="text.secondary">
-                          추천 결과가 없습니다.
-                        </Typography>
+                        <Typography variant="h6" color="text.secondary">추천 결과가 없습니다.</Typography>
                       </Box>
                     )}
                   </Box>
