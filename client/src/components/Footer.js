@@ -4,7 +4,6 @@ import { Link as RouterLink } from 'react-router-dom';
 import WineBarIcon from '@mui/icons-material/WineBar';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import EmailIcon from '@mui/icons-material/Email';
 
 function Footer() {
   const theme = useTheme();
@@ -16,20 +15,20 @@ function Footer() {
       sx={{
         position: 'relative',
         mt: 'auto',
-        background: 'linear-gradient(to top, #0a0a0a, #1a1a1a)',
-        color: theme.palette.text.secondary,
+        background: 'linear-gradient(135deg, #2C2C2C 0%, #1A1A1A 100%)',
+        color: 'rgba(255, 255, 255, 0.7)',
         pt: 6,
         pb: 4,
-        borderTop: '1px solid rgba(212, 175, 55, 0.1)',
+        borderTop: '1px solid rgba(139, 69, 19, 0.2)',
       }}
     >
       <Container maxWidth="lg">
         <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Grid item xs={12} md={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
               <WineBarIcon 
                 sx={{ 
-                  color: theme.palette.primary.main, 
+                  color: '#D4AF37', 
                   mr: 1.5, 
                   fontSize: 32 
                 }} 
@@ -38,10 +37,10 @@ function Footer() {
                 variant="h5" 
                 component="div"
                 sx={{
-                  fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
-                  fontWeight: 600,
-                  color: theme.palette.text.primary,
-                  letterSpacing: '0.02em',
+                  fontFamily: "'Inter', sans-serif",
+                  fontWeight: 700,
+                  color: 'white',
+                  letterSpacing: '-0.01em',
                 }}
               >
                 찰떡궁합
@@ -49,39 +48,40 @@ function Footer() {
             </Box>
             
             <Typography 
-              variant="body2" 
+              variant="body1" 
               sx={{ 
-                mb: 3, 
-                maxWidth: 300,
-                lineHeight: 1.8, 
-                color: 'rgba(245, 240, 230, 0.7)',
+                mb: 4, 
+                maxWidth: 400,
+                lineHeight: 1.7, 
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '1rem',
               }}
             >
-              플레이버 프로파일과 사용자 취향을 기반으로 완벽한 조합을 추천하는 설명 가능한 AI 기반 음식과 음료 페어링 시스템입니다.
+              AI 기반 분석으로 완벽한 주류와 음식의 페어링을 추천하는 전문적인 서비스입니다. 전문가 수준의 정확한 분석을 제공합니다.
             </Typography>
             
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-              <LocationOnIcon sx={{ fontSize: 20, mr: 1.5, color: 'rgba(212, 175, 55, 0.7)' }} />
-              <Typography variant="body2" color="text.secondary">
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <LocationOnIcon sx={{ fontSize: 20, mr: 1.5, color: '#D4AF37' }} />
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
                 전북대학교 SW중심대학사업단
-              </Typography>
-            </Box>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <EmailIcon sx={{ fontSize: 20, mr: 1.5, color: 'rgba(212, 175, 55, 0.7)' }} />
-              <Typography variant="body2" color="text.secondary">
-                jpseo99@joomidang.com
               </Typography>
             </Box>
           </Grid>
           
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <Typography 
               variant="h6" 
               sx={{ 
                 mb: 3, 
-                color: theme.palette.text.primary,
-                fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+                color: 'white',
+                fontFamily: "'Inter', sans-serif",
                 fontWeight: 600,
                 position: 'relative',
                 paddingBottom: 1.5,
@@ -92,29 +92,29 @@ function Footer() {
                   left: 0,
                   width: 40,
                   height: 2,
-                  backgroundColor: theme.palette.primary.main,
+                  backgroundColor: '#D4AF37',
+                  borderRadius: '1px',
                 }
               }}
             >
-              네비게이션
+              서비스
             </Typography>
             
-            <Box 
-              sx={{ 
-                display: 'grid', 
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-                gap: 2 
-              }}
-            >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Link 
                 component={RouterLink} 
                 to="/" 
                 sx={{ 
-                  color: 'rgba(245, 240, 230, 0.7)',
+                  color: 'rgba(255, 255, 255, 0.7)',
                   textDecoration: 'none',
-                  transition: 'color 0.3s ease',
+                  transition: 'all 0.3s ease',
                   display: 'block',
-                  '&:hover': { color: theme.palette.secondary.main },
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.95rem',
+                  '&:hover': { 
+                    color: '#D4AF37',
+                    transform: 'translateX(4px)',
+                  },
                 }}
               >
                 홈
@@ -123,77 +123,30 @@ function Footer() {
                 component={RouterLink} 
                 to="/pairing" 
                 sx={{ 
-                  color: 'rgba(245, 240, 230, 0.7)',
+                  color: 'rgba(255, 255, 255, 0.7)',
                   textDecoration: 'none',
-                  transition: 'color 0.3s ease',
+                  transition: 'all 0.3s ease',
                   display: 'block',
-                  '&:hover': { color: theme.palette.secondary.main },
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.95rem',
+                  '&:hover': { 
+                    color: '#D4AF37',
+                    transform: 'translateX(4px)',
+                  },
                 }}
               >
-                페어링
-              </Link>
-              <Link 
-                component={RouterLink} 
-                to="/liquors" 
-                sx={{ 
-                  color: 'rgba(245, 240, 230, 0.7)',
-                  textDecoration: 'none',
-                  transition: 'color 0.3s ease',
-                  display: 'block',
-                  '&:hover': { color: theme.palette.secondary.main },
-                }}
-              >
-                주류
-              </Link>
-              <Link 
-                component={RouterLink} 
-                to="/ingredients" 
-                sx={{ 
-                  color: 'rgba(245, 240, 230, 0.7)',
-                  textDecoration: 'none', 
-                  transition: 'color 0.3s ease',
-                  display: 'block',
-                  '&:hover': { color: theme.palette.secondary.main },
-                }}
-              >
-                재료
-              </Link>
-              <Link 
-                component={RouterLink} 
-                to="/about" 
-                sx={{ 
-                  color: 'rgba(245, 240, 230, 0.7)',
-                  textDecoration: 'none',
-                  transition: 'color 0.3s ease',
-                  display: 'block',
-                  '&:hover': { color: theme.palette.secondary.main },
-                }}
-              >
-                소개
-              </Link>
-              <Link 
-                component={RouterLink} 
-                to="/login" 
-                sx={{ 
-                  color: 'rgba(245, 240, 230, 0.7)',
-                  textDecoration: 'none',
-                  transition: 'color 0.3s ease',
-                  display: 'block',
-                  '&:hover': { color: theme.palette.secondary.main },
-                }}
-              >
-                로그인
+                페어링 분석
               </Link>
             </Box>
           </Grid>
           
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <Typography 
               variant="h6" 
               sx={{ 
                 mb: 3, 
-                color: theme.palette.text.primary,
-                fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
+                color: 'white',
+                fontFamily: "'Inter', sans-serif",
                 fontWeight: 600,
                 position: 'relative',
                 paddingBottom: 1.5,
@@ -204,82 +157,80 @@ function Footer() {
                   left: 0,
                   width: 40,
                   height: 2,
-                  backgroundColor: theme.palette.primary.main,
+                  backgroundColor: '#D4AF37',
+                  borderRadius: '1px',
                 }
               }}
             >
               리소스
             </Typography>
             
-            <Link 
-              href="https://github.com/gumwoo/ai-pairingsystem" 
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ 
-                color: 'rgba(245, 240, 230, 0.7)',
-                textDecoration: 'none',
-                display: 'flex', 
-                alignItems: 'center', 
-                mb: 2,
-                transition: 'color 0.3s ease',
-                '&:hover': { color: theme.palette.secondary.main },
-              }}
-            >
-              <GitHubIcon sx={{ mr: 1.5, fontSize: 20 }} />
-              깃허브 저장소
-            </Link>
-            
-            <Link 
-              href="http://localhost:5004/api-docs" 
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ 
-                color: 'rgba(245, 240, 230, 0.7)',
-                textDecoration: 'none',
-                display: 'block', 
-                mb: 2,
-                transition: 'color 0.3s ease',
-                '&:hover': { color: theme.palette.secondary.main },
-              }}
-            >
-              API 문서
-            </Link>
-            
-            <Link 
-              component={RouterLink} 
-              to="/privacy" 
-              sx={{ 
-                color: 'rgba(245, 240, 230, 0.7)',
-                textDecoration: 'none',
-                display: 'block', 
-                mb: 2,
-                transition: 'color 0.3s ease',
-                '&:hover': { color: theme.palette.secondary.main },
-              }}
-            >
-              개인정보 처리방침
-            </Link>
-            
-            <Link 
-              component={RouterLink} 
-              to="/terms" 
-              sx={{ 
-                color: 'rgba(245, 240, 230, 0.7)',
-                textDecoration: 'none',
-                display: 'block',
-                transition: 'color 0.3s ease',
-                '&:hover': { color: theme.palette.secondary.main },
-              }}
-            >
-              서비스 이용약관
-            </Link>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Link 
+                href="https://github.com/woojung1234/ai-pairingsystem" 
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  textDecoration: 'none',
+                  display: 'flex', 
+                  alignItems: 'center',
+                  transition: 'all 0.3s ease',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.95rem',
+                  '&:hover': { 
+                    color: '#D4AF37',
+                    transform: 'translateX(4px)',
+                  },
+                }}
+              >
+                <GitHubIcon sx={{ mr: 1.5, fontSize: 18 }} />
+                GitHub 저장소
+              </Link>
+              
+              <Link 
+                href="#"
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  textDecoration: 'none',
+                  display: 'block',
+                  transition: 'all 0.3s ease',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.95rem',
+                  '&:hover': { 
+                    color: '#D4AF37',
+                    transform: 'translateX(4px)',
+                  },
+                }}
+              >
+                API 문서
+              </Link>
+              
+              <Link 
+                href="#"
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  textDecoration: 'none',
+                  display: 'block',
+                  transition: 'all 0.3s ease',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.95rem',
+                  '&:hover': { 
+                    color: '#D4AF37',
+                    transform: 'translateX(4px)',
+                  },
+                }}
+              >
+                이용약관
+              </Link>
+            </Box>
           </Grid>
         </Grid>
         
         <Divider 
           sx={{ 
             my: 4, 
-            backgroundColor: 'rgba(212, 175, 55, 0.1)' 
+            backgroundColor: 'rgba(139, 69, 19, 0.2)' 
           }} 
         />
         
@@ -294,15 +245,22 @@ function Footer() {
         >
           <Typography 
             variant="body2" 
-            color="text.secondary"
-            sx={{ opacity: 0.7 }}
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.875rem',
+            }}
           >
             © {currentYear} 찰떡궁합. 모든 권리 보유.
           </Typography>
           <Typography 
             variant="body2" 
-            color="text.secondary" 
-            sx={{ mt: { xs: 1, sm: 0 }, opacity: 0.7 }}
+            sx={{ 
+              mt: { xs: 1, sm: 0 }, 
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.875rem',
+            }}
           >
             전북대학교 캡스톤 디자인 프로젝트
           </Typography>
