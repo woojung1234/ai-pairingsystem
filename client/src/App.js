@@ -19,29 +19,40 @@ import NotFoundPage from './pages/NotFoundPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 
-// Create a theme inspired by the Figma design
-// 더 고급스러운 와인 테마 스타일 (App.js 내의 테마 부분)
+// 와인 페어링 차트 스타일 테마
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#7D0A0A', // 더 깊은 와인 레드
-      light: '#9B1B1B',
-      dark: '#580707',
+      main: '#8B4513', // 갈색 (와인병 색상)
+      light: '#A0522D',
+      dark: '#654321',
     },
     secondary: {
-      main: '#D4AF37', // 골드
-      light: '#E8C868',
-      dark: '#A78829',
+      main: '#228B22', // 녹색 (화이트 와인 계열)
+      light: '#32CD32',
+      dark: '#006400',
+    },
+    tertiary: {
+      main: '#B8860B', // 골든로드 (샴페인 계열)
+      light: '#DAA520',
+      dark: '#8B7355',
     },
     background: {
-      default: '#0D0D0D', // 더 어두운 배경
-      paper: '#171717', // 더 어두운 카드 배경
+      default: '#F5F1E8', // 베이지/크림 배경
+      paper: '#FEFCF7', // 더 밝은 카드 배경
     },
     text: {
-      primary: '#F5F0E6', // 따뜻한 화이트
-      secondary: 'rgba(245, 240, 230, 0.7)',
+      primary: '#3E2723', // 어두운 갈색 텍스트
+      secondary: '#5D4037',
     },
-    divider: 'rgba(212, 175, 55, 0.2)', // 반투명 골드
+    divider: 'rgba(139, 69, 19, 0.2)', // 갈색 계열 구분선
+    wine: {
+      red: '#8B0000', // 레드 와인
+      white: '#F5DEB3', // 화이트 와인
+      rose: '#FFC0CB', // 로제 와인
+      champagne: '#F7E7CE', // 샴페인
+      dessert: '#DDA0DD', // 디저트 와인
+    },
   },
   typography: {
     fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
@@ -51,6 +62,7 @@ const theme = createTheme({
       fontSize: '3.75rem',
       letterSpacing: '0.02em',
       lineHeight: 1.1,
+      color: '#3E2723',
     },
     h2: {
       fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
@@ -58,49 +70,58 @@ const theme = createTheme({
       fontSize: '3rem',
       letterSpacing: '0.02em',
       lineHeight: 1.2,
+      color: '#3E2723',
     },
     h3: {
       fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
       fontWeight: 600,
       fontSize: '2.25rem',
       letterSpacing: '0.02em',
+      color: '#3E2723',
     },
     h4: {
       fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
       fontWeight: 500,
       fontSize: '1.8rem',
+      color: '#3E2723',
     },
     h5: {
       fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
       fontWeight: 500,
       fontSize: '1.4rem',
+      color: '#3E2723',
     },
     h6: {
       fontFamily: "'Playfair Display', 'Noto Serif KR', serif",
       fontWeight: 500,
       fontSize: '1.15rem',
+      color: '#3E2723',
     },
     body1: {
       fontFamily: "'Cormorant Garamond', 'Noto Sans KR', sans-serif",
       fontSize: '1.1rem',
       lineHeight: 1.7,
+      color: '#3E2723',
     },
     body2: {
       fontFamily: "'Cormorant Garamond', 'Noto Sans KR', sans-serif",
       fontSize: '0.95rem',
       lineHeight: 1.7,
+      color: '#5D4037',
     },
     subtitle1: {
       fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
       fontSize: '1.25rem',
       fontWeight: 500,
       letterSpacing: '0.02em',
+      color: '#5D4037',
     },
     subtitle2: {
       fontFamily: "'Cormorant Garamond', 'Noto Serif KR', serif",
       fontSize: '1.1rem',
       fontWeight: 500,
       letterSpacing: '0.02em',
+      color: '#5D4037',
     },
     button: {
       fontFamily: "'Cormorant Garamond', 'Noto Sans KR', sans-serif",
@@ -112,10 +133,11 @@ const theme = createTheme({
       letterSpacing: '0.2em',
       textTransform: 'uppercase',
       fontSize: '0.85rem',
+      color: '#8B4513',
     },
   },
   shape: {
-    borderRadius: 4,
+    borderRadius: 12, // 더 둥근 모서리
   },
   components: {
     MuiCssBaseline: {
@@ -127,22 +149,26 @@ const theme = createTheme({
           scrollBehavior: 'smooth',
         },
         body: {
-          backgroundColor: '#0D0D0D',
-          backgroundImage: 'linear-gradient(to bottom, #0D0D0D, #121212)',
+          backgroundColor: '#F5F1E8',
+          backgroundImage: `
+            radial-gradient(circle at 20% 80%, rgba(245, 241, 232, 0.8) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(248, 245, 238, 0.8) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(251, 248, 241, 0.6) 0%, transparent 50%)
+          `,
           minHeight: '100vh',
-          color: '#F5F0E6',
+          color: '#3E2723',
         },
         '&::-webkit-scrollbar': {
           width: '8px',
         },
         '&::-webkit-scrollbar-track': {
-          backgroundColor: '#121212',
+          backgroundColor: '#F5F1E8',
         },
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(212, 175, 55, 0.3)',
+          backgroundColor: 'rgba(139, 69, 19, 0.3)',
           borderRadius: '4px',
           '&:hover': {
-            backgroundColor: 'rgba(212, 175, 55, 0.5)',
+            backgroundColor: 'rgba(139, 69, 19, 0.5)',
           },
         },
       },
@@ -150,62 +176,70 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 2,
-          padding: '0.85rem 2rem',
+          borderRadius: 25, // 둥근 버튼
+          padding: '0.85rem 2.5rem',
           transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-          fontWeight: 500,
+          fontWeight: 600,
           position: 'relative',
           overflow: 'hidden',
+          textTransform: 'none',
         },
         contained: {
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
+          boxShadow: '0 4px 16px rgba(139, 69, 19, 0.2)',
           '&:hover': {
-            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4)',
+            boxShadow: '0 6px 20px rgba(139, 69, 19, 0.3)',
             transform: 'translateY(-2px)',
           },
         },
         outlined: {
-          borderWidth: '1px',
+          borderWidth: '2px',
           '&:hover': {
-            borderWidth: '1px',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            borderWidth: '2px',
+            backgroundColor: 'rgba(139, 69, 19, 0.05)',
           },
         },
         containedPrimary: {
-          background: 'linear-gradient(135deg, #7D0A0A 0%, #9B1B1B 100%)',
+          background: 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)',
+          color: '#FEFCF7',
         },
         containedSecondary: {
-          background: 'linear-gradient(135deg, #A78829 0%, #D4AF37 100%)',
-          color: '#0D0D0D',
+          background: 'linear-gradient(135deg, #228B22 0%, #32CD32 100%)',
+          color: '#FEFCF7',
+        },
+        outlinedPrimary: {
+          borderColor: '#8B4513',
+          color: '#8B4513',
         },
         outlinedSecondary: {
-          borderColor: '#D4AF37',
-          color: '#D4AF37',
+          borderColor: '#228B22',
+          color: '#228B22',
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          boxShadow: 'none',
-          borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
+          boxShadow: '0 2px 10px rgba(139, 69, 19, 0.1)',
+          borderBottom: 'none',
           backdropFilter: 'blur(10px)',
-          backgroundColor: 'rgba(13, 13, 13, 0.9)',
+          backgroundColor: 'rgba(254, 252, 247, 0.95)',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(23, 23, 23, 0.8)',
-          backdropFilter: 'blur(8px)',
-          borderRadius: 4,
-          border: '1px solid rgba(212, 175, 55, 0.1)',
+          backgroundColor: '#FEFCF7',
+          backgroundImage: 'linear-gradient(145deg, #FEFCF7 0%, #FAF7F0 100%)',
+          borderRadius: 16,
+          border: '1px solid rgba(139, 69, 19, 0.1)',
           overflow: 'hidden',
-          transition: 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+          transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+          boxShadow: '0 4px 20px rgba(139, 69, 19, 0.08)',
           '&:hover': {
-            transform: 'translateY(-8px)',
-            boxShadow: '0 15px 30px rgba(0, 0, 0, 0.25)',
+            transform: 'translateY(-8px) scale(1.02)',
+            boxShadow: '0 15px 40px rgba(139, 69, 19, 0.15)',
+            borderColor: 'rgba(139, 69, 19, 0.2)',
           },
         },
       },
@@ -213,30 +247,31 @@ const theme = createTheme({
     MuiCardContent: {
       styleOverrides: {
         root: {
-          padding: '1.75rem',
+          padding: '2rem',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(23, 23, 23, 0.8)',
+          backgroundColor: '#FEFCF7',
           backgroundImage: 'none',
+          borderRadius: 12,
         },
         elevation1: {
-          boxShadow: '0 2px 14px rgba(0, 0, 0, 0.15)',
+          boxShadow: '0 2px 14px rgba(139, 69, 19, 0.08)',
         },
         elevation4: {
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+          boxShadow: '0 8px 24px rgba(139, 69, 19, 0.12)',
         },
       },
     },
     MuiDivider: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(212, 175, 55, 0.15)',
+          backgroundColor: 'rgba(139, 69, 19, 0.15)',
           '&::before, &::after': {
-            borderColor: 'rgba(212, 175, 55, 0.15)',
+            borderColor: 'rgba(139, 69, 19, 0.15)',
           },
         },
       },
@@ -244,7 +279,7 @@ const theme = createTheme({
     MuiLink: {
       styleOverrides: {
         root: {
-          color: '#D4AF37',
+          color: '#8B4513',
           textDecoration: 'none',
           position: 'relative',
           transition: 'all 0.3s ease',
@@ -254,12 +289,12 @@ const theme = createTheme({
             bottom: -2,
             left: 0,
             width: 0,
-            height: '1px',
-            backgroundColor: '#D4AF37',
+            height: '2px',
+            backgroundColor: '#8B4513',
             transition: 'width 0.3s ease',
           },
           '&:hover': {
-            color: '#E8C868',
+            color: '#A0522D',
             textDecoration: 'none',
             '&::after': {
               width: '100%',
@@ -272,21 +307,24 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
+            backgroundColor: '#FEFCF7',
+            borderRadius: 12,
             '& fieldset': {
-              borderColor: 'rgba(212, 175, 55, 0.2)',
+              borderColor: 'rgba(139, 69, 19, 0.2)',
               transition: 'border-color 0.3s ease',
             },
             '&:hover fieldset': {
-              borderColor: 'rgba(212, 175, 55, 0.4)',
+              borderColor: 'rgba(139, 69, 19, 0.4)',
             },
             '&.Mui-focused fieldset': {
-              borderColor: '#D4AF37',
+              borderColor: '#8B4513',
+              borderWidth: '2px',
             },
           },
           '& .MuiInputLabel-root': {
-            color: 'rgba(245, 240, 230, 0.7)',
+            color: 'rgba(62, 39, 35, 0.7)',
             '&.Mui-focused': {
-              color: '#D4AF37',
+              color: '#8B4513',
             },
           },
         },
@@ -295,11 +333,17 @@ const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 2,
+          borderRadius: 20,
           fontWeight: 500,
+          fontSize: '0.85rem',
         },
         filled: {
-          backgroundColor: 'rgba(212, 175, 55, 0.15)',
+          backgroundColor: 'rgba(139, 69, 19, 0.1)',
+          color: '#8B4513',
+        },
+        outlined: {
+          borderColor: 'rgba(139, 69, 19, 0.3)',
+          color: '#8B4513',
         },
       },
     },
@@ -307,6 +351,33 @@ const theme = createTheme({
       styleOverrides: {
         gutterBottom: {
           marginBottom: '0.75em',
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          '& .MuiTab-root': {
+            color: '#5D4037',
+            fontWeight: 500,
+            textTransform: 'none',
+            fontSize: '1.1rem',
+          },
+          '& .MuiTab-root.Mui-selected': {
+            color: '#8B4513',
+            fontWeight: 600,
+          },
+          '& .MuiTabs-indicator': {
+            backgroundColor: '#8B4513',
+            height: 3,
+          },
+        },
+      },
+    },
+    MuiRating: {
+      styleOverrides: {
+        root: {
+          color: '#B8860B', // 골든로드 색상
         },
       },
     },
@@ -349,7 +420,12 @@ function App() {
       <CssBaseline />
       <div className="App">
         <Header isAuthenticated={isAuthenticated} user={user} onLogout={handleLogout} />
-        <main style={{ minHeight: 'calc(100vh - 160px)', padding: '20px', marginTop: '40px' }}>
+        <main style={{ 
+          minHeight: 'calc(100vh - 160px)', 
+          padding: '20px', 
+          marginTop: '40px',
+          background: 'transparent'
+        }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/pairing" element={<PairingPage />} />
