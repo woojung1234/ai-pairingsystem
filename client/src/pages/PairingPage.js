@@ -170,7 +170,12 @@ function PairingPage() {
     setActiveView('search');
     navigate('/pairing');
   };
-
+const normalizeScore = (score, minScore, maxScore) => {
+  if (typeof score !== 'number' || isNaN(score)) return 0;
+  if (maxScore === minScore) return 50; // 다 같으면 중간값
+  const normalized = ((score - minScore) / (maxScore - minScore)) * 100;
+  return Math.round(Math.max(0, Math.min(100, normalized))); // 0~100 클램핑
+};
   const getScoreOutOf100 = (score) => {
     if (!score || isNaN(score)) return 0;
     let normalizedScore = score;
