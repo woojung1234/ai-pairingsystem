@@ -18,7 +18,6 @@ import {
   AutoAwesome as AutoAwesomeIcon,
   TrendingUp as TrendingUpIcon,
   ArrowForward as ArrowForwardIcon,
-  Wine as WineIcon,
   Fastfood as FastfoodIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
@@ -135,7 +134,7 @@ function HomePage() {
         <Box textAlign="center" position="relative" zIndex={1}>
           {/* 제목에 아이콘들 추가 */}
           <Box display="flex" justifyContent="center" alignItems="center" gap={2} mb={2}>
-            <WineIcon sx={{ fontSize: 40, color: '#8B4513' }} />
+            <LocalBarIcon sx={{ fontSize: 40, color: '#8B4513' }} />
             <Typography 
               variant="h2" 
               component="h1" 
@@ -421,7 +420,7 @@ function HomePage() {
           
           <Grid item xs={12} md={4}>
             <Box textAlign="center" sx={{ p: 3 }}>
-              <WineIcon sx={{ fontSize: 48, color: '#B8860B', mb: 2 }} />
+              <LocalBarIcon sx={{ fontSize: 48, color: '#B8860B', mb: 2 }} />
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                 전문가 수준
               </Typography>
