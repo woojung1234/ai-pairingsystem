@@ -136,19 +136,19 @@ function HomePage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Hero Section - 와인 배경 이미지 추가 */}
+      {/* Hero Section - 모던한 제목 스타일 */}
       <Paper 
         elevation={0}
         sx={{ 
           mb: 6,
-          py: 8,
+          py: 10,
           px: 4,
           borderRadius: 4,
           background: `
             linear-gradient(135deg, 
-              rgba(45, 45, 45, 0.7) 0%, 
+              rgba(45, 45, 45, 0.75) 0%, 
               rgba(60, 39, 35, 0.8) 50%, 
-              rgba(75, 50, 40, 0.7) 100%
+              rgba(75, 50, 40, 0.75) 100%
             ),
             url('/images/wine-bg.jpg')
           `,
@@ -166,49 +166,75 @@ function HomePage() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.05) 10px, rgba(255, 255, 255, 0.05) 20px)',
+            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.03) 10px, rgba(255, 255, 255, 0.03) 20px)',
             pointerEvents: 'none',
           }
         }}
       >
         <Box textAlign="center" position="relative" zIndex={1}>
-          {/* 제목에 아이콘들 추가 */}
-          <Box display="flex" justifyContent="center" alignItems="center" gap={2} mb={2}>
-            <LocalBarIcon sx={{ fontSize: 40, color: '#DAA520' }} />
+          {/* 모던한 제목 디자인 */}
+          <Box display="flex" justifyContent="center" alignItems="center" gap={3} mb={3}>
+            <LocalBarIcon sx={{ 
+              fontSize: { xs: 32, md: 40 }, 
+              color: '#FFD700',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+            }} />
             <Typography 
-              variant="h2" 
+              variant="h1" 
               component="h1" 
               sx={{ 
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #DAA520 0%, #FFD700 50%, #F4A460 100%)',
+                fontWeight: 900,
+                fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem', lg: '4rem' },
+                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 30%, #FF8C00 60%, #FFD700 100%)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
-                filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))',
+                letterSpacing: '-0.03em',
+                lineHeight: 0.9,
+                textShadow: 'none',
+                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif",
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: '-8px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '60%',
+                  height: '3px',
+                  background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
+                  borderRadius: '2px',
+                }
               }}
             >
               AI 와인 & 푸드 페어링
             </Typography>
-            <FastfoodIcon sx={{ fontSize: 40, color: '#DAA520' }} />
+            <FastfoodIcon sx={{ 
+              fontSize: { xs: 32, md: 40 }, 
+              color: '#FFD700',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+            }} />
           </Box>
           
           <Typography 
             variant="h5" 
             sx={{ 
-              mb: 4,
-              color: 'rgba(255, 255, 255, 0.95)',
-              maxWidth: '600px',
+              mb: 5,
+              color: 'rgba(255, 255, 255, 0.92)',
+              maxWidth: '650px',
               mx: 'auto',
-              lineHeight: 1.6,
+              lineHeight: 1.5,
               fontWeight: 400,
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)',
+              fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' },
+              textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)',
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+              letterSpacing: '-0.01em',
             }}
           >
             완벽한 조화를 이루는 주류와 음식의 궁합을 AI가 찾아드립니다
           </Typography>
 
-          {/* 버튼 그룹 - 와인 테마 색상 */}
+          {/* 모던한 버튼 그룹 */}
           <Box display="flex" gap={3} justifyContent="center" flexWrap="wrap">
             <Button
               variant="contained"
@@ -219,13 +245,19 @@ function HomePage() {
                 fontSize: '1.1rem',
                 py: 1.5,
                 px: 4,
-                background: 'linear-gradient(135deg, #DAA520 0%, #FFD700 100%)',
-                color: '#2D2D2D',
-                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                color: '#1A1A1A',
+                fontWeight: 700,
+                borderRadius: '50px',
+                border: '2px solid rgba(255, 215, 0, 0.3)',
+                backdropFilter: 'blur(10px)',
+                textTransform: 'none',
+                letterSpacing: '-0.01em',
+                fontFamily: "'Inter', sans-serif",
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #FFD700 0%, #DAA520 100%)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(218, 165, 32, 0.4)',
+                  background: 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
+                  transform: 'translateY(-2px) scale(1.02)',
+                  boxShadow: '0 8px 25px rgba(255, 215, 0, 0.4)',
                 },
               }}
             >
@@ -241,13 +273,21 @@ function HomePage() {
                 fontSize: '1.1rem',
                 py: 1.5,
                 px: 4,
-                borderColor: '#DAA520',
-                color: '#DAA520',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderColor: 'rgba(255, 215, 0, 0.6)',
+                color: '#FFD700',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '50px',
+                border: '2px solid rgba(255, 215, 0, 0.6)',
+                fontWeight: 600,
+                textTransform: 'none',
+                letterSpacing: '-0.01em',
+                fontFamily: "'Inter', sans-serif",
                 '&:hover': {
                   borderColor: '#FFD700',
-                  backgroundColor: 'rgba(218, 165, 32, 0.2)',
-                  color: '#FFD700',
+                  backgroundColor: 'rgba(255, 215, 0, 0.15)',
+                  color: '#FFA500',
+                  transform: 'translateY(-1px)',
                 },
               }}
             >
@@ -263,13 +303,21 @@ function HomePage() {
                 fontSize: '1.1rem',
                 py: 1.5,
                 px: 4,
-                borderColor: '#DAA520',
-                color: '#DAA520',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderColor: 'rgba(255, 215, 0, 0.6)',
+                color: '#FFD700',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '50px',
+                border: '2px solid rgba(255, 215, 0, 0.6)',
+                fontWeight: 600,
+                textTransform: 'none',
+                letterSpacing: '-0.01em',
+                fontFamily: "'Inter', sans-serif",
                 '&:hover': {
                   borderColor: '#FFD700',
-                  backgroundColor: 'rgba(218, 165, 32, 0.2)',
-                  color: '#FFD700',
+                  backgroundColor: 'rgba(255, 215, 0, 0.15)',
+                  color: '#FFA500',
+                  transform: 'translateY(-1px)',
                 },
               }}
             >
@@ -284,13 +332,16 @@ function HomePage() {
         <Typography 
           variant="h4" 
           sx={{ 
-            fontWeight: 600,
-            color: '#3E2723',
+            fontWeight: 700,
+            color: '#2C2C2C',
             display: 'flex',
             alignItems: 'center',
             gap: 1,
             mb: 3,
             justifyContent: 'center',
+            fontSize: { xs: '1.75rem', md: '2.125rem' },
+            letterSpacing: '-0.02em',
+            fontFamily: "'Inter', sans-serif",
           }}
         >
           <LocalBarIcon sx={{ color: '#8B4513' }} />
@@ -389,13 +440,16 @@ function HomePage() {
         <Typography 
           variant="h4" 
           sx={{ 
-            fontWeight: 600,
-            color: '#3E2723',
+            fontWeight: 700,
+            color: '#2C2C2C',
             display: 'flex',
             alignItems: 'center',
             gap: 1,
             mb: 3,
             justifyContent: 'center',
+            fontSize: { xs: '1.75rem', md: '2.125rem' },
+            letterSpacing: '-0.02em',
+            fontFamily: "'Inter', sans-serif",
           }}
         >
           <RestaurantIcon sx={{ color: '#228B22' }} />
@@ -505,8 +559,11 @@ function HomePage() {
           textAlign="center" 
           sx={{ 
             mb: 4,
-            fontWeight: 600,
-            color: '#3E2723',
+            fontWeight: 700,
+            color: '#2C2C2C',
+            fontSize: { xs: '1.75rem', md: '2.125rem' },
+            letterSpacing: '-0.02em',
+            fontFamily: "'Inter', sans-serif",
           }}
         >
           왜 AI 페어링인가요?
