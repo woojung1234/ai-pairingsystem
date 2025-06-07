@@ -220,22 +220,61 @@ function PairingPage() {
 
   return (
     <Box>
-      <Box sx={{ 
-        py: 12, 
-        backgroundColor: alpha(theme.palette.primary.main, 0.05),
-        backgroundImage: 'linear-gradient(135deg, rgba(138,36,39,0.1) 0%, rgba(183,152,90,0.1) 100%)'
-      }}>
-        <Container maxWidth="lg">
-          <Box textAlign="center">
-            <Typography variant="h1" component="h1" sx={{ mb: 3, fontWeight: 700, fontSize: { xs: '2.5rem', md: '3.5rem' } }}>
-              완벽한 페어링 찾기
-            </Typography>
-            <Typography variant="h6" sx={{ mb: 5, maxWidth: 700, mx: 'auto', lineHeight: 1.8 }}>
-              좋아하는 주류나 음식을 입력하면 AI가 최적의 페어링을 추천해 드립니다.
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
+  <Container maxWidth="lg" sx={{ my: 4 }}> {/* 컨테이너 추가 */}
+    <Box sx={{ 
+      py: 10, 
+      background: `
+        linear-gradient(135deg, 
+          rgba(30, 30, 30, 0.75) 0%, 
+          rgba(45, 35, 30, 0.8) 50%, 
+          rgba(60, 45, 35, 0.75) 100%
+        ),
+        url('/images/wine-bg.jpg')
+      `,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      color: 'white',
+      position: 'relative',
+      borderRadius: 3,  // 둥근 모서리 추가
+      overflow: 'hidden', // 배경이 모서리를 넘지 않도록
+    }}>
+      <Container maxWidth="lg">
+        <Box textAlign="center" position="relative" zIndex={1}>
+          <Typography 
+            variant="h1" 
+            component="h1" 
+            sx={{ 
+              mb: 3, 
+              fontWeight: 600, 
+              fontSize: { xs: '2rem', md: '2.5rem' },
+              color: 'white',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.4)',
+              fontFamily: "'Inter', sans-serif",
+              letterSpacing: '-0.01em',
+            }}
+          >
+            완벽한 페어링 찾기
+          </Typography>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              mb: 5, 
+              maxWidth: 700, 
+              mx: 'auto', 
+              lineHeight: 1.7,
+              color: 'rgba(255, 255, 255, 0.9)',
+              textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+              fontFamily: "'Inter', sans-serif",
+              fontSize: { xs: '1rem', md: '1.2rem' },
+            }}
+          >
+            좋아하는 주류나 음식을 입력하면 AI가 최적의 페어링을 추천해 드립니다.
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
+  </Container>
 
       <Container maxWidth="lg" sx={{ my: 8 }}>
         <Paper elevation={3} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2 }}>
