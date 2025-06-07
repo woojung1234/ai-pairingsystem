@@ -35,12 +35,10 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 
+// 수정된 페이지 목록 - 주류, 재료, 소개 제거
 const pages = [
   { name: '홈', path: '/', icon: <HomeIcon /> },
   { name: '페어링', path: '/pairing', icon: <ShuffleIcon /> },
-  { name: '주류', path: '/liquors', icon: <LocalBarIcon /> },
-  { name: '재료', path: '/ingredients', icon: <RestaurantIcon /> },
-  { name: '소개', path: '/about', icon: <InfoIcon /> }
 ];
 
 function Header({ isAuthenticated, user, onLogout }) {
@@ -104,7 +102,7 @@ function Header({ isAuthenticated, user, onLogout }) {
         height: '100%',
         display: 'flex', 
         flexDirection: 'column',
-        background: 'linear-gradient(to bottom, #1e1e1e, #121212)',
+        background: 'linear-gradient(to bottom, #FEFCF7, #F5F1E8)',
       }}
       role="presentation"
       onClick={toggleDrawer(false)}
@@ -115,7 +113,7 @@ function Header({ isAuthenticated, user, onLogout }) {
         justifyContent="space-between" 
         alignItems="center" 
         p={3}
-        borderBottom="1px solid rgba(212, 175, 55, 0.1)"
+        borderBottom="1px solid rgba(139, 69, 19, 0.1)"
       >
         <Box display="flex" alignItems="center">
           <WineBarIcon sx={{ color: theme.palette.primary.main, mr: 1, fontSize: 28 }} />
@@ -161,13 +159,13 @@ function Header({ isAuthenticated, user, onLogout }) {
                 ? `3px solid ${theme.palette.secondary.main}` 
                 : '3px solid transparent',
               backgroundColor: isActivePage(page.path) 
-                ? 'rgba(138, 36, 39, 0.1)' 
+                ? 'rgba(139, 69, 19, 0.1)' 
                 : 'transparent',
               '&:hover': {
-                backgroundColor: 'rgba(138, 36, 39, 0.05)',
+                backgroundColor: 'rgba(139, 69, 19, 0.05)',
               },
               '&.Mui-selected': {
-                backgroundColor: 'rgba(138, 36, 39, 0.1)',
+                backgroundColor: 'rgba(139, 69, 19, 0.1)',
               },
               transition: 'all 0.3s ease',
             }}
@@ -195,7 +193,7 @@ function Header({ isAuthenticated, user, onLogout }) {
         ))}
       </List>
 
-      <Divider sx={{ my: 2, backgroundColor: 'rgba(212, 175, 55, 0.1)' }} />
+      <Divider sx={{ my: 2, backgroundColor: 'rgba(139, 69, 19, 0.1)' }} />
 
       <Box p={3}>
         {isAuthenticated ? (
@@ -261,12 +259,12 @@ function Header({ isAuthenticated, user, onLogout }) {
       elevation={scrolled ? 4 : 0}
       sx={{ 
         backgroundColor: scrolled 
-          ? 'rgba(18, 18, 18, 0.95)' 
-          : 'rgba(18, 18, 18, 0.6)',
+          ? 'rgba(254, 252, 247, 0.95)' 
+          : 'rgba(254, 252, 247, 0.8)',
         backdropFilter: 'blur(10px)',
         borderBottom: `1px solid ${scrolled 
-          ? 'rgba(212, 175, 55, 0.1)' 
-          : 'rgba(255, 255, 255, 0.05)'}`,
+          ? 'rgba(139, 69, 19, 0.2)' 
+          : 'rgba(139, 69, 19, 0.1)'}`,
         transition: 'all 0.3s ease',
       }}
     >
@@ -389,14 +387,14 @@ function Header({ isAuthenticated, user, onLogout }) {
                       padding: '2px',
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                        backgroundColor: 'rgba(139, 69, 19, 0.1)',
                       }
                     }}
                   >
                     <Avatar 
                       alt={user?.username || 'User'} 
                       sx={{ 
-                        bgcolor: 'rgba(212, 175, 55, 0.2)',
+                        bgcolor: 'rgba(139, 69, 19, 0.2)',
                         color: theme.palette.secondary.main,
                         width: 36,
                         height: 36
@@ -410,9 +408,9 @@ function Header({ isAuthenticated, user, onLogout }) {
                   sx={{ 
                     mt: '45px',
                     '& .MuiPaper-root': {
-                      background: 'rgba(30, 30, 30, 0.95)',
+                      background: 'rgba(254, 252, 247, 0.95)',
                       backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(212, 175, 55, 0.1)',
+                      border: '1px solid rgba(139, 69, 19, 0.1)',
                       borderRadius: 2,
                       minWidth: 180,
                     }
@@ -449,41 +447,13 @@ function Header({ isAuthenticated, user, onLogout }) {
                     </Typography>
                   </Box>
 
-                  <Divider sx={{ my: 1, backgroundColor: 'rgba(212, 175, 55, 0.1)' }} />
+                  <Divider sx={{ my: 1, backgroundColor: 'rgba(139, 69, 19, 0.1)' }} />
 
-                  <MenuItem 
-                    component={RouterLink} 
-                    to="/profile" 
-                    onClick={handleCloseUserMenu}
-                    sx={{ 
-                      py: 1.5, px: 2,
-                      '&:hover': { backgroundColor: 'rgba(138, 36, 39, 0.1)' }
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 36, color: theme.palette.text.secondary }}>
-                      <PersonIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary="프로필" />
-                  </MenuItem>
-                  <MenuItem 
-                    component={RouterLink} 
-                    to="/favorites" 
-                    onClick={handleCloseUserMenu}
-                    sx={{ 
-                      py: 1.5, px: 2,
-                      '&:hover': { backgroundColor: 'rgba(138, 36, 39, 0.1)' }
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 36, color: theme.palette.text.secondary }}>
-                      <BookmarkIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary="내 즐겨찾기" />
-                  </MenuItem>
                   <MenuItem 
                     onClick={handleLogout}
                     sx={{ 
                       py: 1.5, px: 2,
-                      '&:hover': { backgroundColor: 'rgba(138, 36, 39, 0.1)' }
+                      '&:hover': { backgroundColor: 'rgba(139, 69, 19, 0.1)' }
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 36, color: theme.palette.text.secondary }}>
@@ -501,7 +471,8 @@ function Header({ isAuthenticated, user, onLogout }) {
                   color="inherit"
                   variant="outlined"
                   sx={{ 
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    borderColor: 'rgba(139, 69, 19, 0.3)',
+                    color: theme.palette.text.primary,
                     '&:hover': {
                       borderColor: theme.palette.secondary.main,
                       color: theme.palette.secondary.main,
@@ -516,10 +487,10 @@ function Header({ isAuthenticated, user, onLogout }) {
                   color="secondary"
                   variant="contained"
                   sx={{ 
-                    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                    color: theme.palette.secondary.main,
+                    backgroundColor: theme.palette.primary.main,
+                    color: '#FEFCF7',
                     '&:hover': {
-                      backgroundColor: 'rgba(212, 175, 55, 0.25)',
+                      backgroundColor: theme.palette.primary.dark,
                     }
                   }}
                 >
@@ -539,7 +510,7 @@ function Header({ isAuthenticated, user, onLogout }) {
         sx={{
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
-            boxShadow: '0 0 20px rgba(0, 0, 0, 0.5)',
+            boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
           },
         }}
       >
