@@ -136,7 +136,7 @@ function HomePage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Hero Section - 와인 페어링 차트 스타일 */}
+      {/* Hero Section - 와인 배경 이미지 추가 */}
       <Paper 
         elevation={0}
         sx={{ 
@@ -146,16 +146,19 @@ function HomePage() {
           borderRadius: 4,
           background: `
             linear-gradient(135deg, 
-              rgba(245, 241, 232, 0.9) 0%, 
-              rgba(248, 245, 238, 0.95) 50%, 
-              rgba(251, 248, 241, 0.9) 100%
+              rgba(45, 45, 45, 0.7) 0%, 
+              rgba(60, 39, 35, 0.8) 50%, 
+              rgba(75, 50, 40, 0.7) 100%
             ),
-            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%23D4AF37" opacity="0.1"/><circle cx="80" cy="40" r="1.5" fill="%238B4513" opacity="0.1"/><circle cx="40" cy="70" r="1" fill="%23228B22" opacity="0.1"/><circle cx="70" cy="80" r="2.5" fill="%23B8860B" opacity="0.1"/></svg>')
+            url('/images/wine-bg.jpg')
           `,
-          backgroundSize: '100px 100px',
-          border: '2px solid rgba(139, 69, 19, 0.1)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          border: '2px solid rgba(139, 69, 19, 0.3)',
           position: 'relative',
           overflow: 'hidden',
+          color: 'white',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -163,7 +166,7 @@ function HomePage() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(139, 69, 19, 0.02) 10px, rgba(139, 69, 19, 0.02) 20px)',
+            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.05) 10px, rgba(255, 255, 255, 0.05) 20px)',
             pointerEvents: 'none',
           }
         }}
@@ -171,33 +174,35 @@ function HomePage() {
         <Box textAlign="center" position="relative" zIndex={1}>
           {/* 제목에 아이콘들 추가 */}
           <Box display="flex" justifyContent="center" alignItems="center" gap={2} mb={2}>
-            <LocalBarIcon sx={{ fontSize: 40, color: '#8B4513' }} />
+            <LocalBarIcon sx={{ fontSize: 40, color: '#DAA520' }} />
             <Typography 
               variant="h2" 
               component="h1" 
               sx={{ 
                 fontWeight: 700,
-                background: 'linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #654321 100%)',
+                background: 'linear-gradient(135deg, #DAA520 0%, #FFD700 50%, #F4A460 100%)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                textShadow: '2px 2px 4px rgba(139, 69, 19, 0.1)',
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
+                filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))',
               }}
             >
               AI 와인 & 푸드 페어링
             </Typography>
-            <FastfoodIcon sx={{ fontSize: 40, color: '#228B22' }} />
+            <FastfoodIcon sx={{ fontSize: 40, color: '#DAA520' }} />
           </Box>
           
           <Typography 
             variant="h5" 
             sx={{ 
               mb: 4,
-              color: '#5D4037',
+              color: 'rgba(255, 255, 255, 0.95)',
               maxWidth: '600px',
               mx: 'auto',
               lineHeight: 1.6,
               fontWeight: 400,
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)',
             }}
           >
             완벽한 조화를 이루는 주류와 음식의 궁합을 AI가 찾아드립니다
@@ -214,10 +219,13 @@ function HomePage() {
                 fontSize: '1.1rem',
                 py: 1.5,
                 px: 4,
-                background: 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)',
+                background: 'linear-gradient(135deg, #DAA520 0%, #FFD700 100%)',
+                color: '#2D2D2D',
+                fontWeight: 'bold',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #A0522D 0%, #8B4513 100%)',
+                  background: 'linear-gradient(135deg, #FFD700 0%, #DAA520 100%)',
                   transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(218, 165, 32, 0.4)',
                 },
               }}
             >
@@ -233,11 +241,13 @@ function HomePage() {
                 fontSize: '1.1rem',
                 py: 1.5,
                 px: 4,
-                borderColor: '#228B22',
-                color: '#228B22',
+                borderColor: '#DAA520',
+                color: '#DAA520',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 '&:hover': {
-                  borderColor: '#32CD32',
-                  backgroundColor: 'rgba(34, 139, 34, 0.05)',
+                  borderColor: '#FFD700',
+                  backgroundColor: 'rgba(218, 165, 32, 0.2)',
+                  color: '#FFD700',
                 },
               }}
             >
@@ -253,11 +263,13 @@ function HomePage() {
                 fontSize: '1.1rem',
                 py: 1.5,
                 px: 4,
-                borderColor: '#B8860B',
-                color: '#B8860B',
+                borderColor: '#DAA520',
+                color: '#DAA520',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 '&:hover': {
-                  borderColor: '#DAA520',
-                  backgroundColor: 'rgba(184, 134, 11, 0.05)',
+                  borderColor: '#FFD700',
+                  backgroundColor: 'rgba(218, 165, 32, 0.2)',
+                  color: '#FFD700',
                 },
               }}
             >
