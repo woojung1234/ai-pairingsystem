@@ -136,132 +136,105 @@ function HomePage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Hero Section - 모던한 제목 스타일 */}
+      {/* Hero Section - 전문적이고 식욕을 돋우는 디자인 */}
       <Paper 
         elevation={0}
         sx={{ 
           mb: 6,
-          py: 10,
+          py: 8,
           px: 4,
-          borderRadius: 4,
+          borderRadius: 3,
           background: `
             linear-gradient(135deg, 
-              rgba(45, 45, 45, 0.75) 0%, 
-              rgba(60, 39, 35, 0.8) 50%, 
-              rgba(75, 50, 40, 0.75) 100%
+              rgba(30, 30, 30, 0.7) 0%, 
+              rgba(45, 35, 30, 0.75) 50%, 
+              rgba(60, 45, 35, 0.7) 100%
             ),
             url('/images/wine-bg.jpg')
           `,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          border: '2px solid rgba(139, 69, 19, 0.3)',
+          border: '1px solid rgba(139, 69, 19, 0.2)',
           position: 'relative',
           overflow: 'hidden',
           color: 'white',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.03) 10px, rgba(255, 255, 255, 0.03) 20px)',
-            pointerEvents: 'none',
-          }
         }}
       >
         <Box textAlign="center" position="relative" zIndex={1}>
-          {/* 모던한 제목 디자인 */}
-          <Box display="flex" justifyContent="center" alignItems="center" gap={3} mb={3}>
+          {/* 절제된 제목 디자인 */}
+          <Box display="flex" justifyContent="center" alignItems="center" gap={2} mb={2}>
             <LocalBarIcon sx={{ 
-              fontSize: { xs: 32, md: 40 }, 
-              color: '#FFD700',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+              fontSize: 28, 
+              color: '#D4AF37',
+              opacity: 0.9
             }} />
             <Typography 
-              variant="h1" 
+              variant="h2" 
               component="h1" 
               sx={{ 
-                fontWeight: 900,
-                fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem', lg: '4rem' },
-                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 30%, #FF8C00 60%, #FFD700 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                letterSpacing: '-0.03em',
-                lineHeight: 0.9,
-                textShadow: 'none',
-                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif",
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: '-8px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '60%',
-                  height: '3px',
-                  background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
-                  borderRadius: '2px',
-                }
+                fontWeight: 600,
+                fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+                color: 'white',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.2,
+                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
               }}
             >
               AI 와인 & 푸드 페어링
             </Typography>
-            <FastfoodIcon sx={{ 
-              fontSize: { xs: 32, md: 40 }, 
-              color: '#FFD700',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+            <RestaurantIcon sx={{ 
+              fontSize: 28, 
+              color: '#D4AF37',
+              opacity: 0.9
             }} />
           </Box>
           
           <Typography 
-            variant="h5" 
+            variant="h6" 
             sx={{ 
-              mb: 5,
-              color: 'rgba(255, 255, 255, 0.92)',
-              maxWidth: '650px',
+              mb: 4,
+              color: 'rgba(255, 255, 255, 0.85)',
+              maxWidth: '580px',
               mx: 'auto',
-              lineHeight: 1.5,
+              lineHeight: 1.6,
               fontWeight: 400,
-              fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' },
-              textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)',
-              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-              letterSpacing: '-0.01em',
+              fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+              textShadow: '0 1px 2px rgba(0, 0, 0, 0.4)',
+              fontFamily: "'Inter', sans-serif",
             }}
           >
-            완벽한 조화를 이루는 주류와 음식의 궁합을 AI가 찾아드립니다
+            전문가 수준의 AI가 분석하는 완벽한 음식과 주류의 조화
           </Typography>
 
-          {/* 모던한 버튼 그룹 */}
-          <Box display="flex" gap={3} justifyContent="center" flexWrap="wrap">
+          {/* 전문적인 버튼 그룹 */}
+          <Box display="flex" gap={2.5} justifyContent="center" flexWrap="wrap">
             <Button
               variant="contained"
               size="large"
               onClick={handlePairingExplore}
               startIcon={<AutoAwesomeIcon />}
               sx={{
-                fontSize: '1.1rem',
-                py: 1.5,
-                px: 4,
-                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                fontSize: '1rem',
+                py: 1.2,
+                px: 3,
+                background: 'linear-gradient(135deg, #D4AF37 0%, #B8860B 100%)',
                 color: '#1A1A1A',
-                fontWeight: 700,
-                borderRadius: '50px',
-                border: '2px solid rgba(255, 215, 0, 0.3)',
-                backdropFilter: 'blur(10px)',
+                fontWeight: 600,
+                borderRadius: 2,
                 textTransform: 'none',
-                letterSpacing: '-0.01em',
+                letterSpacing: '-0.005em',
                 fontFamily: "'Inter', sans-serif",
+                boxShadow: '0 4px 12px rgba(212, 175, 55, 0.3)',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
-                  transform: 'translateY(-2px) scale(1.02)',
-                  boxShadow: '0 8px 25px rgba(255, 215, 0, 0.4)',
+                  background: 'linear-gradient(135deg, #B8860B 0%, #D4AF37 100%)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 6px 16px rgba(212, 175, 55, 0.4)',
                 },
               }}
             >
-              페어링 찾기
+              페어링 분석
             </Button>
             
             <Button
@@ -270,24 +243,22 @@ function HomePage() {
               onClick={handleLiquorRecommendation}
               startIcon={<LocalBarIcon />}
               sx={{
-                fontSize: '1.1rem',
-                py: 1.5,
-                px: 4,
-                borderColor: 'rgba(255, 215, 0, 0.6)',
-                color: '#FFD700',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                fontSize: '1rem',
+                py: 1.2,
+                px: 3,
+                borderColor: 'rgba(212, 175, 55, 0.8)',
+                color: '#D4AF37',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 backdropFilter: 'blur(10px)',
-                borderRadius: '50px',
-                border: '2px solid rgba(255, 215, 0, 0.6)',
-                fontWeight: 600,
+                borderRadius: 2,
+                fontWeight: 500,
                 textTransform: 'none',
-                letterSpacing: '-0.01em',
+                letterSpacing: '-0.005em',
                 fontFamily: "'Inter', sans-serif",
                 '&:hover': {
-                  borderColor: '#FFD700',
-                  backgroundColor: 'rgba(255, 215, 0, 0.15)',
-                  color: '#FFA500',
-                  transform: 'translateY(-1px)',
+                  borderColor: '#D4AF37',
+                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  color: '#E6C547',
                 },
               }}
             >
@@ -300,24 +271,22 @@ function HomePage() {
               onClick={handleIngredientRecommendation}
               startIcon={<RestaurantIcon />}
               sx={{
-                fontSize: '1.1rem',
-                py: 1.5,
-                px: 4,
-                borderColor: 'rgba(255, 215, 0, 0.6)',
-                color: '#FFD700',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                fontSize: '1rem',
+                py: 1.2,
+                px: 3,
+                borderColor: 'rgba(212, 175, 55, 0.8)',
+                color: '#D4AF37',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 backdropFilter: 'blur(10px)',
-                borderRadius: '50px',
-                border: '2px solid rgba(255, 215, 0, 0.6)',
-                fontWeight: 600,
+                borderRadius: 2,
+                fontWeight: 500,
                 textTransform: 'none',
-                letterSpacing: '-0.01em',
+                letterSpacing: '-0.005em',
                 fontFamily: "'Inter', sans-serif",
                 '&:hover': {
-                  borderColor: '#FFD700',
-                  backgroundColor: 'rgba(255, 215, 0, 0.15)',
-                  color: '#FFA500',
-                  transform: 'translateY(-1px)',
+                  borderColor: '#D4AF37',
+                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  color: '#E6C547',
                 },
               }}
             >
@@ -332,19 +301,19 @@ function HomePage() {
         <Typography 
           variant="h4" 
           sx={{ 
-            fontWeight: 700,
+            fontWeight: 600,
             color: '#2C2C2C',
             display: 'flex',
             alignItems: 'center',
             gap: 1,
             mb: 3,
             justifyContent: 'center',
-            fontSize: { xs: '1.75rem', md: '2.125rem' },
-            letterSpacing: '-0.02em',
+            fontSize: { xs: '1.5rem', md: '1.75rem' },
+            letterSpacing: '-0.01em',
             fontFamily: "'Inter', sans-serif",
           }}
         >
-          <LocalBarIcon sx={{ color: '#8B4513' }} />
+          <LocalBarIcon sx={{ color: '#8B4513', fontSize: 28 }} />
           인기 주류
         </Typography>
         
@@ -440,19 +409,19 @@ function HomePage() {
         <Typography 
           variant="h4" 
           sx={{ 
-            fontWeight: 700,
+            fontWeight: 600,
             color: '#2C2C2C',
             display: 'flex',
             alignItems: 'center',
             gap: 1,
             mb: 3,
             justifyContent: 'center',
-            fontSize: { xs: '1.75rem', md: '2.125rem' },
-            letterSpacing: '-0.02em',
+            fontSize: { xs: '1.5rem', md: '1.75rem' },
+            letterSpacing: '-0.01em',
             fontFamily: "'Inter', sans-serif",
           }}
         >
-          <RestaurantIcon sx={{ color: '#228B22' }} />
+          <RestaurantIcon sx={{ color: '#228B22', fontSize: 28 }} />
           인기 음식
         </Typography>
         
@@ -543,13 +512,13 @@ function HomePage() {
         </Box>
       </Box>
 
-      {/* 특징 섹션 - 와인 페어링 차트 스타일 */}
+      {/* 특징 섹션 */}
       <Paper 
         elevation={0}
         sx={{ 
           py: 6,
           px: 4,
-          borderRadius: 4,
+          borderRadius: 3,
           background: 'linear-gradient(135deg, rgba(248, 245, 238, 0.8) 0%, rgba(245, 241, 232, 0.9) 100%)',
           border: '1px solid rgba(139, 69, 19, 0.1)',
         }}
@@ -559,24 +528,24 @@ function HomePage() {
           textAlign="center" 
           sx={{ 
             mb: 4,
-            fontWeight: 700,
+            fontWeight: 600,
             color: '#2C2C2C',
-            fontSize: { xs: '1.75rem', md: '2.125rem' },
-            letterSpacing: '-0.02em',
+            fontSize: { xs: '1.5rem', md: '1.75rem' },
+            letterSpacing: '-0.01em',
             fontFamily: "'Inter', sans-serif",
           }}
         >
-          왜 AI 페어링인가요?
+          전문적인 AI 페어링 서비스
         </Typography>
         
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
             <Box textAlign="center" sx={{ p: 3 }}>
-              <AutoAwesomeIcon sx={{ fontSize: 48, color: '#8B4513', mb: 2 }} />
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <AutoAwesomeIcon sx={{ fontSize: 40, color: '#8B4513', mb: 2 }} />
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: '1.1rem' }}>
                 AI 기반 분석
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                 수천 가지 조합을 분석하여 과학적으로 검증된 최적의 페어링을 제안합니다
               </Typography>
             </Box>
@@ -584,11 +553,11 @@ function HomePage() {
           
           <Grid item xs={12} md={4}>
             <Box textAlign="center" sx={{ p: 3 }}>
-              <TrendingUpIcon sx={{ fontSize: 48, color: '#228B22', mb: 2 }} />
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <TrendingUpIcon sx={{ fontSize: 40, color: '#228B22', mb: 2 }} />
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: '1.1rem' }}>
                 개인 맞춤형
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                 개인의 취향과 선호도를 학습하여 점점 더 정확한 추천을 제공합니다
               </Typography>
             </Box>
@@ -596,11 +565,11 @@ function HomePage() {
           
           <Grid item xs={12} md={4}>
             <Box textAlign="center" sx={{ p: 3 }}>
-              <LocalBarIcon sx={{ fontSize: 48, color: '#B8860B', mb: 2 }} />
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              <LocalBarIcon sx={{ fontSize: 40, color: '#B8860B', mb: 2 }} />
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: '1.1rem' }}>
                 전문가 수준
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                 소믈리에와 셰프들의 지식을 바탕으로 한 전문적인 페어링 정보를 제공합니다
               </Typography>
             </Box>
