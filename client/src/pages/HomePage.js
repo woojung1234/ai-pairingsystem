@@ -18,8 +18,12 @@ import {
   AutoAwesome as AutoAwesomeIcon,
   TrendingUp as TrendingUpIcon,
   ArrowForward as ArrowForwardIcon,
+  ArrowBack as ArrowBackIcon,
   Fastfood as FastfoodIcon,
 } from '@mui/icons-material';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import axios from 'axios';
 
 function HomePage() {
@@ -27,6 +31,10 @@ function HomePage() {
   const [liquors, setLiquors] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // 슬라이더 참조
+  const liquorSliderRef = useRef(null);
+  const ingredientSliderRef = useRef(null);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -48,8 +56,8 @@ function HomePage() {
           ? ingredientsResponse.data 
           : (ingredientsResponse.data.data || []);
         
-        setLiquors(liquorsData.slice(0, 8)); // 상위 8개만
-        setIngredients(ingredientsData.slice(0, 8)); // 상위 8개만
+        setLiquors(liquorsData.slice(0, 6)); // 6개만
+        setIngredients(ingredientsData.slice(0, 6)); // 6개만
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -63,8 +71,6 @@ function HomePage() {
           { id: 4, name: "진", type: "진", imageUrl: "/images/gin.jpg" },
           { id: 5, name: "보드카", type: "보드카", imageUrl: "/images/vodka.jpg" },
           { id: 6, name: "소주", type: "소주", imageUrl: "/images/soju.jpg" },
-          { id: 7, name: "사케", type: "사케", imageUrl: "/images/sake.jpg" },
-          { id: 8, name: "맥주", type: "맥주", imageUrl: "/images/beer.jpg" },
         ]);
         
         setIngredients([
@@ -74,8 +80,6 @@ function HomePage() {
           { id: 4, name: "디저트", category: "디저트", imageUrl: "/images/dessert.jpg" },
           { id: 5, name: "파스타", category: "면류", imageUrl: "/images/pasta.jpg" },
           { id: 6, name: "샐러드", category: "채소", imageUrl: "/images/salad.jpg" },
-          { id: 7, name: "과일", category: "과일", imageUrl: "/images/fruit.jpg" },
-          { id: 8, name: "견과류", category: "견과류", imageUrl: "/images/nuts.jpg" },
         ]);
       }
     };
@@ -88,13 +92,46 @@ function HomePage() {
     navigate('/pairing');
   };
 
-  // 카테고리 카드 클릭 핸들러
-  const handleCategoryClick = (item, type) => {
-    if (type === 'liquor') {
-      navigate(`/liquors/${item.id}`);
-    } else {
-      navigate(`/ingredients/${item.id}`);
-    }
+  // 술 추천 페이지로 이동 (재료 입력)
+  const handleLiquorRecommendation = () => {
+    navigate('/pairing?mode=liquor-recommendation');
+  };
+
+  // 음식 추천 페이지로 이동 (술 입력)
+  const handleIngredientRecommendation = () => {
+    navigate('/pairing?mode=ingredient-recommendation');
+  };
+
+  // 슬라이더 설정
+  const sliderSettings = {
+    dots: false,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    arrows: false, // 기본 화살표 제거
+    responsive: [
+      {
+        breakpoint: 1200,
+        settings: {
+          slidesToShow: 3,
+        }
+      },
+      {
+        breakpoint: 900,
+        settings: {
+          slidesToShow: 2,
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 1,
+        }
+      }
+    ]
   };
 
   return (
@@ -190,7 +227,7 @@ function HomePage() {
             <Button
               variant="outlined"
               size="large"
-              onClick={() => navigate('/liquors')}
+              onClick={handleLiquorRecommendation}
               startIcon={<LocalBarIcon />}
               sx={{
                 fontSize: '1.1rem',
@@ -204,13 +241,13 @@ function HomePage() {
                 },
               }}
             >
-              주류 탐색
+              술 추천
             </Button>
             
             <Button
               variant="outlined"
               size="large"
-              onClick={() => navigate('/ingredients')}
+              onClick={handleIngredientRecommendation}
               startIcon={<RestaurantIcon />}
               sx={{
                 fontSize: '1.1rem',
@@ -224,150 +261,220 @@ function HomePage() {
                 },
               }}
             >
-              음식 탐색
+              음식 추천
             </Button>
           </Box>
         </Box>
       </Paper>
 
-      {/* 주류 카테고리 섹션 */}
+      {/* 주류 카테고리 슬라이더 */}
       <Box mb={6}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              fontWeight: 600,
-              color: '#3E2723',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            fontWeight: 600,
+            color: '#3E2723',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            mb: 3,
+            justifyContent: 'center',
+          }}
+        >
+          <LocalBarIcon sx={{ color: '#8B4513' }} />
+          인기 주류
+        </Typography>
+        
+        {/* 슬라이더 컨테이너 */}
+        <Box sx={{ position: 'relative', px: 6 }}>
+          {/* 왼쪽 화살표 */}
+          <IconButton
+            onClick={() => liquorSliderRef.current?.slickPrev()}
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+              backgroundColor: 'rgba(139, 69, 19, 0.1)',
+              color: '#8B4513',
+              '&:hover': {
+                backgroundColor: 'rgba(139, 69, 19, 0.2)',
+              },
             }}
           >
-            <LocalBarIcon sx={{ color: '#8B4513' }} />
-            인기 주류
-          </Typography>
-          <Button
-            endIcon={<ArrowForwardIcon />}
-            onClick={() => navigate('/liquors')}
-            sx={{ color: '#8B4513' }}
-          >
-            전체 보기
-          </Button>
-        </Box>
-        
-        <Grid container spacing={3}>
-          {liquors.map((liquor) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={liquor.id}>
-              <Card 
-                sx={{ 
-                  cursor: 'pointer',
-                  height: '100%',
-                  position: 'relative',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: 'linear-gradient(90deg, #8B4513, #A0522D, #654321)',
-                    borderRadius: '16px 16px 0 0',
-                  }
-                }}
-                onClick={() => handleCategoryClick(liquor, 'liquor')}
-              >
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={liquor.imageUrl || 'https://via.placeholder.com/300x200?text=Wine'}
-                  alt={liquor.name}
+            <ArrowBackIcon />
+          </IconButton>
+          
+          {/* 슬라이더 */}
+          <Slider ref={liquorSliderRef} {...sliderSettings}>
+            {liquors.map((liquor) => (
+              <Box key={liquor.id} sx={{ px: 1.5 }}>
+                <Card 
                   sx={{ 
-                    objectFit: 'cover',
-                    filter: 'sepia(10%) saturate(110%)',
+                    cursor: 'pointer',
+                    height: '300px',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: '4px',
+                      background: 'linear-gradient(90deg, #8B4513, #A0522D, #654321)',
+                      borderRadius: '16px 16px 0 0',
+                    }
                   }}
-                />
-                <CardContent sx={{ pb: 2 }}>
-                  <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
-                    {liquor.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {liquor.type}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                  onClick={() => navigate('/pairing')}
+                >
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={liquor.imageUrl || 'https://via.placeholder.com/300x200?text=Wine'}
+                    alt={liquor.name}
+                    sx={{ 
+                      objectFit: 'cover',
+                      filter: 'sepia(10%) saturate(110%)',
+                    }}
+                  />
+                  <CardContent sx={{ pb: 2 }}>
+                    <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
+                      {liquor.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {liquor.type}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
+          </Slider>
+          
+          {/* 오른쪽 화살표 */}
+          <IconButton
+            onClick={() => liquorSliderRef.current?.slickNext()}
+            sx={{
+              position: 'absolute',
+              right: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+              backgroundColor: 'rgba(139, 69, 19, 0.1)',
+              color: '#8B4513',
+              '&:hover': {
+                backgroundColor: 'rgba(139, 69, 19, 0.2)',
+              },
+            }}
+          >
+            <ArrowForwardIcon />
+          </IconButton>
+        </Box>
       </Box>
 
-      {/* 음식 카테고리 섹션 */}
+      {/* 음식 카테고리 슬라이더 */}
       <Box mb={6}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              fontWeight: 600,
-              color: '#3E2723',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            fontWeight: 600,
+            color: '#3E2723',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            mb: 3,
+            justifyContent: 'center',
+          }}
+        >
+          <RestaurantIcon sx={{ color: '#228B22' }} />
+          인기 음식
+        </Typography>
+        
+        {/* 슬라이더 컨테이너 */}
+        <Box sx={{ position: 'relative', px: 6 }}>
+          {/* 왼쪽 화살표 */}
+          <IconButton
+            onClick={() => ingredientSliderRef.current?.slickPrev()}
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+              backgroundColor: 'rgba(34, 139, 34, 0.1)',
+              color: '#228B22',
+              '&:hover': {
+                backgroundColor: 'rgba(34, 139, 34, 0.2)',
+              },
             }}
           >
-            <RestaurantIcon sx={{ color: '#228B22' }} />
-            인기 음식
-          </Typography>
-          <Button
-            endIcon={<ArrowForwardIcon />}
-            onClick={() => navigate('/ingredients')}
-            sx={{ color: '#228B22' }}
-          >
-            전체 보기
-          </Button>
-        </Box>
-        
-        <Grid container spacing={3}>
-          {ingredients.map((ingredient) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={ingredient.id}>
-              <Card 
-                sx={{ 
-                  cursor: 'pointer',
-                  height: '100%',
-                  position: 'relative',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: 'linear-gradient(90deg, #228B22, #32CD32, #006400)',
-                    borderRadius: '16px 16px 0 0',
-                  }
-                }}
-                onClick={() => handleCategoryClick(ingredient, 'ingredient')}
-              >
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={ingredient.imageUrl || 'https://via.placeholder.com/300x200?text=Food'}
-                  alt={ingredient.name}
+            <ArrowBackIcon />
+          </IconButton>
+          
+          {/* 슬라이더 */}
+          <Slider ref={ingredientSliderRef} {...sliderSettings}>
+            {ingredients.map((ingredient) => (
+              <Box key={ingredient.id} sx={{ px: 1.5 }}>
+                <Card 
                   sx={{ 
-                    objectFit: 'cover',
-                    filter: 'sepia(5%) saturate(105%)',
+                    cursor: 'pointer',
+                    height: '300px',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: '4px',
+                      background: 'linear-gradient(90deg, #228B22, #32CD32, #006400)',
+                      borderRadius: '16px 16px 0 0',
+                    }
                   }}
-                />
-                <CardContent sx={{ pb: 2 }}>
-                  <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
-                    {ingredient.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {ingredient.category}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                  onClick={() => navigate('/pairing')}
+                >
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={ingredient.imageUrl || 'https://via.placeholder.com/300x200?text=Food'}
+                    alt={ingredient.name}
+                    sx={{ 
+                      objectFit: 'cover',
+                      filter: 'sepia(5%) saturate(105%)',
+                    }}
+                  />
+                  <CardContent sx={{ pb: 2 }}>
+                    <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
+                      {ingredient.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {ingredient.category}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
+          </Slider>
+          
+          {/* 오른쪽 화살표 */}
+          <IconButton
+            onClick={() => ingredientSliderRef.current?.slickNext()}
+            sx={{
+              position: 'absolute',
+              right: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+              backgroundColor: 'rgba(34, 139, 34, 0.1)',
+              color: '#228B22',
+              '&:hover': {
+                backgroundColor: 'rgba(34, 139, 34, 0.2)',
+              },
+            }}
+          >
+            <ArrowForwardIcon />
+          </IconButton>
+        </Box>
       </Box>
 
       {/* 특징 섹션 - 와인 페어링 차트 스타일 */}
